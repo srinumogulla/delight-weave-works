@@ -155,3 +155,39 @@
     border-image: linear-gradient(90deg, hsl(43 74% 49%), hsl(350 72% 40%), hsl(43 74% 49%)) 1;
   }
 }
+
+/* Temple Gate Intro Styles */
+.temple-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: linear-gradient(135deg, hsl(350 60% 25%) 0%, hsl(350 72% 20%) 100%);
+  transform-style: preserve-3d;
+  transition: transform 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.temple-door-left {
+  left: 0;
+  transform-origin: left center;
+}
+
+.temple-door-right {
+  right: 0;
+  transform-origin: right center;
+}
+
+.door-inner {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, hsl(350 60% 28%) 0%, hsl(350 60% 22%) 50%, hsl(350 60% 18%) 100%);
+  box-shadow: inset 0 0 60px hsl(350 60% 10% / 0.5);
+}
+
+.door-open-left {
+  transform: perspective(1500px) rotateY(-105deg);
+}
+
+.door-open-right {
+  transform: perspective(1500px) rotateY(105deg);
+}
