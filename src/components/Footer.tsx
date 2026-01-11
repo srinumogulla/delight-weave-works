@@ -1,4 +1,5 @@
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react";
+import { BackgroundPattern } from "./BackgroundPattern";
 
 const footerLinks = {
   services: [
@@ -40,9 +41,12 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="bg-foreground text-background">
+    <footer className="bg-foreground text-background relative overflow-hidden">
+      {/* SVG Background Pattern */}
+      <BackgroundPattern className="opacity-5 invert" opacity={1} />
+      
       {/* Main Footer */}
-      <div className="container py-12 md:py-16">
+      <div className="container py-12 md:py-16 relative">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
           {/* Brand Column */}
           <div className="col-span-2">

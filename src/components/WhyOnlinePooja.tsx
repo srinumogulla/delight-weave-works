@@ -1,6 +1,11 @@
 import { Heart, BookOpen, Sparkles, ScrollText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
+import whyDevotion from "@/assets/why-devotion.jpg";
+import whySankalpa from "@/assets/why-sankalpa.jpg";
+import whyCharity from "@/assets/why-charity.jpg";
+import whyScriptures from "@/assets/why-scriptures.jpg";
+
 const reasons = [
   {
     icon: Heart,
@@ -8,6 +13,7 @@ const reasons = [
     description:
       "According to scriptures, the spiritual merit (punya) of any ritual is directly proportional to the devotion and sincerity of the performer. Our Purohits are trained to perform each ritual with utmost dedication.",
     gradient: "from-primary/20 to-primary/5",
+    image: whyDevotion,
   },
   {
     icon: BookOpen,
@@ -15,6 +21,7 @@ const reasons = [
     description:
       "The Sankalpa (sacred resolution) taken at the beginning of each pooja dedicates the entire ritual to the devotee. Your name, gotra, and intention are invoked, making you the primary beneficiary.",
     gradient: "from-accent/20 to-accent/5",
+    image: whySankalpa,
   },
   {
     icon: Sparkles,
@@ -22,6 +29,7 @@ const reasons = [
     description:
       "Just as one can sponsor a temple's construction or donate to charity remotely, sponsoring a pooja performed by a qualified priest carries equal spiritual significance as being physically present.",
     gradient: "from-sacred-green/20 to-sacred-green/5",
+    image: whyCharity,
   },
   {
     icon: ScrollText,
@@ -29,6 +37,7 @@ const reasons = [
     description:
       "Ancient texts like the Vishnu Purana and Agni Purana mention that when geographical limitations prevent direct participation, delegation to qualified priests is an acceptable and fruitful alternative.",
     gradient: "from-saffron/20 to-saffron/5",
+    image: whyScriptures,
   },
 ];
 
@@ -58,15 +67,25 @@ export function WhyOnlinePooja() {
               <CardContent className="p-0">
                 <div className={`bg-gradient-to-br ${reason.gradient} p-6`}>
                   <div className="flex gap-4">
+                    {/* Image thumbnail */}
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 rounded-xl bg-card flex items-center justify-center shadow-sm">
-                        <reason.icon className="h-6 w-6 text-primary" />
+                      <div className="w-20 h-20 rounded-xl overflow-hidden shadow-md">
+                        <img 
+                          src={reason.image} 
+                          alt={reason.title}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
                     </div>
-                    <div>
-                      <h3 className="font-heading text-lg font-semibold text-foreground mb-2">
-                        {reason.title}
-                      </h3>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-8 h-8 rounded-lg bg-card flex items-center justify-center shadow-sm">
+                          <reason.icon className="h-4 w-4 text-primary" />
+                        </div>
+                        <h3 className="font-heading text-lg font-semibold text-foreground">
+                          {reason.title}
+                        </h3>
+                      </div>
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         {reason.description}
                       </p>

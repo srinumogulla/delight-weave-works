@@ -1,6 +1,7 @@
 import { Calendar, Sun, Moon, Star, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import meditationImage from "@/assets/meditation.jpg";
 
 const panchangData = {
   date: "January 10, 2026",
@@ -137,8 +138,12 @@ export function PanchangSection() {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="w-full h-32 rounded-lg bg-primary/10 flex items-center justify-center">
-                <span className="text-4xl">🧘</span>
+              <div className="w-full h-32 rounded-lg overflow-hidden">
+                <img 
+                  src={meditationImage} 
+                  alt="Person in meditation pose" 
+                  className="w-full h-full object-cover object-top"
+                />
               </div>
               <input
                 type="text"

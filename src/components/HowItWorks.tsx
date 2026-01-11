@@ -1,4 +1,5 @@
 import { MousePointer, Users, Video } from "lucide-react";
+import { BackgroundPattern } from "./BackgroundPattern";
 
 const steps = [
   {
@@ -30,8 +31,8 @@ const steps = [
 export function HowItWorks() {
   return (
     <section className="py-16 md:py-24 bg-background relative overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute inset-0 pattern-mandala opacity-20" />
+      {/* SVG Background Pattern */}
+      <BackgroundPattern opacity={0.08} />
       
       <div className="container relative">
         <div className="text-center mb-16">

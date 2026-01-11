@@ -3,6 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
+import ritualHomam from "@/assets/ritual-homam.jpg";
+import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
+import ritualVratam from "@/assets/ritual-vratam.jpg";
+import ritualShanti from "@/assets/ritual-shanti.jpg";
+import ritualLakshmi from "@/assets/ritual-lakshmi.jpg";
+
+const ritualImages: Record<string, string> = {
+  Homam: ritualHomam,
+  Abhishekam: ritualAbhishekam,
+  Vratam: ritualVratam,
+  Shanti: ritualShanti,
+  Lakshmi: ritualLakshmi,
+};
+
 const rituals = [
   {
     id: 1,
@@ -92,9 +106,14 @@ export function UpcomingRituals() {
                 ritual.isFeatured ? "ring-2 ring-accent" : ""
               }`}
             >
-              {/* Image Placeholder */}
-              <div className="relative h-40 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <span className="text-4xl">🔥</span>
+              {/* Ritual Image */}
+              <div className="relative h-40 overflow-hidden">
+                <img 
+                  src={ritualImages[ritual.category] || ritualHomam} 
+                  alt={ritual.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
                 
                 {ritual.isLive && (
                   <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 rounded-full bg-destructive text-destructive-foreground text-xs font-medium">
