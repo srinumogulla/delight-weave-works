@@ -1,5 +1,6 @@
 import { Check, Shield, Video, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ritualPooja from "@/assets/ritual-pooja.jpg";
 
 const features = [
   {
@@ -24,15 +25,14 @@ export function FeaturesSection() {
     <section className="py-16 md:py-24 bg-muted">
       <div className="container">
         <div className="grid md:grid-cols-2 gap-12 items-center">
-          {/* Image Placeholder */}
+          {/* Ritual Image */}
           <div className="relative">
-            <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-              <div className="text-center p-8">
-                <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
-                  <span className="font-heading text-6xl">🪔</span>
-                </div>
-                <p className="text-muted-foreground">Ritual Image Placeholder</p>
-              </div>
+            <div className="aspect-square rounded-2xl overflow-hidden shadow-xl">
+              <img 
+                src={ritualPooja} 
+                alt="Hindu priest performing pooja with oil lamps and flowers" 
+                className="w-full h-full object-cover"
+              />
             </div>
             
             {/* Decorative accent */}

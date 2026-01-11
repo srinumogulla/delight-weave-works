@@ -1,11 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Play, ArrowRight } from "lucide-react";
+import { BackgroundPattern } from "./BackgroundPattern";
+import heroTemple from "@/assets/hero-temple.jpg";
 
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background to-muted py-16 md:py-24">
+      {/* SVG Background Pattern */}
+      <BackgroundPattern opacity={0.12} />
+      
       {/* Decorative Elements */}
-      <div className="absolute inset-0 pattern-mandala opacity-30" />
       <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       
@@ -57,17 +61,15 @@ export function HeroSection() {
             </div>
           </div>
           
-          {/* Image Placeholder */}
+          {/* Temple Image */}
           <div className="relative animate-fade-in" style={{ animationDelay: "0.2s" }}>
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
-                    <span className="font-heading text-4xl text-primary">🕉️</span>
-                  </div>
-                  <p className="text-muted-foreground">Temple Image Placeholder</p>
-                </div>
-              </div>
+              <img 
+                src={heroTemple} 
+                alt="Sacred Hindu temple interior with oil lamps" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
             </div>
             
             {/* Floating Card */}
