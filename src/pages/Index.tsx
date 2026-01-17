@@ -8,20 +8,40 @@ import { WhyOnlinePooja } from "@/components/WhyOnlinePooja";
 import { Testimonials } from "@/components/Testimonials";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
+import { MobileLayout } from "@/components/mobile/MobileLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
+  const isMobile = useIsMobile();
+
+  const content = (
+    <>
+      <HeroSection />
+      <FeaturesSection />
+      <PanchangSection />
+      <UpcomingRituals />
+      <HowItWorks />
+      <WhyOnlinePooja />
+      <Testimonials />
+      <FAQ />
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <MobileLayout showHeader={true}>
+        <main>
+          {content}
+        </main>
+      </MobileLayout>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Header />
       <main>
-        <HeroSection />
-        <FeaturesSection />
-        <PanchangSection />
-        <UpcomingRituals />
-        <HowItWorks />
-        <WhyOnlinePooja />
-        <Testimonials />
-        <FAQ />
+        {content}
       </main>
       <Footer />
     </div>
