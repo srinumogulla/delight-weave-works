@@ -15,7 +15,6 @@ import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
@@ -53,12 +52,6 @@ export function Header() {
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
-            <NavigationMenuItem>
-              <Link to="/" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2">
-                {t("nav.home")}
-              </Link>
-            </NavigationMenuItem>
-
             {/* Pooja Dropdown */}
             <NavigationMenuItem>
               <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
@@ -136,51 +129,6 @@ export function Header() {
               </Link>
             </NavigationMenuItem>
 
-            {/* Community Dropdown */}
-            <NavigationMenuItem>
-              <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
-                Community
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <div className="w-[300px] p-4 bg-card">
-                  <div className="grid gap-3">
-                    <Link
-                      to="/community/events"
-                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-sacred-green/10 flex items-center justify-center">
-                          <Calendar className="h-5 w-5 text-sacred-green" />
-                        </div>
-                        <div>
-                          <div className="font-semibold text-foreground group-hover:text-primary">Events</div>
-                          <p className="text-sm text-muted-foreground">
-                            Spiritual events, festivals & satsangs
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                    <Link
-                      to="/community/about"
-                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <Users className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <div className="font-semibold text-foreground group-hover:text-primary">About Us</div>
-                          <p className="text-sm text-muted-foreground">
-                            Our mission, vision & principles
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
-
             {/* Contact */}
             <NavigationMenuItem>
               <Link to="/contact" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2">
@@ -189,6 +137,52 @@ export function Header() {
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
+
+        {/* Community Dropdown - Using DropdownMenu for proper positioning */}
+        <div className="hidden md:flex items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-1 text-sm font-medium text-foreground/80 hover:text-primary">
+                Community
+                <ChevronDown className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-[300px] p-4 bg-card">
+              <Link
+                to="/community/events"
+                className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-sacred-green/10 flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-sacred-green" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground group-hover:text-primary">Events</div>
+                    <p className="text-sm text-muted-foreground">
+                      Spiritual events, festivals & satsangs
+                    </p>
+                  </div>
+                </div>
+              </Link>
+              <Link
+                to="/community/about"
+                className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground group-hover:text-primary">About Us</div>
+                    <p className="text-sm text-muted-foreground">
+                      Our mission, vision & principles
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
@@ -230,14 +224,9 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <>
-              <Button variant="ghost" size="sm" asChild>
-                <Link to="/login">Login</Link>
-              </Button>
-              <Button size="sm" className="bg-primary hover:bg-primary/90" asChild>
-                <Link to="/signup">Sign Up</Link>
-              </Button>
-            </>
+            <Button size="sm" variant="outline" asChild>
+              <Link to="/login">Login / Sign Up</Link>
+            </Button>
           )}
         </div>
 
@@ -259,14 +248,6 @@ export function Header() {
             <div className="flex justify-end pb-2 border-b border-border mb-2">
               <LanguageSwitcher />
             </div>
-            
-            <Link
-              to="/"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Home
-            </Link>
 
             {/* Pooja Submenu */}
             <div>
@@ -394,14 +375,9 @@ export function Header() {
                   </Button>
                 </>
               ) : (
-                <>
-                  <Button variant="outline" size="sm" className="w-full" asChild>
-                    <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login</Link>
-                  </Button>
-                  <Button size="sm" className="w-full bg-primary hover:bg-primary/90" asChild>
-                    <Link to="/signup" onClick={() => setIsMenuOpen(false)}>Sign Up</Link>
-                  </Button>
-                </>
+                <Button size="sm" className="w-full bg-primary hover:bg-primary/90" asChild>
+                  <Link to="/login" onClick={() => setIsMenuOpen(false)}>Login / Sign Up</Link>
+                </Button>
               )}
             </div>
           </nav>
