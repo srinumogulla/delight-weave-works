@@ -6,11 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Loader2, Eye, EyeOff, CheckCircle, User, UserCheck } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileLayout } from '@/components/mobile/MobileLayout';
+import { supabase } from '@/integrations/supabase/client';
+
+type UserRole = 'user' | 'pundit';
 
 const Signup = () => {
   const [fullName, setFullName] = useState('');
@@ -21,6 +24,7 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<UserRole>('user');
   
   const { signUp } = useAuth();
   const navigate = useNavigate();
@@ -42,20 +46,51 @@ const Signup = () => {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password, fullName);
+    const { error: signUpError, data } = await signUp(email, password, fullName);
     
-    if (error) {
-      setError(error.message);
+    if (signUpError) {
+      setError(signUpError.message);
       setLoading(false);
     } else {
+      // Insert user role if signup successful
+      if (data?.user?.id) {
+        try {
+          await supabase.from('user_roles').insert({
+            user_id: data.user.id,
+            role: selectedRole
+          });
+        } catch (roleError) {
+          console.error('Error setting user role:', roleError);
+        }
+      }
+      
       setSuccess(true);
       setLoading(false);
       // Auto-redirect after showing success
       setTimeout(() => {
-        navigate('/');
+        if (selectedRole === 'pundit') {
+          navigate('/pundit');
+        } else {
+          navigate('/');
+        }
       }, 2000);
     }
   };
+
+  const roleOptions = [
+    {
+      value: 'user' as UserRole,
+      label: 'Devotee',
+      description: 'Book poojas and track spiritual journey',
+      icon: User
+    },
+    {
+      value: 'pundit' as UserRole,
+      label: 'Pundit',
+      description: 'Offer pooja services and manage bookings',
+      icon: UserCheck
+    }
+  ];
 
   const successContent = (
     <main className="flex-1 flex items-center justify-center px-4 py-12">
@@ -67,7 +102,7 @@ const Signup = () => {
             Welcome to our spiritual community. You are now signed in.
           </p>
           <p className="text-sm text-muted-foreground">
-            Redirecting you to home...
+            Redirecting you to {selectedRole === 'pundit' ? 'your dashboard' : 'home'}...
           </p>
         </CardContent>
       </Card>
@@ -92,6 +127,29 @@ const Signup = () => {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+
+            {/* Role Selection */}
+            <div className="space-y-2">
+              <Label>I am signing up as</Label>
+              <div className="grid grid-cols-2 gap-3">
+                {roleOptions.map((role) => (
+                  <button
+                    key={role.value}
+                    type="button"
+                    onClick={() => setSelectedRole(role.value)}
+                    className={`p-3 rounded-lg border-2 text-left transition-all ${
+                      selectedRole === role.value
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <role.icon className={`h-5 w-5 mb-2 ${selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <div className="font-medium text-sm">{role.label}</div>
+                    <p className="text-xs text-muted-foreground mt-1">{role.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name</Label>
@@ -168,7 +226,7 @@ const Signup = () => {
                   Creating account...
                 </>
               ) : (
-                'Create Account'
+                `Create ${selectedRole === 'pundit' ? 'Pundit' : ''} Account`
               )}
             </Button>
 

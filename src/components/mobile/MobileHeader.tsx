@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Menu, X, ChevronDown, Sun, Building2, UserCheck, Gift, Calendar, Users, BookOpen } from 'lucide-react';
+import { Bell, Menu, X, ChevronDown, Sun, Building2, UserCheck, Gift, Phone, Users, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useAuth } from '@/components/AuthProvider';
@@ -163,7 +163,7 @@ export function MobileHeader({
                 className="flex items-center gap-3 py-3 text-sm font-medium text-foreground hover:text-primary transition-colors"
                 onClick={closeMenu}
               >
-                <Calendar className="h-4 w-4" />
+                <Phone className="h-4 w-4" />
                 Contact
               </Link>
 

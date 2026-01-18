@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/i18n";
 import {
@@ -131,14 +131,16 @@ export function Header() {
 
             {/* Contact */}
             <NavigationMenuItem className="min-w-[70px]">
-              <Link to="/contact" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2">
+              <Link to="/contact" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
+                <Phone className="h-4 w-4" />
                 {t("nav.contact")}
               </Link>
             </NavigationMenuItem>
 
             {/* Community Dropdown */}
             <NavigationMenuItem className="min-w-[100px]">
-              <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
+              <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent flex items-center gap-1">
+                <Users className="h-4 w-4" />
                 Community
               </NavigationMenuTrigger>
               <NavigationMenuContent>
@@ -342,9 +344,10 @@ export function Header() {
 
             <Link
               to="/contact"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
               onClick={() => setIsMenuOpen(false)}
             >
+              <Phone className="h-4 w-4" />
               Contact
             </Link>
 

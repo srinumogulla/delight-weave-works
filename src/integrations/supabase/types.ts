@@ -286,6 +286,7 @@ export type Database = {
           photo_url: string | null
           specializations: string[] | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           bio?: string | null
@@ -300,6 +301,7 @@ export type Database = {
           photo_url?: string | null
           specializations?: string[] | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           bio?: string | null
@@ -314,6 +316,7 @@ export type Database = {
           photo_url?: string | null
           specializations?: string[] | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -439,7 +442,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "pundit"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -567,7 +570,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "pundit"],
     },
   },
 } as const
