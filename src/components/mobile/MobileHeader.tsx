@@ -99,23 +99,37 @@ export function MobileHeader({
                 Panchang
               </Link>
 
-              <Link
-                to="/temples"
-                className="flex items-center gap-3 py-3 text-sm font-medium text-foreground hover:text-primary transition-colors"
-                onClick={closeMenu}
-              >
-                <Building2 className="h-4 w-4" />
-                Temples
-              </Link>
-
-              <Link
-                to="/pundits"
-                className="flex items-center gap-3 py-3 text-sm font-medium text-foreground hover:text-primary transition-colors"
-                onClick={closeMenu}
-              >
-                <UserCheck className="h-4 w-4" />
-                Pundits
-              </Link>
+              {/* Explore Submenu */}
+              <div>
+                <button
+                  onClick={() => toggleSubmenu('explore')}
+                  className="flex items-center justify-between w-full py-3 text-sm font-medium text-foreground hover:text-primary transition-colors"
+                >
+                  <span className="flex items-center gap-3">
+                    <Building2 className="h-4 w-4" />
+                    Explore
+                  </span>
+                  <ChevronDown className={cn("h-4 w-4 transition-transform", expandedMenu === 'explore' && "rotate-180")} />
+                </button>
+                {expandedMenu === 'explore' && (
+                  <div className="pl-7 space-y-1">
+                    <Link
+                      to="/temples"
+                      className="block py-2 text-sm text-muted-foreground hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      Temples
+                    </Link>
+                    <Link
+                      to="/pundits"
+                      className="block py-2 text-sm text-muted-foreground hover:text-primary"
+                      onClick={closeMenu}
+                    >
+                      Pundits
+                    </Link>
+                  </div>
+                )}
+              </div>
 
               <Link
                 to="/gift-pooja"
