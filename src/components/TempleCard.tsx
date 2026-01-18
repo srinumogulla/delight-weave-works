@@ -1,8 +1,11 @@
-import { MapPin, Phone, ExternalLink } from "lucide-react";
+import { MapPin, Phone, ExternalLink, Heart } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n";
+import { useAuth } from "@/components/AuthProvider";
+import { useSavedItems } from "@/hooks/useSavedItems";
+import { cn } from "@/lib/utils";
 
 interface Temple {
   id: string;
@@ -24,6 +27,17 @@ interface TempleCardProps {
 
 export const TempleCard = ({ temple }: TempleCardProps) => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { isItemSaved, toggleSave, isToggling } = useSavedItems('temple');
+  
+  const isSaved = isItemSaved(temple.id, 'temple');
+
+  const handleSaveClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    toggleSave({ itemId: temple.id, type: 'temple' });
+  };
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -33,6 +47,23 @@ export const TempleCard = ({ temple }: TempleCardProps) => {
           alt={temple.name}
           className="w-full h-full object-cover"
         />
+        
+        {/* Save button */}
+        {user && (
+          <button
+            onClick={handleSaveClick}
+            disabled={isToggling}
+            className={cn(
+              "absolute top-2 left-2 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10",
+              isSaved 
+                ? "bg-destructive text-destructive-foreground" 
+                : "bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive"
+            )}
+          >
+            <Heart className={cn("h-4 w-4", isSaved && "fill-current")} />
+          </button>
+        )}
+        
         {temple.is_partner && (
           <Badge className="absolute top-2 right-2 bg-primary">
             {t("temples.partnerTemple")}

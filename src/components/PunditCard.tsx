@@ -1,8 +1,11 @@
-import { CheckCircle, Clock, Languages, MapPin } from "lucide-react";
+import { CheckCircle, Clock, Languages, MapPin, Heart } from "lucide-react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n";
+import { useAuth } from "@/components/AuthProvider";
+import { useSavedItems } from "@/hooks/useSavedItems";
+import { cn } from "@/lib/utils";
 
 interface Pundit {
   id: string;
@@ -22,15 +25,44 @@ interface PunditCardProps {
 
 export const PunditCard = ({ pundit }: PunditCardProps) => {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const { isItemSaved, toggleSave, isToggling } = useSavedItems('pundit');
+  
+  const isSaved = isItemSaved(pundit.id, 'pundit');
+
+  const handleSaveClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    toggleSave({ itemId: pundit.id, type: 'pundit' });
+  };
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 h-full flex flex-col">
-      {/* Header with gradient background */}
-      <div className="relative h-24 bg-gradient-to-r from-primary/30 via-accent/20 to-primary/10">
+      {/* Header with gradient background and pattern */}
+      <div className="relative h-28 bg-gradient-to-br from-primary/40 via-accent/30 to-primary/20">
         {/* Decorative pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,_hsl(var(--primary))_1px,_transparent_1px)] bg-[length:20px_20px]" />
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,_hsl(var(--primary))_1px,_transparent_1px)] bg-[length:16px_16px]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,_hsl(var(--accent))_1px,_transparent_1px)] bg-[length:24px_24px]" />
         </div>
+        
+        {/* Save button */}
+        {user && (
+          <button
+            onClick={handleSaveClick}
+            disabled={isToggling}
+            className={cn(
+              "absolute top-3 left-3 w-8 h-8 rounded-full flex items-center justify-center transition-all",
+              isSaved 
+                ? "bg-destructive text-destructive-foreground" 
+                : "bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive"
+            )}
+          >
+            <Heart className={cn("h-4 w-4", isSaved && "fill-current")} />
+          </button>
+        )}
+        
         {pundit.is_verified && (
           <Badge className="absolute top-3 right-3 bg-green-600 text-white">
             <CheckCircle className="h-3 w-3 mr-1" />
@@ -39,11 +71,11 @@ export const PunditCard = ({ pundit }: PunditCardProps) => {
         )}
       </div>
       
-      {/* Profile section - restructured to avoid overlap */}
-      <CardContent className="flex-1 p-4 pt-0 -mt-10">
-        <div className="flex items-start gap-4">
-          {/* Avatar */}
-          <div className="w-20 h-20 rounded-full border-4 border-background overflow-hidden bg-muted flex-shrink-0 shadow-lg">
+      {/* Profile section - adjusted to avoid overlap */}
+      <CardContent className="flex-1 p-4 pt-0 -mt-12">
+        <div className="flex flex-col items-center text-center">
+          {/* Avatar - centered */}
+          <div className="w-20 h-20 rounded-full border-4 border-background overflow-hidden bg-muted shadow-lg mb-3">
             <img
               src={pundit.photo_url || "/placeholder.svg"}
               alt={pundit.name}
@@ -52,23 +84,21 @@ export const PunditCard = ({ pundit }: PunditCardProps) => {
           </div>
           
           {/* Name and location */}
-          <div className="flex-1 pt-6">
-            <h3 className="text-lg font-semibold text-foreground line-clamp-1">
-              {pundit.name}
-            </h3>
-            {pundit.location && (
-              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                <MapPin className="h-3 w-3" />
-                {pundit.location}
-              </p>
-            )}
-          </div>
+          <h3 className="text-lg font-semibold text-foreground line-clamp-1">
+            {pundit.name}
+          </h3>
+          {pundit.location && (
+            <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+              <MapPin className="h-3 w-3" />
+              {pundit.location}
+            </p>
+          )}
         </div>
 
         {/* Details section */}
         <div className="mt-4 space-y-2">
           {pundit.experience_years && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4 text-primary" />
               <span>
                 {pundit.experience_years} {t("pundits.yearsExperience")}
@@ -76,7 +106,7 @@ export const PunditCard = ({ pundit }: PunditCardProps) => {
             </div>
           )}
           {pundit.languages && pundit.languages.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Languages className="h-4 w-4 text-primary" />
               <span className="line-clamp-1">{pundit.languages.join(", ")}</span>
             </div>
@@ -85,7 +115,7 @@ export const PunditCard = ({ pundit }: PunditCardProps) => {
 
         {/* Specializations */}
         {pundit.specializations && pundit.specializations.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-4">
+          <div className="flex flex-wrap justify-center gap-1.5 mt-4">
             {pundit.specializations.slice(0, 3).map((spec, index) => (
               <Badge key={index} variant="secondary" className="text-xs">
                 {spec}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Menu, X, ChevronDown, Sun, Building2, UserCheck, Gift, Phone, Users, BookOpen } from 'lucide-react';
+import { Bell, Menu, X, ChevronDown, Sun, Building2, UserCheck, Gift, Phone, Users, BookOpen, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useAuth } from '@/components/AuthProvider';
@@ -177,6 +177,14 @@ export function MobileHeader({
                     >
                       My Profile
                     </Link>
+                    <Link
+                      to="/profile?tab=saved"
+                      className="flex items-center justify-center gap-2 w-full py-2 text-center text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
+                      onClick={closeMenu}
+                    >
+                      <Heart className="h-4 w-4" />
+                      Saved Items
+                    </Link>
                     {isAdmin && (
                       <Link
                         to="/admin"
@@ -225,9 +233,19 @@ export function MobileHeader({
         {/* Actions */}
         <div className="flex items-center gap-1">
           <LanguageSwitcher />
-          {showNotifications && (
-            <Button variant="ghost" size="icon" className="h-9 w-9">
+          {user && (
+            <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
+              <Link to="/profile?tab=saved">
+                <Heart className="h-5 w-5" />
+              </Link>
+            </Button>
+          )}
+          {showNotifications && user && (
+            <Button variant="ghost" size="icon" className="h-9 w-9 relative">
               <Bell className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+                2
+              </span>
             </Button>
           )}
         </div>

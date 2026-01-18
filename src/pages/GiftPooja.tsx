@@ -5,7 +5,6 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { BackgroundPattern } from "@/components/BackgroundPattern";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Gift, Heart, Cake, Star, Leaf, ArrowRight, Phone, Video, Package, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Gift, Heart, Cake, Star, Leaf, ArrowRight, Phone, Video, Package, Building2, ChevronLeft, ChevronRight, User } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 
@@ -126,6 +125,7 @@ const GiftPooja = () => {
   });
 
   const selectedServiceData = services.find((s) => s.id === selectedService);
+  const selectedOccasion = occasions.find(o => o.value === occasion);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +143,7 @@ const GiftPooja = () => {
     if (!selectedService || !recipientName || !occasion || !senderName) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields including your name.",
+        description: "Please fill in all required fields including your name and occasion.",
         variant: "destructive",
       });
       return;
@@ -283,31 +283,6 @@ const GiftPooja = () => {
         </div>
       </section>
 
-      {/* Occasions Grid */}
-      <section className="py-12 bg-card border-y border-border">
-        <div className="container">
-          <h2 className="font-heading text-xl font-semibold text-center text-foreground mb-6">
-            Select an Occasion
-          </h2>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-            {occasions.map((occ) => (
-              <button
-                key={occ.value}
-                onClick={() => setOccasion(occ.value)}
-                className={`p-4 rounded-xl border transition-all text-center ${
-                  occasion === occ.value
-                    ? "border-primary bg-primary/10"
-                    : "border-border hover:border-primary/50"
-                }`}
-              >
-                <occ.icon className={`h-6 w-6 mx-auto mb-2 ${occasion === occ.value ? "text-primary" : "text-muted-foreground"}`} />
-                <span className="text-sm font-medium">{occ.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Form */}
       <section className="py-16 bg-muted">
         <div className="container">
@@ -334,11 +309,33 @@ const GiftPooja = () => {
                 </Select>
               </div>
 
-              {/* From/To Section */}
-              <div className="p-4 bg-muted/50 rounded-xl border border-border space-y-4">
+              {/* Select Occasion - MOVED HERE */}
+              <div className="space-y-2">
+                <Label>Select an Occasion *</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  {occasions.map((occ) => (
+                    <button
+                      key={occ.value}
+                      type="button"
+                      onClick={() => setOccasion(occ.value)}
+                      className={`p-3 rounded-xl border transition-all text-center ${
+                        occasion === occ.value
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <occ.icon className={`h-5 w-5 mx-auto mb-1 ${occasion === occ.value ? "text-primary" : "text-muted-foreground"}`} />
+                      <span className="text-xs font-medium">{occ.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Enhanced Gift Card Section */}
+              <div className="space-y-4">
                 <h3 className="font-semibold text-foreground flex items-center gap-2">
                   <Gift className="h-4 w-4 text-primary" />
-                  Gift Card Template
+                  Gift Card
                 </h3>
                 
                 {/* From (Sender) */}
@@ -377,21 +374,65 @@ const GiftPooja = () => {
                   />
                 </div>
 
-                {/* Preview Card */}
+                {/* Enhanced Gift Card Preview */}
                 {(senderName || recipientName) && (
-                  <div className="p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg border border-primary/20">
-                    <p className="text-xs text-muted-foreground mb-2">Preview:</p>
-                    <div className="text-sm">
-                      <p className="font-medium text-foreground">
-                        <span className="text-muted-foreground">From:</span> {senderName || "Your Name"}
-                      </p>
-                      <p className="font-medium text-foreground">
-                        <span className="text-muted-foreground">To:</span> {recipientName || "Recipient Name"}
-                      </p>
-                      {senderMessage && (
-                        <p className="mt-2 italic text-muted-foreground">"{senderMessage}"</p>
-                      )}
+                  <div className="relative p-6 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/5 rounded-xl border-2 border-primary/30 overflow-hidden">
+                    {/* Decorative background pattern */}
+                    <div className="absolute inset-0 opacity-10">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,_hsl(var(--primary))_1px,_transparent_1px)] bg-[length:20px_20px]" />
                     </div>
+                    
+                    {/* Occasion icon */}
+                    {selectedOccasion && (
+                      <div className="absolute top-4 right-4">
+                        <selectedOccasion.icon className="h-8 w-8 text-primary/40" />
+                      </div>
+                    )}
+                    
+                    <p className="text-xs text-muted-foreground mb-4 relative z-10">Gift Card Preview</p>
+                    
+                    <div className="relative z-10 flex items-center justify-center gap-6">
+                      {/* Sender */}
+                      <div className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mx-auto mb-2">
+                          <User className="h-7 w-7 text-primary" />
+                        </div>
+                        <p className="text-xs text-muted-foreground">From</p>
+                        <p className="text-sm font-semibold text-primary">{senderName || "Your Name"}</p>
+                      </div>
+                      
+                      {/* Gift arrow */}
+                      <div className="flex flex-col items-center">
+                        <Gift className="h-6 w-6 text-primary animate-pulse" />
+                        <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
+                      </div>
+                      
+                      {/* Recipient */}
+                      <div className="text-center">
+                        <div className="w-16 h-16 rounded-full bg-accent/20 border-2 border-accent flex items-center justify-center mx-auto mb-2">
+                          <User className="h-7 w-7 text-accent-foreground" />
+                        </div>
+                        <p className="text-xs text-muted-foreground">To</p>
+                        <p className="text-sm font-semibold text-accent-foreground">{recipientName || "Recipient Name"}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Message preview */}
+                    {senderMessage && (
+                      <div className="mt-4 p-3 bg-background/60 backdrop-blur-sm rounded-lg relative z-10">
+                        <p className="text-sm italic text-center text-muted-foreground">"{senderMessage}"</p>
+                      </div>
+                    )}
+                    
+                    {/* Occasion badge */}
+                    {selectedOccasion && (
+                      <div className="mt-4 flex justify-center relative z-10">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                          <selectedOccasion.icon className="h-3 w-3" />
+                          {selectedOccasion.label}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
