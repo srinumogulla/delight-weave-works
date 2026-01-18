@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone, Bell, Heart, Search } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone, Bell, Heart, Search, Loader2 } from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -13,30 +13,35 @@ import {
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/i18n";
 import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/ui/navigation-menu";
 import { useAuth } from "@/components/AuthProvider";
+import { useSearch } from "@/hooks/useSearch";
 import { cn } from "@/lib/utils";
-
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { user, profile, isAdmin, signOut } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+  
+  // Real-time database search
+  const { results, isLoading: isSearching, hasResults } = useSearch(searchQuery);
 
   // Keyboard shortcut for search
   useEffect(() => {
@@ -51,28 +56,25 @@ export function Header() {
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const searchItems = [
-    { category: "Poojas", items: [
-      { name: "Dashachara Pooja", path: "/pooja/dashachara", icon: BookOpen },
-      { name: "Vamachara Pooja", path: "/pooja/vamachara", icon: BookOpen },
-    ]},
-    { category: "Temples", items: [
-      { name: "Browse Temples", path: "/temples", icon: Building2 },
-    ]},
-    { category: "Pundits", items: [
-      { name: "Find Pundits", path: "/pundits", icon: UserCheck },
-    ]},
-    { category: "Pages", items: [
-      { name: "Panchang Calendar", path: "/panchang", icon: Sun },
-      { name: "Gift a Pooja", path: "/gift-pooja", icon: Gift },
-      { name: "Events", path: "/community/events", icon: Calendar },
-      { name: "About Us", path: "/community/about", icon: Users },
-      { name: "Contact", path: "/contact", icon: Phone },
-    ]},
+  // Clear search query when dialog closes
+  useEffect(() => {
+    if (!searchOpen) {
+      setSearchQuery("");
+    }
+  }, [searchOpen]);
+
+  // Static pages for quick navigation
+  const staticPages = [
+    { name: "Panchang Calendar", path: "/panchang", icon: Sun },
+    { name: "Gift a Pooja", path: "/gift-pooja", icon: Gift },
+    { name: "Events", path: "/community/events", icon: Calendar },
+    { name: "About Us", path: "/community/about", icon: Users },
+    { name: "Contact", path: "/contact", icon: Phone },
   ];
 
   const handleSearchSelect = (path: string) => {
     setSearchOpen(false);
+    setSearchQuery("");
     navigate(path);
   };
 
@@ -516,23 +518,109 @@ export function Header() {
 
       {/* Search Command Dialog */}
       <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <CommandInput placeholder="Search poojas, temples, pundits..." />
+        <CommandInput 
+          placeholder="Search poojas, temples, pundits..." 
+          value={searchQuery}
+          onValueChange={setSearchQuery}
+        />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          {searchItems.map((group) => (
-            <CommandGroup key={group.category} heading={group.category}>
-              {group.items.map((item) => (
+          <CommandEmpty>
+            {isSearching ? (
+              <div className="flex items-center justify-center gap-2 py-6">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Searching...</span>
+              </div>
+            ) : searchQuery.length < 2 ? (
+              "Type at least 2 characters to search..."
+            ) : (
+              "No results found."
+            )}
+          </CommandEmpty>
+          
+          {/* Dynamic Poojas from Database */}
+          {results.poojas.length > 0 && (
+            <CommandGroup heading="Poojas">
+              {results.poojas.map((pooja) => (
                 <CommandItem
-                  key={item.path}
-                  onSelect={() => handleSearchSelect(item.path)}
+                  key={pooja.id}
+                  value={pooja.name}
+                  onSelect={() => handleSearchSelect(`/booking?service=${pooja.id}`)}
                   className="flex items-center gap-2 cursor-pointer"
                 >
-                  <item.icon className="h-4 w-4 text-muted-foreground" />
-                  <span>{item.name}</span>
+                  <BookOpen className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex flex-col">
+                    <span>{pooja.name}</span>
+                    {pooja.category && (
+                      <span className="text-xs text-muted-foreground">{pooja.category}</span>
+                    )}
+                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>
-          ))}
+          )}
+          
+          {/* Dynamic Temples from Database */}
+          {results.temples.length > 0 && (
+            <CommandGroup heading="Temples">
+              {results.temples.map((temple) => (
+                <CommandItem
+                  key={temple.id}
+                  value={temple.name}
+                  onSelect={() => handleSearchSelect(`/temples`)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex flex-col">
+                    <span>{temple.name}</span>
+                    {(temple.city || temple.deity) && (
+                      <span className="text-xs text-muted-foreground">
+                        {[temple.deity, temple.city].filter(Boolean).join(' • ')}
+                      </span>
+                    )}
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+          
+          {/* Dynamic Pundits from Database */}
+          {results.pundits.length > 0 && (
+            <CommandGroup heading="Pundits">
+              {results.pundits.map((pundit) => (
+                <CommandItem
+                  key={pundit.id}
+                  value={pundit.name}
+                  onSelect={() => handleSearchSelect(`/pundits`)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <UserCheck className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex flex-col">
+                    <span>{pundit.name}</span>
+                    {pundit.location && (
+                      <span className="text-xs text-muted-foreground">{pundit.location}</span>
+                    )}
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+          
+          {/* Static Pages - always shown when no search or as fallback */}
+          {(!searchQuery || searchQuery.length < 2 || !hasResults) && (
+            <CommandGroup heading="Pages">
+              {staticPages.map((page) => (
+                <CommandItem
+                  key={page.path}
+                  value={page.name}
+                  onSelect={() => handleSearchSelect(page.path)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <page.icon className="h-4 w-4 text-muted-foreground" />
+                  <span>{page.name}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
         </CommandList>
       </CommandDialog>
     </header>
