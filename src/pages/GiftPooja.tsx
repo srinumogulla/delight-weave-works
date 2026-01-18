@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
@@ -21,7 +21,15 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Gift, Heart, Cake, Star, Leaf, ArrowRight } from "lucide-react";
+import { Gift, Heart, Cake, Star, Leaf, ArrowRight, Phone, Video, Package, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
+
+// Import images
+import heroTemple from "@/assets/hero-temple.jpg";
+import ritualHomam from "@/assets/ritual-homam.jpg";
+import ritualPooja from "@/assets/ritual-pooja.jpg";
+import ritualLakshmi from "@/assets/ritual-lakshmi.jpg";
 
 const occasions = [
   { value: "birthday", label: "Birthday", icon: Cake },
@@ -30,6 +38,36 @@ const occasions = [
   { value: "memory", label: "In Memory", icon: Leaf },
   { value: "blessing", label: "General Blessing", icon: Gift },
   { value: "other", label: "Other", icon: Gift },
+];
+
+const bannerSlides = [
+  {
+    image: heroTemple,
+    title: "Gift Divine Blessings",
+    subtitle: "Share spiritual grace with your loved ones"
+  },
+  {
+    image: ritualHomam,
+    title: "Celebrate Special Moments",
+    subtitle: "Birthday, Anniversary, or Health - every occasion blessed"
+  },
+  {
+    image: ritualPooja,
+    title: "Traditional Rituals",
+    subtitle: "Authentic poojas performed by verified priests"
+  },
+  {
+    image: ritualLakshmi,
+    title: "Prasadam Delivery",
+    subtitle: "Sacred offerings delivered to their doorstep"
+  }
+];
+
+const giftSteps = [
+  { step: 1, title: "Pick blessing & temple", icon: Building2, description: "Choose pooja and temple" },
+  { step: 2, title: "Concierge call", icon: Phone, description: "We confirm details with you" },
+  { step: 3, title: "Ritual & updates", icon: Video, description: "Live updates during pooja" },
+  { step: 4, title: "Gift dispatch", icon: Package, description: "Prasadam delivered to recipient" }
 ];
 
 const GiftPooja = () => {
@@ -47,6 +85,31 @@ const GiftPooja = () => {
   const [message, setMessage] = useState("");
   const [sendPrasadam, setSendPrasadam] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // New state for sender details
+  const [senderName, setSenderName] = useState("");
+  const [senderMessage, setSenderMessage] = useState("");
+
+  // Embla carousel setup
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000, stopOnInteraction: false })]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect]);
 
   const { data: services = [] } = useQuery({
     queryKey: ["active-services"],
@@ -77,10 +140,10 @@ const GiftPooja = () => {
       return;
     }
 
-    if (!selectedService || !recipientName || !occasion) {
+    if (!selectedService || !recipientName || !occasion || !senderName) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields including your name.",
         variant: "destructive",
       });
       return;
@@ -89,6 +152,10 @@ const GiftPooja = () => {
     setIsSubmitting(true);
 
     try {
+      const fullMessage = senderMessage 
+        ? `From: ${senderName}\n\n${senderMessage}${message ? `\n\nAdditional Note: ${message}` : ''}`
+        : `From: ${senderName}${message ? `\n\nMessage: ${message}` : ''}`;
+
       const { error } = await supabase.from("gift_bookings").insert({
         user_id: user.id,
         service_id: selectedService,
@@ -97,7 +164,7 @@ const GiftPooja = () => {
         recipient_phone: recipientPhone || null,
         recipient_address: sendPrasadam ? recipientAddress : null,
         occasion,
-        message: message || null,
+        message: fullMessage,
         booking_date: new Date().toISOString().split("T")[0],
         amount: selectedServiceData?.price || 0,
         send_prasadam: sendPrasadam,
@@ -124,22 +191,94 @@ const GiftPooja = () => {
 
   const content = (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-background to-muted py-16 md:py-24">
-        <BackgroundPattern opacity={0.1} />
-        <div className="container relative">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/20 text-accent-foreground text-sm font-medium mb-4">
-              <Gift className="h-4 w-4" />
-              Gift a Blessing
-            </div>
-            <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Gift a <span className="text-primary">Pooja</span>
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Sponsor or gift a pooja for friends, family, or loved ones. 
-              Share blessings for birthdays, health, anniversaries, or special occasions.
-            </p>
+      {/* Hero Carousel Section */}
+      <section className="relative overflow-hidden">
+        <div className="embla" ref={emblaRef}>
+          <div className="embla__container flex">
+            {bannerSlides.map((slide, index) => (
+              <div key={index} className="embla__slide flex-[0_0_100%] min-w-0 relative">
+                <div className="relative h-[400px] md:h-[500px]">
+                  <img 
+                    src={slide.image} 
+                    alt={slide.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center px-4 max-w-3xl">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary-foreground text-sm font-medium mb-4 backdrop-blur-sm">
+                        <Gift className="h-4 w-4" />
+                        Gift a Blessing
+                      </div>
+                      <h1 className="font-heading text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
+                        {slide.title}
+                      </h1>
+                      <p className="text-lg md:text-xl text-white/90">
+                        {slide.subtitle}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Carousel Controls */}
+        <button 
+          onClick={scrollPrev}
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <button 
+          onClick={scrollNext}
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
+        
+        {/* Dots Indicator */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+          {bannerSlides.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => emblaApi?.scrollTo(index)}
+              className={`w-2.5 h-2.5 rounded-full transition-all ${
+                selectedIndex === index ? "bg-white w-8" : "bg-white/50"
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* Process Steps Section */}
+      <section className="py-12 bg-gradient-to-b from-primary/5 to-background">
+        <div className="container">
+          <h2 className="font-heading text-2xl md:text-3xl font-bold text-center text-foreground mb-8">
+            How Gift Pooja Works
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+            {giftSteps.map((step, index) => (
+              <div key={step.step} className="relative text-center">
+                {/* Connector Line */}
+                {index < giftSteps.length - 1 && (
+                  <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-gradient-to-r from-primary to-primary/30" />
+                )}
+                
+                <div className="relative z-10 flex flex-col items-center">
+                  <div className="w-16 h-16 rounded-full bg-primary/10 border-2 border-primary flex items-center justify-center mb-4">
+                    <step.icon className="h-7 w-7 text-primary" />
+                  </div>
+                  <div className="text-xs font-bold text-primary mb-1">Step {step.step}</div>
+                  <h3 className="font-semibold text-foreground text-sm md:text-base mb-1">{step.title}</h3>
+                  <p className="text-xs text-muted-foreground hidden md:block">{step.description}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -147,6 +286,9 @@ const GiftPooja = () => {
       {/* Occasions Grid */}
       <section className="py-12 bg-card border-y border-border">
         <div className="container">
+          <h2 className="font-heading text-xl font-semibold text-center text-foreground mb-6">
+            Select an Occasion
+          </h2>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
             {occasions.map((occ) => (
               <button
@@ -192,16 +334,66 @@ const GiftPooja = () => {
                 </Select>
               </div>
 
-              {/* Recipient Name */}
-              <div className="space-y-2">
-                <Label htmlFor="recipientName">Recipient Name *</Label>
-                <Input
-                  id="recipientName"
-                  value={recipientName}
-                  onChange={(e) => setRecipientName(e.target.value)}
-                  placeholder="Enter recipient's full name"
-                  required
-                />
+              {/* From/To Section */}
+              <div className="p-4 bg-muted/50 rounded-xl border border-border space-y-4">
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <Gift className="h-4 w-4 text-primary" />
+                  Gift Card Template
+                </h3>
+                
+                {/* From (Sender) */}
+                <div className="space-y-2">
+                  <Label htmlFor="senderName">From (Your Name) *</Label>
+                  <Input
+                    id="senderName"
+                    value={senderName}
+                    onChange={(e) => setSenderName(e.target.value)}
+                    placeholder="Enter your name"
+                    required
+                  />
+                </div>
+
+                {/* To (Recipient) */}
+                <div className="space-y-2">
+                  <Label htmlFor="recipientName">To (Recipient Name) *</Label>
+                  <Input
+                    id="recipientName"
+                    value={recipientName}
+                    onChange={(e) => setRecipientName(e.target.value)}
+                    placeholder="Enter recipient's full name"
+                    required
+                  />
+                </div>
+
+                {/* Personal Greeting */}
+                <div className="space-y-2">
+                  <Label htmlFor="senderMessage">Your Blessing Message</Label>
+                  <Textarea
+                    id="senderMessage"
+                    value={senderMessage}
+                    onChange={(e) => setSenderMessage(e.target.value)}
+                    placeholder="Write a heartfelt blessing for the recipient..."
+                    rows={3}
+                  />
+                </div>
+
+                {/* Preview Card */}
+                {(senderName || recipientName) && (
+                  <div className="p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg border border-primary/20">
+                    <p className="text-xs text-muted-foreground mb-2">Preview:</p>
+                    <div className="text-sm">
+                      <p className="font-medium text-foreground">
+                        <span className="text-muted-foreground">From:</span> {senderName || "Your Name"}
+                      </p>
+                      <p className="font-medium text-foreground">
+                        <span className="text-muted-foreground">To:</span> {recipientName || "Recipient Name"}
+                      </p>
+                      {senderMessage && (
+                        <p className="mt-2 italic text-muted-foreground">"{senderMessage}"</p>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Recipient Contact */}
@@ -256,15 +448,15 @@ const GiftPooja = () => {
                 </div>
               )}
 
-              {/* Message */}
+              {/* Additional Message */}
               <div className="space-y-2">
-                <Label htmlFor="message">Personal Message (Optional)</Label>
+                <Label htmlFor="message">Additional Notes (Optional)</Label>
                 <Textarea
                   id="message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Add a heartfelt message for the recipient"
-                  rows={4}
+                  placeholder="Any special instructions or requests"
+                  rows={3}
                 />
               </div>
 
