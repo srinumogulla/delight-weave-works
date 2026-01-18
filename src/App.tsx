@@ -13,6 +13,12 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Profile from "./pages/Profile";
 import Booking from "./pages/Booking";
+import GiftPooja from "./pages/GiftPooja";
+import Dashachara from "./pages/pooja/Dashachara";
+import Vamachara from "./pages/pooja/Vamachara";
+import Events from "./pages/community/Events";
+import About from "./pages/community/About";
+import Contact from "./pages/Contact";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminServices from "./pages/admin/Services";
 import AdminBookings from "./pages/admin/Bookings";
@@ -41,6 +47,14 @@ const App = () => (
               } />
               <Route path="/booking" element={<Booking />} />
               <Route path="/booking/:serviceId" element={<Booking />} />
+              
+              {/* New Pages */}
+              <Route path="/gift-pooja" element={<GiftPooja />} />
+              <Route path="/pooja/dashachara" element={<Dashachara />} />
+              <Route path="/pooja/vamachara" element={<Vamachara />} />
+              <Route path="/community/events" element={<Events />} />
+              <Route path="/community/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
               
               {/* Admin Routes */}
               <Route path="/admin" element={

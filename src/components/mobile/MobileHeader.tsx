@@ -22,7 +22,7 @@ export function MobileHeader({
             <span className="font-heading text-lg font-bold text-primary-foreground">ॐ</span>
           </div>
           <span className="font-heading text-lg font-bold text-primary">
-            {title || 'Vedic Pooja'}
+            {title || 'Vedha Mantra'}
           </span>
         </Link>
 

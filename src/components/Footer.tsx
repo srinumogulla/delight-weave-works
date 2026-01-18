@@ -1,34 +1,28 @@
+import { Link } from "react-router-dom";
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from "lucide-react";
-import { BackgroundPattern } from "./BackgroundPattern";
 
 const footerLinks = {
-  services: [
-    { label: "Homam", href: "#" },
-    { label: "Abhishekam", href: "#" },
-    { label: "Vratam", href: "#" },
-    { label: "Shanti Pooja", href: "#" },
-    { label: "Special Poojas", href: "#" },
+  pooja: [
+    { label: "Dashachara", href: "/pooja/dashachara" },
+    { label: "Vamachara", href: "/pooja/vamachara" },
+    { label: "Gift a Pooja", href: "/gift-pooja" },
+    { label: "All Services", href: "/services" },
   ],
-  temples: [
-    { label: "Tirupati Balaji", href: "#" },
-    { label: "Kashi Vishwanath", href: "#" },
-    { label: "Siddhivinayak", href: "#" },
-    { label: "Meenakshi Temple", href: "#" },
-    { label: "View All", href: "#" },
+  community: [
+    { label: "Events", href: "/community/events" },
+    { label: "About Us", href: "/community/about" },
+    { label: "Contact", href: "/contact" },
   ],
   support: [
     { label: "Help Center", href: "#" },
-    { label: "Contact Us", href: "#" },
     { label: "FAQs", href: "#" },
     { label: "Track Booking", href: "#" },
     { label: "Refund Policy", href: "#" },
   ],
-  company: [
-    { label: "About Us", href: "#" },
-    { label: "Our Purohits", href: "#" },
-    { label: "Blog", href: "#" },
-    { label: "Careers", href: "#" },
-    { label: "Press", href: "#" },
+  legal: [
+    { label: "Privacy Policy", href: "#" },
+    { label: "Terms of Service", href: "#" },
+    { label: "Cookie Policy", href: "#" },
   ],
 };
 
@@ -47,22 +41,22 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
           {/* Brand Column */}
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-4">
+            <Link to="/" className="flex items-center gap-2 mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
                 <span className="font-heading text-xl font-bold text-primary-foreground">ॐ</span>
               </div>
-              <span className="font-heading text-xl font-bold text-background">Vedic Pooja</span>
-            </div>
+              <span className="font-heading text-xl font-bold text-background">Vedha Mantra</span>
+            </Link>
             <p className="text-background/70 text-sm mb-6 max-w-xs">
-              Bringing the sacred experience of temple rituals to devotees worldwide through 
-              authentic Vedic ceremonies performed by verified Purohits.
+              A digital spiritual platform connecting seekers with authentic gurus, rituals, 
+              and sacred practices—honoring tradition while enabling modern access.
             </p>
             
             {/* Contact Info */}
             <div className="space-y-2 text-sm text-background/70">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
-                <span>contact@vedicpooja.com</span>
+                <span>contact@vedhamantra.com</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4" />
@@ -70,39 +64,39 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
-                <span>Varanasi, India</span>
+                <span>India</span>
               </div>
             </div>
           </div>
 
           {/* Links Columns */}
           <div>
-            <h4 className="font-semibold text-background mb-4">Services</h4>
+            <h4 className="font-semibold text-background mb-4">Pooja</h4>
             <ul className="space-y-2">
-              {footerLinks.services.map((link) => (
+              {footerLinks.pooja.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-sm text-background/70 hover:text-background transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
           <div>
-            <h4 className="font-semibold text-background mb-4">Temples</h4>
+            <h4 className="font-semibold text-background mb-4">Community</h4>
             <ul className="space-y-2">
-              {footerLinks.temples.map((link) => (
+              {footerLinks.community.map((link) => (
                 <li key={link.label}>
-                  <a
-                    href={link.href}
+                  <Link
+                    to={link.href}
                     className="text-sm text-background/70 hover:text-background transition-colors"
                   >
                     {link.label}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -125,9 +119,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-background mb-4">Company</h4>
+            <h4 className="font-semibold text-background mb-4">Legal</h4>
             <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
+              {footerLinks.legal.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
@@ -146,7 +140,7 @@ export function Footer() {
       <div className="border-t border-background/10">
         <div className="container py-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="text-sm text-background/70">
-            © 2026 Vedic Pooja. All rights reserved.
+            © 2026 VedhaMantra. All rights reserved.
           </div>
           
           {/* Social Links */}
@@ -161,16 +155,6 @@ export function Footer() {
                 <social.icon className="h-4 w-4 text-background" />
               </a>
             ))}
-          </div>
-          
-          {/* Legal Links */}
-          <div className="flex items-center gap-4 text-sm text-background/70">
-            <a href="#" className="hover:text-background transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="hover:text-background transition-colors">
-              Terms of Service
-            </a>
           </div>
         </div>
       </div>
