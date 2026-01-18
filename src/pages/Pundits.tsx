@@ -3,6 +3,8 @@ import { Search, Filter, Languages } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { MobileLayout } from "@/components/mobile/MobileLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PunditCard } from "@/components/PunditCard";
 import { Input } from "@/components/ui/input";
 import {
@@ -121,6 +123,7 @@ const allLanguages = [
 
 const Pundits = () => {
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSpecialization, setSelectedSpecialization] = useState("All Specializations");
   const [selectedLanguage, setSelectedLanguage] = useState("All Languages");
@@ -158,74 +161,84 @@ const Pundits = () => {
     return matchesSearch && matchesSpecialization && matchesLanguage;
   });
 
+  const content = (
+    <main className="container mx-auto px-4 py-8">
+      {/* Page Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+          {t("pundits.title")}
+        </h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          {t("pundits.subtitle")}
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t("pundits.searchPlaceholder")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
+          <SelectTrigger className="w-full md:w-56">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder={t("pundits.filterBySpecialization")} />
+          </SelectTrigger>
+          <SelectContent>
+            {specializations.map((spec) => (
+              <SelectItem key={spec} value={spec}>
+                {spec === "All Specializations" ? t("pundits.allSpecializations") : spec}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+          <SelectTrigger className="w-full md:w-48">
+            <Languages className="h-4 w-4 mr-2" />
+            <SelectValue placeholder={t("pundits.filterByLanguage")} />
+          </SelectTrigger>
+          <SelectContent>
+            {allLanguages.map((lang) => (
+              <SelectItem key={lang} value={lang}>
+                {lang === "All Languages" ? t("pundits.allLanguages") : lang}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Pundits Grid */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredPundits.map((pundit) => (
+          <PunditCard key={pundit.id} pundit={pundit} />
+        ))}
+      </div>
+
+      {filteredPundits.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">{t("common.noResults")}</p>
+        </div>
+      )}
+    </main>
+  );
+
+  if (isMobile) {
+    return (
+      <MobileLayout showHeader={true}>
+        {content}
+      </MobileLayout>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-            {t("pundits.title")}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            {t("pundits.subtitle")}
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t("pundits.searchPlaceholder")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={selectedSpecialization} onValueChange={setSelectedSpecialization}>
-            <SelectTrigger className="w-full md:w-56">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder={t("pundits.filterBySpecialization")} />
-            </SelectTrigger>
-            <SelectContent>
-              {specializations.map((spec) => (
-                <SelectItem key={spec} value={spec}>
-                  {spec === "All Specializations" ? t("pundits.allSpecializations") : spec}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
-            <SelectTrigger className="w-full md:w-48">
-              <Languages className="h-4 w-4 mr-2" />
-              <SelectValue placeholder={t("pundits.filterByLanguage")} />
-            </SelectTrigger>
-            <SelectContent>
-              {allLanguages.map((lang) => (
-                <SelectItem key={lang} value={lang}>
-                  {lang === "All Languages" ? t("pundits.allLanguages") : lang}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Pundits Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPundits.map((pundit) => (
-            <PunditCard key={pundit.id} pundit={pundit} />
-          ))}
-        </div>
-
-        {filteredPundits.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">{t("common.noResults")}</p>
-          </div>
-        )}
-      </main>
-
+      {content}
       <Footer />
     </div>
   );

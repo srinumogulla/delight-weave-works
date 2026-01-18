@@ -4,10 +4,11 @@ import {
   LayoutDashboard, 
   Calendar, 
   Users, 
-  Settings,
   LogOut,
   Home,
-  BookOpen
+  BookOpen,
+  Building2,
+  UserCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/components/AuthProvider';
@@ -22,6 +23,8 @@ const sidebarItems = [
   { label: 'Services', href: '/admin/services', icon: BookOpen },
   { label: 'Bookings', href: '/admin/bookings', icon: Calendar },
   { label: 'Users', href: '/admin/users', icon: Users },
+  { label: 'Temples', href: '/admin/temples', icon: Building2 },
+  { label: 'Pundits', href: '/admin/pundits', icon: UserCheck },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {

@@ -138,51 +138,52 @@ export function Header() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Community Dropdown - Using DropdownMenu for proper positioning */}
-        <div className="hidden md:flex items-center">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1 text-sm font-medium text-foreground/80 hover:text-primary">
+        {/* Community Dropdown - Using NavigationMenu for hover functionality */}
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
                 Community
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[300px] p-4 bg-card">
-              <Link
-                to="/community/events"
-                className="group block p-3 rounded-lg hover:bg-muted transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-sacred-green/10 flex items-center justify-center">
-                    <Calendar className="h-5 w-5 text-sacred-green" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-foreground group-hover:text-primary">Events</div>
-                    <p className="text-sm text-muted-foreground">
-                      Spiritual events, festivals & satsangs
-                    </p>
-                  </div>
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <div className="w-[300px] p-4 bg-card">
+                  <Link
+                    to="/community/events"
+                    className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-sacred-green/10 flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-sacred-green" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-foreground group-hover:text-primary">Events</div>
+                        <p className="text-sm text-muted-foreground">
+                          Spiritual events, festivals & satsangs
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                  <Link
+                    to="/community/about"
+                    className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-foreground group-hover:text-primary">About Us</div>
+                        <p className="text-sm text-muted-foreground">
+                          Our mission, vision & principles
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-              </Link>
-              <Link
-                to="/community/about"
-                className="group block p-3 rounded-lg hover:bg-muted transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-foreground group-hover:text-primary">About Us</div>
-                    <p className="text-sm text-muted-foreground">
-                      Our mission, vision & principles
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
