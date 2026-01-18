@@ -8,7 +8,7 @@ interface MobileServiceCardProps {
   name: string;
   description?: string;
   price: number;
-  duration?: number;
+  duration?: string;
   category?: string;
   imageUrl?: string;
   rating?: number;
@@ -67,7 +67,7 @@ export function MobileServiceCard({
             {duration && (
               <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <Clock className="h-3 w-3" />
-                {duration} mins
+                {duration}
               </span>
             )}
           </div>
