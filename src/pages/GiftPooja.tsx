@@ -33,6 +33,9 @@ import heroTemple from "@/assets/hero-temple.jpg";
 import ritualHomam from "@/assets/ritual-homam.jpg";
 import ritualPooja from "@/assets/ritual-pooja.jpg";
 import ritualLakshmi from "@/assets/ritual-lakshmi.jpg";
+import ritualShanti from "@/assets/ritual-shanti.jpg";
+import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
+import meditation from "@/assets/meditation.jpg";
 
 const occasions = [
   { value: "birthday", label: "Birthday", icon: Cake },
@@ -112,6 +115,7 @@ const giftTemplates = [
     overlay: "from-orange-900/20 to-amber-900/10",
     pattern: "radial-gradient(circle at 20% 80%, rgba(234,179,8,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(234,88,12,0.1) 0%, transparent 50%)",
     decorIcon: "🕉️",
+    image: ritualPooja,
   },
   {
     id: "celebration",
@@ -121,6 +125,7 @@ const giftTemplates = [
     overlay: "from-pink-900/20 to-purple-900/10",
     pattern: "radial-gradient(circle at 30% 70%, rgba(236,72,153,0.1) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(168,85,247,0.1) 0%, transparent 50%)",
     decorIcon: "🎉",
+    image: ritualLakshmi,
   },
   {
     id: "love",
@@ -130,6 +135,7 @@ const giftTemplates = [
     overlay: "from-rose-900/20 to-red-900/10",
     pattern: "radial-gradient(circle at 25% 75%, rgba(244,63,94,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 25%, rgba(225,29,72,0.1) 0%, transparent 50%)",
     decorIcon: "💕",
+    image: meditation,
   },
   {
     id: "healing",
@@ -139,6 +145,7 @@ const giftTemplates = [
     overlay: "from-emerald-900/20 to-teal-900/10",
     pattern: "radial-gradient(circle at 40% 60%, rgba(16,185,129,0.1) 0%, transparent 50%), radial-gradient(circle at 60% 40%, rgba(20,184,166,0.1) 0%, transparent 50%)",
     decorIcon: "🪷",
+    image: ritualShanti,
   },
   {
     id: "sacred",
@@ -148,6 +155,7 @@ const giftTemplates = [
     overlay: "from-slate-900/20 to-blue-900/10",
     pattern: "radial-gradient(circle at 35% 65%, rgba(100,116,139,0.1) 0%, transparent 50%), radial-gradient(circle at 65% 35%, rgba(59,130,246,0.1) 0%, transparent 50%)",
     decorIcon: "🪔",
+    image: ritualAbhishekam,
   },
   {
     id: "royal",
@@ -157,6 +165,7 @@ const giftTemplates = [
     overlay: "from-violet-900/20 to-indigo-900/10",
     pattern: "radial-gradient(circle at 45% 55%, rgba(139,92,246,0.1) 0%, transparent 50%), radial-gradient(circle at 55% 45%, rgba(99,102,241,0.1) 0%, transparent 50%)",
     decorIcon: "👑",
+    image: ritualHomam,
   },
 ];
 
@@ -604,12 +613,21 @@ const GiftPooja = () => {
                   : "border-border hover:border-primary/50"
               }`}
             >
-              <div className={`w-full h-full bg-gradient-to-br ${template.preview} flex flex-col items-center justify-center p-2`}>
-                <span className="text-3xl mb-1">{template.decorIcon}</span>
-                <span className="text-xs font-medium text-foreground/70 text-center leading-tight">{template.name}</span>
+              {/* Background Image */}
+              <img 
+                src={template.image} 
+                alt={template.name}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              {/* Gradient Overlay */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${template.preview} opacity-60`} />
+              {/* Content */}
+              <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-2">
+                <span className="text-3xl mb-1 drop-shadow-md">{template.decorIcon}</span>
+                <span className="text-xs font-medium text-foreground text-center leading-tight drop-shadow-sm bg-white/70 dark:bg-black/50 px-2 py-0.5 rounded">{template.name}</span>
               </div>
               {selectedTemplate === template.id && (
-                <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center z-20">
                   <Check className="h-3 w-3" />
                 </div>
               )}
@@ -660,10 +678,21 @@ const GiftPooja = () => {
                   <X className="h-3 w-3" />
                 </button>
               ) : (
-                <label className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer">
-                  <Camera className="h-3 w-3" />
-                  <input type="file" accept="image/*" className="hidden" onChange={handleSenderImageUpload} />
-                </label>
+                <>
+                  <input 
+                    type="file" 
+                    id="senderImageInput"
+                    accept="image/*" 
+                    className="sr-only" 
+                    onChange={handleSenderImageUpload} 
+                  />
+                  <label 
+                    htmlFor="senderImageInput"
+                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors"
+                  >
+                    <Camera className="h-3 w-3" />
+                  </label>
+                </>
               )}
             </div>
             <Input
@@ -672,7 +701,6 @@ const GiftPooja = () => {
               onChange={(e) => setSenderName(e.target.value)}
               placeholder="Enter your name"
               className="flex-1 h-12"
-              required
             />
           </div>
         </div>
@@ -697,10 +725,21 @@ const GiftPooja = () => {
                   <X className="h-3 w-3" />
                 </button>
               ) : (
-                <label className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center cursor-pointer">
-                  <Camera className="h-3 w-3" />
-                  <input type="file" accept="image/*" className="hidden" onChange={handleRecipientImageUpload} />
-                </label>
+                <>
+                  <input 
+                    type="file" 
+                    id="recipientImageInput"
+                    accept="image/*" 
+                    className="sr-only" 
+                    onChange={handleRecipientImageUpload} 
+                  />
+                  <label 
+                    htmlFor="recipientImageInput"
+                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center cursor-pointer hover:bg-accent/90 transition-colors"
+                  >
+                    <Camera className="h-3 w-3" />
+                  </label>
+                </>
               )}
             </div>
             <Input
@@ -709,7 +748,6 @@ const GiftPooja = () => {
               onChange={(e) => setRecipientName(e.target.value)}
               placeholder="Enter recipient's name"
               className="flex-1 h-12"
-              required
             />
           </div>
         </div>
