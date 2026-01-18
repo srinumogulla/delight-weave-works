@@ -20,7 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Gift, Heart, Cake, Star, Leaf, ArrowRight, Phone, Video, Package, Building2, ChevronLeft, ChevronRight, User } from "lucide-react";
+import { Gift, Heart, Cake, Star, Leaf, ArrowRight, Phone, Video, Package, Building2, ChevronLeft, ChevronRight, User, Camera, X } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 
@@ -38,6 +38,65 @@ const occasions = [
   { value: "blessing", label: "General Blessing", icon: Gift },
   { value: "other", label: "Other", icon: Gift },
 ];
+
+// Card themes based on occasion
+const cardThemes: Record<string, {
+  gradient: string;
+  borderColor: string;
+  headerSymbol: string;
+  headerText: string;
+  decorations: string[];
+  accentGradient: string;
+}> = {
+  birthday: {
+    gradient: "from-pink-50 via-purple-50 to-pink-100 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-pink-900/20",
+    borderColor: "border-pink-400/50",
+    headerSymbol: "🎂",
+    headerText: "Birthday Blessings",
+    decorations: ["🎈", "🎉", "✨", "🎁"],
+    accentGradient: "from-pink-400/30 via-purple-400/20 to-pink-400/30",
+  },
+  anniversary: {
+    gradient: "from-rose-50 via-amber-50 to-rose-100 dark:from-rose-900/20 dark:via-amber-900/20 dark:to-rose-900/20",
+    borderColor: "border-rose-400/50",
+    headerSymbol: "💕",
+    headerText: "Anniversary Blessings",
+    decorations: ["💍", "🌹", "❤️", "✨"],
+    accentGradient: "from-rose-400/30 via-amber-400/20 to-rose-400/30",
+  },
+  health: {
+    gradient: "from-emerald-50 via-teal-50 to-emerald-100 dark:from-emerald-900/20 dark:via-teal-900/20 dark:to-emerald-900/20",
+    borderColor: "border-emerald-400/50",
+    headerSymbol: "🙏",
+    headerText: "Healing Blessings",
+    decorations: ["🪷", "☮️", "💚", "🌿"],
+    accentGradient: "from-emerald-400/30 via-teal-400/20 to-emerald-400/30",
+  },
+  memory: {
+    gradient: "from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900/20 dark:via-blue-900/20 dark:to-slate-900/20",
+    borderColor: "border-slate-400/50",
+    headerSymbol: "🪔",
+    headerText: "In Loving Memory",
+    decorations: ["🕊️", "☁️", "🌸", "✨"],
+    accentGradient: "from-slate-400/30 via-blue-400/20 to-slate-400/30",
+  },
+  blessing: {
+    gradient: "from-orange-50 via-amber-50 to-orange-100 dark:from-primary/10 dark:via-accent/5 dark:to-primary/10",
+    borderColor: "border-primary/40",
+    headerSymbol: "ॐ",
+    headerText: "Divine Blessings",
+    decorations: ["🙏", "✨", "🌺", "🪷"],
+    accentGradient: "from-primary/30 via-accent/20 to-primary/30",
+  },
+  other: {
+    gradient: "from-violet-50 via-indigo-50 to-violet-100 dark:from-violet-900/20 dark:via-indigo-900/20 dark:to-violet-900/20",
+    borderColor: "border-violet-400/50",
+    headerSymbol: "🙏",
+    headerText: "Special Blessings",
+    decorations: ["✨", "🌟", "💫", "🪷"],
+    accentGradient: "from-violet-400/30 via-indigo-400/20 to-violet-400/30",
+  },
+};
 
 const bannerSlides = [
   {
@@ -88,6 +147,30 @@ const GiftPooja = () => {
   // New state for sender details
   const [senderName, setSenderName] = useState("");
   const [senderMessage, setSenderMessage] = useState("");
+  
+  // Photo upload state
+  const [senderImage, setSenderImage] = useState<string | null>(null);
+  const [recipientImage, setRecipientImage] = useState<string | null>(null);
+
+  // Photo upload handlers
+  const handleSenderImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setSenderImage(url);
+    }
+  };
+
+  const handleRecipientImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setRecipientImage(url);
+    }
+  };
+
+  const removeSenderImage = () => setSenderImage(null);
+  const removeRecipientImage = () => setRecipientImage(null);
 
   // Embla carousel setup
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000, stopOnInteraction: false })]);
@@ -374,108 +457,159 @@ const GiftPooja = () => {
                   />
                 </div>
 
-                {/* Decorative Gift Card - Greeting Card Style */}
-                <div className="relative overflow-hidden rounded-2xl border-4 border-double border-primary/40 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-primary/10 dark:via-accent/5 dark:to-primary/10 shadow-xl">
-                  {/* Decorative Corner Elements */}
-                  <div className="absolute top-0 left-0 w-16 h-16">
-                    <svg viewBox="0 0 100 100" className="w-full h-full text-primary/30">
-                      <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
-                      <circle cx="15" cy="15" r="8" fill="currentColor"/>
-                      <circle cx="8" cy="25" r="4" fill="currentColor"/>
-                      <circle cx="25" cy="8" r="4" fill="currentColor"/>
-                    </svg>
-                  </div>
-                  <div className="absolute top-0 right-0 w-16 h-16 rotate-90">
-                    <svg viewBox="0 0 100 100" className="w-full h-full text-primary/30">
-                      <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
-                      <circle cx="15" cy="15" r="8" fill="currentColor"/>
-                      <circle cx="8" cy="25" r="4" fill="currentColor"/>
-                      <circle cx="25" cy="8" r="4" fill="currentColor"/>
-                    </svg>
-                  </div>
-                  <div className="absolute bottom-0 left-0 w-16 h-16 -rotate-90">
-                    <svg viewBox="0 0 100 100" className="w-full h-full text-primary/30">
-                      <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
-                      <circle cx="15" cy="15" r="8" fill="currentColor"/>
-                      <circle cx="8" cy="25" r="4" fill="currentColor"/>
-                      <circle cx="25" cy="8" r="4" fill="currentColor"/>
-                    </svg>
-                  </div>
-                  <div className="absolute bottom-0 right-0 w-16 h-16 rotate-180">
-                    <svg viewBox="0 0 100 100" className="w-full h-full text-primary/30">
-                      <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
-                      <circle cx="15" cy="15" r="8" fill="currentColor"/>
-                      <circle cx="8" cy="25" r="4" fill="currentColor"/>
-                      <circle cx="25" cy="8" r="4" fill="currentColor"/>
-                    </svg>
-                  </div>
-                  
-                  {/* Header with Om symbol */}
-                  <div className="text-center pt-6 pb-3 border-b border-primary/20">
-                    <span className="text-4xl text-primary drop-shadow-sm">ॐ</span>
-                    <p className="text-xs text-muted-foreground mt-1 font-medium tracking-wider uppercase">Divine Blessings</p>
-                  </div>
-                  
-                  {/* From/To Section */}
-                  <div className="p-6 flex items-center justify-between gap-4">
-                    {/* Sender */}
-                    <div className="flex-1 text-center">
-                      <div className="w-20 h-20 mx-auto rounded-full border-4 border-primary/30 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
-                        <User className="h-10 w-10 text-primary" />
+                {/* Themed Gift Card Preview */}
+                {(() => {
+                  const theme = cardThemes[occasion] || cardThemes.blessing;
+                  return (
+                    <div className={`relative overflow-hidden rounded-2xl border-4 border-double ${theme.borderColor} bg-gradient-to-br ${theme.gradient} shadow-xl`}>
+                      {/* Floating Decorations */}
+                      <div className="absolute top-3 left-3 text-2xl opacity-40">{theme.decorations[0]}</div>
+                      <div className="absolute top-3 right-3 text-2xl opacity-40">{theme.decorations[1]}</div>
+                      <div className="absolute bottom-16 left-3 text-xl opacity-30">{theme.decorations[2]}</div>
+                      <div className="absolute bottom-16 right-3 text-xl opacity-30">{theme.decorations[3]}</div>
+                      
+                      {/* Decorative Corner Elements */}
+                      <div className="absolute top-0 left-0 w-16 h-16">
+                        <svg viewBox="0 0 100 100" className="w-full h-full text-current opacity-20">
+                          <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                          <circle cx="15" cy="15" r="8" fill="currentColor"/>
+                          <circle cx="8" cy="25" r="4" fill="currentColor"/>
+                          <circle cx="25" cy="8" r="4" fill="currentColor"/>
+                        </svg>
                       </div>
-                      <p className="mt-3 text-xs font-semibold text-primary uppercase tracking-wide">From</p>
-                      <p className="font-heading text-lg font-bold text-foreground mt-1">{senderName || "Your Name"}</p>
-                    </div>
-                    
-                    {/* Decorative Gift/Arrow */}
-                    <div className="flex flex-col items-center px-2">
-                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-                        <Gift className="h-7 w-7 text-primary" />
+                      <div className="absolute top-0 right-0 w-16 h-16 rotate-90">
+                        <svg viewBox="0 0 100 100" className="w-full h-full text-current opacity-20">
+                          <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                          <circle cx="15" cy="15" r="8" fill="currentColor"/>
+                          <circle cx="8" cy="25" r="4" fill="currentColor"/>
+                          <circle cx="25" cy="8" r="4" fill="currentColor"/>
+                        </svg>
                       </div>
-                      <div className="flex items-center gap-1 mt-2">
-                        <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-primary/50" />
-                        <ArrowRight className="h-4 w-4 text-primary" />
-                        <div className="w-8 h-0.5 bg-gradient-to-r from-primary/50 to-transparent" />
+                      <div className="absolute bottom-0 left-0 w-16 h-16 -rotate-90">
+                        <svg viewBox="0 0 100 100" className="w-full h-full text-current opacity-20">
+                          <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                          <circle cx="15" cy="15" r="8" fill="currentColor"/>
+                          <circle cx="8" cy="25" r="4" fill="currentColor"/>
+                          <circle cx="25" cy="8" r="4" fill="currentColor"/>
+                        </svg>
                       </div>
-                    </div>
-                    
-                    {/* Recipient */}
-                    <div className="flex-1 text-center">
-                      <div className="w-20 h-20 mx-auto rounded-full border-4 border-accent/40 bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center shadow-lg">
-                        <User className="h-10 w-10 text-accent-foreground" />
+                      <div className="absolute bottom-0 right-0 w-16 h-16 rotate-180">
+                        <svg viewBox="0 0 100 100" className="w-full h-full text-current opacity-20">
+                          <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                          <circle cx="15" cy="15" r="8" fill="currentColor"/>
+                          <circle cx="8" cy="25" r="4" fill="currentColor"/>
+                          <circle cx="25" cy="8" r="4" fill="currentColor"/>
+                        </svg>
                       </div>
-                      <p className="mt-3 text-xs font-semibold text-accent-foreground uppercase tracking-wide">To</p>
-                      <p className="font-heading text-lg font-bold text-foreground mt-1">{recipientName || "Recipient"}</p>
+                      
+                      {/* Header with themed symbol */}
+                      <div className="text-center pt-6 pb-3 border-b border-current/10">
+                        <span className="text-4xl drop-shadow-sm">{theme.headerSymbol}</span>
+                        <p className="text-xs text-muted-foreground mt-1 font-medium tracking-wider uppercase">{theme.headerText}</p>
+                      </div>
+                      
+                      {/* From/To Section with Photo Upload */}
+                      <div className="p-6 flex items-center justify-between gap-4">
+                        {/* Sender with Photo Upload */}
+                        <div className="flex-1 text-center">
+                          <div className="relative w-20 h-20 mx-auto">
+                            <div className="w-20 h-20 rounded-full border-4 border-primary/30 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg overflow-hidden">
+                              {senderImage ? (
+                                <img src={senderImage} alt="Sender" className="w-full h-full object-cover" />
+                              ) : (
+                                <User className="h-10 w-10 text-primary" />
+                              )}
+                            </div>
+                            {senderImage ? (
+                              <button
+                                type="button"
+                                onClick={removeSenderImage}
+                                className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md hover:bg-destructive/90 transition-colors"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            ) : (
+                              <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md cursor-pointer hover:bg-primary/90 transition-colors">
+                                <Camera className="h-3.5 w-3.5" />
+                                <input type="file" accept="image/*" className="hidden" onChange={handleSenderImageUpload} />
+                              </label>
+                            )}
+                          </div>
+                          <p className="mt-3 text-xs font-semibold text-primary uppercase tracking-wide">From</p>
+                          <p className="font-heading text-lg font-bold text-foreground mt-1">{senderName || "Your Name"}</p>
+                        </div>
+                        
+                        {/* Decorative Gift/Arrow */}
+                        <div className="flex flex-col items-center px-2">
+                          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                            <Gift className="h-7 w-7 text-primary" />
+                          </div>
+                          <div className="flex items-center gap-1 mt-2">
+                            <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-primary/50" />
+                            <ArrowRight className="h-4 w-4 text-primary" />
+                            <div className="w-8 h-0.5 bg-gradient-to-r from-primary/50 to-transparent" />
+                          </div>
+                        </div>
+                        
+                        {/* Recipient with Photo Upload */}
+                        <div className="flex-1 text-center">
+                          <div className="relative w-20 h-20 mx-auto">
+                            <div className="w-20 h-20 rounded-full border-4 border-accent/40 bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center shadow-lg overflow-hidden">
+                              {recipientImage ? (
+                                <img src={recipientImage} alt="Recipient" className="w-full h-full object-cover" />
+                              ) : (
+                                <User className="h-10 w-10 text-accent-foreground" />
+                              )}
+                            </div>
+                            {recipientImage ? (
+                              <button
+                                type="button"
+                                onClick={removeRecipientImage}
+                                className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md hover:bg-destructive/90 transition-colors"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            ) : (
+                              <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-md cursor-pointer hover:bg-accent/90 transition-colors">
+                                <Camera className="h-3.5 w-3.5" />
+                                <input type="file" accept="image/*" className="hidden" onChange={handleRecipientImageUpload} />
+                              </label>
+                            )}
+                          </div>
+                          <p className="mt-3 text-xs font-semibold text-accent-foreground uppercase tracking-wide">To</p>
+                          <p className="font-heading text-lg font-bold text-foreground mt-1">{recipientName || "Recipient"}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Message Area */}
+                      <div className="px-6 pb-4">
+                        <div className="p-4 bg-white/60 dark:bg-background/40 backdrop-blur-sm rounded-xl border border-current/10 shadow-inner">
+                          <p className="text-center italic text-muted-foreground leading-relaxed">
+                            "{senderMessage || 'May divine blessings shower upon you and bring peace, prosperity, and happiness to your life...'}"
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Footer with Pooja & Occasion */}
+                      <div className="px-6 pb-6 flex flex-wrap items-center justify-center gap-3">
+                        {selectedServiceData && (
+                          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md">
+                            🙏 {selectedServiceData.name}
+                          </span>
+                        )}
+                        {selectedOccasion && (
+                          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 text-foreground text-sm font-medium border border-accent/30">
+                            <selectedOccasion.icon className="h-4 w-4" />
+                            {selectedOccasion.label}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Decorative Bottom Border */}
+                      <div className={`h-2 bg-gradient-to-r ${theme.accentGradient}`} />
                     </div>
-                  </div>
-                  
-                  {/* Message Area */}
-                  <div className="px-6 pb-4">
-                    <div className="p-4 bg-white/60 dark:bg-background/40 backdrop-blur-sm rounded-xl border border-primary/10 shadow-inner">
-                      <p className="text-center italic text-muted-foreground leading-relaxed">
-                        "{senderMessage || 'May divine blessings shower upon you and bring peace, prosperity, and happiness to your life...'}"
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {/* Footer with Pooja & Occasion */}
-                  <div className="px-6 pb-6 flex flex-wrap items-center justify-center gap-3">
-                    {selectedServiceData && (
-                      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md">
-                        🙏 {selectedServiceData.name}
-                      </span>
-                    )}
-                    {selectedOccasion && (
-                      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 text-foreground text-sm font-medium border border-accent/30">
-                        <selectedOccasion.icon className="h-4 w-4" />
-                        {selectedOccasion.label}
-                      </span>
-                    )}
-                  </div>
-                  
-                  {/* Decorative Bottom Border */}
-                  <div className="h-2 bg-gradient-to-r from-primary/30 via-accent/20 to-primary/30" />
-                </div>
+                  );
+                })()}
               </div>
 
               {/* Recipient Contact */}
