@@ -1,13 +1,17 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { BackgroundPattern } from "@/components/BackgroundPattern";
 import { ServiceCard, Service } from "@/components/ServiceCard";
 import { ServiceFilters, FilterState } from "@/components/ServiceFilters";
+import { MobileServiceCard } from "@/components/mobile/MobileServiceCard";
+import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Import ritual images
 import ritualHomam from "@/assets/ritual-homam.jpg";
@@ -126,6 +130,8 @@ const allTemples = [...new Set(servicesData.map((s) => s.temple))];
 const maxPrice = Math.max(...servicesData.map((s) => s.price));
 
 export default function Services() {
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("popular");
   const [filters, setFilters] = useState<FilterState>({
@@ -188,23 +194,20 @@ export default function Services() {
   }, [searchQuery, filters, sortBy]);
 
   const handleBook = (service: Service) => {
-    // TODO: Implement booking flow
-    console.log("Booking service:", service);
+    navigate(`/booking/${service.id}`);
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
+  const content = (
+    <>
       {/* Hero Section */}
-      <section className="relative py-16 md:py-24 bg-gradient-to-b from-primary/10 to-background overflow-hidden">
+      <section className="relative py-8 md:py-24 bg-gradient-to-b from-primary/10 to-background overflow-hidden">
         <BackgroundPattern opacity={0.1} />
         <div className="container relative">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="font-heading text-4xl md:text-5xl font-bold text-foreground mb-4">
+            <h1 className="font-heading text-3xl md:text-5xl font-bold text-foreground mb-4">
               Sacred <span className="text-primary">Pooja Services</span>
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-base md:text-lg">
               Explore our curated collection of authentic Vedic rituals performed by 
               verified Purohits at sacred temples across India.
             </p>
@@ -213,15 +216,15 @@ export default function Services() {
       </section>
 
       {/* Main Content */}
-      <section className="py-8 md:py-12">
+      <section className="py-4 md:py-12">
         <div className="container">
           {/* Search and Sort Bar */}
-          <div className="flex flex-col md:flex-row gap-4 mb-8">
+          <div className="flex flex-col md:flex-row gap-4 mb-6 md:mb-8">
             {/* Search */}
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
               <Input
-                placeholder="Search poojas, temples, categories..."
+                placeholder="Search poojas, temples..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -243,17 +246,19 @@ export default function Services() {
             </Select>
           </div>
 
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Filters Sidebar */}
-            <div className="lg:w-64 flex-shrink-0">
-              <ServiceFilters
-                filters={filters}
-                onFiltersChange={setFilters}
-                categories={allCategories}
-                temples={allTemples}
-                maxPrice={maxPrice}
-              />
-            </div>
+          <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+            {/* Filters Sidebar - Hidden on mobile */}
+            {!isMobile && (
+              <div className="lg:w-64 flex-shrink-0">
+                <ServiceFilters
+                  filters={filters}
+                  onFiltersChange={setFilters}
+                  categories={allCategories}
+                  temples={allTemples}
+                  maxPrice={maxPrice}
+                />
+              </div>
+            )}
 
             {/* Services Grid */}
             <div className="flex-1">
@@ -263,15 +268,33 @@ export default function Services() {
               </p>
 
               {filteredServices.length > 0 ? (
-                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredServices.map((service) => (
-                    <ServiceCard
-                      key={service.id}
-                      service={service}
-                      onBook={handleBook}
-                    />
-                  ))}
-                </div>
+                isMobile ? (
+                  <div className="space-y-4">
+                    {filteredServices.map((service) => (
+                      <MobileServiceCard
+                        key={service.id}
+                        id={service.id}
+                        name={service.name}
+                        description={service.description}
+                        price={service.price}
+                        duration={service.duration}
+                        category={service.category}
+                        imageUrl={service.image}
+                        rating={service.rating}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {filteredServices.map((service) => (
+                      <ServiceCard
+                        key={service.id}
+                        service={service}
+                        onBook={handleBook}
+                      />
+                    ))}
+                  </div>
+                )
               ) : (
                 <div className="text-center py-16">
                   <p className="text-muted-foreground text-lg mb-2">No services found</p>
@@ -284,7 +307,21 @@ export default function Services() {
           </div>
         </div>
       </section>
+    </>
+  );
 
+  if (isMobile) {
+    return (
+      <MobileLayout title="Poojas" showSearch>
+        {content}
+      </MobileLayout>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      {content}
       <Footer />
       <WhatsAppButton />
     </div>
