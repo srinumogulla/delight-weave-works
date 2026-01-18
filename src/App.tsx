@@ -31,6 +31,10 @@ import AdminTemples from "./pages/admin/Temples";
 import AdminPundits from "./pages/admin/Pundits";
 import AdminLogin from "./pages/admin/Login";
 import GiftConfirmation from "./pages/GiftConfirmation";
+import PunditDashboard from "./pages/pundit/Dashboard";
+import PunditBookings from "./pages/pundit/Bookings";
+import PunditProfile from "./pages/pundit/Profile";
+import PunditEarnings from "./pages/pundit/Earnings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -68,6 +72,28 @@ const App = () => (
                 <Route path="/community/events" element={<Events />} />
                 <Route path="/community/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
+                
+                {/* Pundit Routes */}
+                <Route path="/pundit" element={
+                  <ProtectedRoute>
+                    <PunditDashboard />
+                  </ProtectedRoute>
+                } />
+                <Route path="/pundit/bookings" element={
+                  <ProtectedRoute>
+                    <PunditBookings />
+                  </ProtectedRoute>
+                } />
+                <Route path="/pundit/profile" element={
+                  <ProtectedRoute>
+                    <PunditProfile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/pundit/earnings" element={
+                  <ProtectedRoute>
+                    <PunditEarnings />
+                  </ProtectedRoute>
+                } />
                 
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<AdminLogin />} />
