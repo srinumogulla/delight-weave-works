@@ -1,1 +1,4 @@
 project_id = "uuunmenwafhrifatepjm"
+
+[functions.get-panchang]
+verify_jwt = false

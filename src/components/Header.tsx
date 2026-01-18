@@ -51,9 +51,9 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden md:flex">
-          <NavigationMenuList>
+          <NavigationMenuList className="gap-0">
             {/* Pooja Dropdown */}
-            <NavigationMenuItem>
+            <NavigationMenuItem className="min-w-[70px]">
               <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
                 {t("nav.pooja")}
               </NavigationMenuTrigger>
@@ -98,7 +98,7 @@ export function Header() {
             </NavigationMenuItem>
 
             {/* Panchang */}
-            <NavigationMenuItem>
+            <NavigationMenuItem className="min-w-[90px]">
               <Link to="/panchang" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
                 <Sun className="h-4 w-4" />
                 {t("nav.panchang")}
@@ -106,7 +106,7 @@ export function Header() {
             </NavigationMenuItem>
 
             {/* Temples */}
-            <NavigationMenuItem>
+            <NavigationMenuItem className="min-w-[80px]">
               <Link to="/temples" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
                 <Building2 className="h-4 w-4" />
                 {t("nav.temples")}
@@ -114,7 +114,7 @@ export function Header() {
             </NavigationMenuItem>
 
             {/* Pundit */}
-            <NavigationMenuItem>
+            <NavigationMenuItem className="min-w-[75px]">
               <Link to="/pundits" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
                 <UserCheck className="h-4 w-4" />
                 {t("nav.pundit")}
@@ -122,7 +122,7 @@ export function Header() {
             </NavigationMenuItem>
 
             {/* Gift */}
-            <NavigationMenuItem>
+            <NavigationMenuItem className="min-w-[60px]">
               <Link to="/gift-pooja" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
                 <Gift className="h-4 w-4" />
                 {t("nav.gift")}
@@ -130,18 +130,14 @@ export function Header() {
             </NavigationMenuItem>
 
             {/* Contact */}
-            <NavigationMenuItem>
+            <NavigationMenuItem className="min-w-[70px]">
               <Link to="/contact" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2">
                 {t("nav.contact")}
               </Link>
             </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
 
-        {/* Community Dropdown - Using NavigationMenu for hover functionality */}
-        <NavigationMenu className="hidden md:flex">
-          <NavigationMenuList>
-            <NavigationMenuItem>
+            {/* Community Dropdown */}
+            <NavigationMenuItem className="min-w-[100px]">
               <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
                 Community
               </NavigationMenuTrigger>

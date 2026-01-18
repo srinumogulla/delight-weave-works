@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,14 +32,34 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error, data } = await signIn(email, password);
     
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
-      navigate(from, { replace: true });
+      return;
     }
+
+    // Check if user is admin - if so, redirect them to admin login
+    if (data?.user) {
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (roleData) {
+        // User is admin - sign them out and redirect
+        await supabase.auth.signOut();
+        setError('Admin accounts must use the Admin Portal. Redirecting...');
+        setLoading(false);
+        setTimeout(() => navigate('/admin/login'), 2000);
+        return;
+      }
+    }
+
+    navigate(from, { replace: true });
   };
 
   const loginContent = (
