@@ -272,6 +272,51 @@ export type Database = {
         }
         Relationships: []
       }
+      pundits: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          experience_years: number | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          languages: string[] | null
+          location: string | null
+          name: string
+          photo_url: string | null
+          specializations: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          experience_years?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          languages?: string[] | null
+          location?: string | null
+          name: string
+          photo_url?: string | null
+          specializations?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          experience_years?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          languages?: string[] | null
+          location?: string | null
+          name?: string
+          photo_url?: string | null
+          specializations?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       saved_poojas: {
         Row: {
           created_at: string
@@ -307,6 +352,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      temples: {
+        Row: {
+          city: string | null
+          contact_phone: string | null
+          created_at: string | null
+          deity: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_partner: boolean | null
+          location: string | null
+          name: string
+          state: string | null
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          city?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          deity?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_partner?: boolean | null
+          location?: string | null
+          name: string
+          state?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          city?: string | null
+          contact_phone?: string | null
+          created_at?: string | null
+          deity?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_partner?: boolean | null
+          location?: string | null
+          name?: string
+          state?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
