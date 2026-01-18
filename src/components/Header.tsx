@@ -255,6 +255,11 @@ export function Header() {
       {isMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
           <nav className="container py-4 flex flex-col gap-2">
+            {/* Language Switcher at top */}
+            <div className="flex justify-end pb-2 border-b border-border mb-2">
+              <LanguageSwitcher />
+            </div>
+            
             <Link
               to="/"
               className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
@@ -291,6 +296,33 @@ export function Header() {
                 </div>
               )}
             </div>
+
+            <Link
+              to="/panchang"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Sun className="h-4 w-4" />
+              Panchang
+            </Link>
+
+            <Link
+              to="/temples"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Building2 className="h-4 w-4" />
+              Temples
+            </Link>
+
+            <Link
+              to="/pundits"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <UserCheck className="h-4 w-4" />
+              Pundits
+            </Link>
 
             <Link
               to="/gift-pooja"
