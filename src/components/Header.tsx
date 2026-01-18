@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone, Bell, Heart } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/i18n";
 import {
@@ -57,8 +57,8 @@ export function Header() {
               <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
                 {t("nav.pooja")}
               </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <div className="w-[400px] p-4 bg-card">
+              <NavigationMenuContent className="absolute left-0 top-full mt-1.5">
+                <div className="w-[400px] p-4 bg-card shadow-lg border rounded-md">
                   <div className="grid gap-3">
                     <Link
                       to="/pooja/dashachara"
@@ -138,13 +138,13 @@ export function Header() {
             </NavigationMenuItem>
 
             {/* Community Dropdown */}
-            <NavigationMenuItem className="min-w-[100px]">
+            <NavigationMenuItem className="min-w-[100px] relative">
               <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent flex items-center gap-1">
                 <Users className="h-4 w-4" />
                 Community
               </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <div className="w-[300px] p-4 bg-card">
+              <NavigationMenuContent className="absolute left-0 top-full mt-1.5">
+                <div className="w-[300px] p-4 bg-card shadow-lg border rounded-md">
                   <Link
                     to="/community/events"
                     className="group block p-3 rounded-lg hover:bg-muted transition-colors"
@@ -184,9 +184,27 @@ export function Header() {
         </NavigationMenu>
 
         {/* Desktop Actions */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-2">
           {/* Language Selector */}
           <LanguageSwitcher />
+          
+          {/* Logged-in user icons */}
+          {user && (
+            <>
+              <Button variant="ghost" size="icon" className="relative" asChild>
+                <Link to="/profile?tab=saved">
+                  <Heart className="h-5 w-5" />
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                {/* Notification badge - placeholder */}
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
+                  2
+                </span>
+              </Button>
+            </>
+          )}
 
           {user ? (
             <DropdownMenu>
@@ -202,6 +220,12 @@ export function Header() {
                   <Link to="/profile" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     My Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile?tab=saved" className="flex items-center gap-2">
+                    <Heart className="h-4 w-4" />
+                    Saved Items
                   </Link>
                 </DropdownMenuItem>
                 {isAdmin && (
@@ -356,6 +380,12 @@ export function Header() {
                 <>
                   <Button variant="outline" size="sm" className="w-full" asChild>
                     <Link to="/profile" onClick={() => setIsMenuOpen(false)}>My Profile</Link>
+                  </Button>
+                  <Button variant="outline" size="sm" className="w-full" asChild>
+                    <Link to="/profile?tab=saved" onClick={() => setIsMenuOpen(false)}>
+                      <Heart className="h-4 w-4 mr-2" />
+                      Saved Items
+                    </Link>
                   </Button>
                   {isAdmin && (
                     <Button variant="outline" size="sm" className="w-full" asChild>

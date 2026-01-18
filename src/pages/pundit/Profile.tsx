@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/components/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, Clock, Save, User } from 'lucide-react';
+import { CheckCircle, Clock, Save, User, Camera, Upload, Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const PunditProfile = () => {
@@ -18,6 +18,8 @@ const PunditProfile = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch pundit profile
   const { data: profile, isLoading } = useQuery({
@@ -45,7 +47,7 @@ const PunditProfile = () => {
   });
 
   // Update form when profile loads
-  useState(() => {
+  useEffect(() => {
     if (profile) {
       setFormData({
         name: profile.name || '',
@@ -56,7 +58,7 @@ const PunditProfile = () => {
         specializations: profile.specializations?.join(', ') || ''
       });
     }
-  });
+  }, [profile]);
 
   const updateMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -89,6 +91,71 @@ const PunditProfile = () => {
       });
     }
   });
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !profile?.id) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload an image file',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please upload an image smaller than 5MB',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      // Create unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${profile.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('pundit-photos')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('pundit-photos')
+        .getPublicUrl(filePath);
+
+      // Update pundit profile with new photo URL
+      const { error: updateError } = await supabase
+        .from('pundits')
+        .update({ photo_url: publicUrl })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+
+      toast({ title: 'Photo uploaded successfully' });
+      queryClient.invalidateQueries({ queryKey: ['pundit-profile'] });
+    } catch (error: any) {
+      toast({
+        title: 'Upload failed',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -155,6 +222,54 @@ const PunditProfile = () => {
             )}
           </Badge>
         </div>
+
+        {/* Photo Upload Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Profile Photo
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-muted border-2 border-border">
+                  <img
+                    src={profile.photo_url || "/placeholder.svg"}
+                    alt={profile.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {isUploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                    <Loader2 className="h-6 w-6 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {isUploading ? 'Uploading...' : 'Upload New Photo'}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  JPG, PNG or WebP. Max 5MB.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">

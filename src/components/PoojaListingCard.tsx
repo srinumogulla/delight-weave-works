@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, User, Eye, ArrowRight } from "lucide-react";
+import { Calendar, Clock, User, Eye, ArrowRight, Heart } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
+import { useSavedItems } from "@/hooks/useSavedItems";
+import { cn } from "@/lib/utils";
 
 interface PoojaListingCardProps {
   id: string;
@@ -30,8 +33,19 @@ export function PoojaListingCard({
   imageUrl,
   temple,
 }: PoojaListingCardProps) {
+  const { user } = useAuth();
+  const { isItemSaved, toggleSave, isToggling } = useSavedItems('pooja');
+  
+  const isSaved = isItemSaved(id, 'pooja');
   const categoryLabel = category?.toUpperCase() || "GENERAL";
   const isDosha = category?.toLowerCase().includes("dosha");
+
+  const handleSaveClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    toggleSave({ itemId: id, type: 'pooja' });
+  };
 
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-all hover:shadow-lg group">
@@ -44,6 +58,22 @@ export function PoojaListingCard({
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
+          
+          {/* Save button */}
+          {user && (
+            <button
+              onClick={handleSaveClick}
+              disabled={isToggling}
+              className={cn(
+                "absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10",
+                isSaved 
+                  ? "bg-destructive text-destructive-foreground" 
+                  : "bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive"
+              )}
+            >
+              <Heart className={cn("h-4 w-4", isSaved && "fill-current")} />
+            </button>
+          )}
           
           {/* Badges */}
           <div className="absolute top-3 left-3 flex gap-2">
