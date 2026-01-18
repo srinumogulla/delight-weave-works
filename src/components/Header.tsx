@@ -52,7 +52,7 @@ export function Header() {
         {/* Desktop Navigation */}
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList className="gap-0">
-            {/* Pooja Dropdown */}
+            {/* Pooja Dropdown - Primary */}
             <NavigationMenuItem className="min-w-[70px]">
               <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
                 {t("nav.pooja")}
@@ -97,14 +97,6 @@ export function Header() {
               </NavigationMenuContent>
             </NavigationMenuItem>
 
-            {/* Panchang */}
-            <NavigationMenuItem className="min-w-[90px]">
-              <Link to="/panchang" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
-                <Sun className="h-4 w-4" />
-                {t("nav.panchang")}
-              </Link>
-            </NavigationMenuItem>
-
             {/* Temples */}
             <NavigationMenuItem className="min-w-[80px]">
               <Link to="/temples" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
@@ -113,7 +105,7 @@ export function Header() {
               </Link>
             </NavigationMenuItem>
 
-            {/* Pundit */}
+            {/* Pundits */}
             <NavigationMenuItem className="min-w-[75px]">
               <Link to="/pundits" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
                 <UserCheck className="h-4 w-4" />
@@ -121,12 +113,64 @@ export function Header() {
               </Link>
             </NavigationMenuItem>
 
-            {/* Gift */}
+            {/* Gift - Highlighted */}
             <NavigationMenuItem className="min-w-[60px]">
-              <Link to="/gift-pooja" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
+              <Link to="/gift-pooja" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors px-4 py-2 flex items-center gap-1 bg-primary/10 rounded-full mx-1">
                 <Gift className="h-4 w-4" />
                 {t("nav.gift")}
               </Link>
+            </NavigationMenuItem>
+
+            {/* Panchang */}
+            <NavigationMenuItem className="min-w-[90px]">
+              <Link to="/panchang" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
+                <Sun className="h-4 w-4" />
+                {t("nav.panchang")}
+              </Link>
+            </NavigationMenuItem>
+
+            {/* Community Dropdown */}
+            <NavigationMenuItem className="min-w-[100px] relative">
+              <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent flex items-center gap-1">
+                <Users className="h-4 w-4" />
+                Community
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <div className="w-[300px] p-4">
+                  <Link
+                    to="/community/events"
+                    className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-sacred-green/10 flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-sacred-green" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-foreground group-hover:text-primary">Events</div>
+                        <p className="text-sm text-muted-foreground">
+                          Spiritual events, festivals & satsangs
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                  <Link
+                    to="/community/about"
+                    className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-foreground group-hover:text-primary">About Us</div>
+                        <p className="text-sm text-muted-foreground">
+                          Our mission, vision & principles
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              </NavigationMenuContent>
             </NavigationMenuItem>
 
             {/* Contact */}
@@ -302,15 +346,6 @@ export function Header() {
             </div>
 
             <Link
-              to="/panchang"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <Sun className="h-4 w-4" />
-              Panchang
-            </Link>
-
-            <Link
               to="/temples"
               className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
               onClick={() => setIsMenuOpen(false)}
@@ -330,11 +365,20 @@ export function Header() {
 
             <Link
               to="/gift-pooja"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
+              className="text-sm font-medium text-primary transition-colors py-2 flex items-center gap-2 bg-primary/10 px-3 rounded-lg -mx-1"
               onClick={() => setIsMenuOpen(false)}
             >
               <Gift className="h-4 w-4" />
-              Gift
+              Gift Pooja
+            </Link>
+
+            <Link
+              to="/panchang"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Sun className="h-4 w-4" />
+              Panchang
             </Link>
 
             {/* Community Submenu */}
