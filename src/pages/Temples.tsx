@@ -3,6 +3,8 @@ import { Search, MapPin, Filter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { MobileLayout } from "@/components/mobile/MobileLayout";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { TempleCard } from "@/components/TempleCard";
 import { Input } from "@/components/ui/input";
 import {
@@ -116,6 +118,7 @@ const deities = ["All Deities", "Lord Venkateswara", "Lord Shiva", "Goddess Meen
 
 const Temples = () => {
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedState, setSelectedState] = useState("All States");
   const [selectedDeity, setSelectedDeity] = useState("All Deities");
@@ -148,74 +151,84 @@ const Temples = () => {
     return matchesSearch && matchesState && matchesDeity;
   });
 
+  const content = (
+    <main className="container mx-auto px-4 py-8">
+      {/* Page Header */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+          {t("temples.title")}
+        </h1>
+        <p className="text-muted-foreground max-w-2xl mx-auto">
+          {t("temples.subtitle")}
+        </p>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={t("temples.searchPlaceholder")}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={selectedState} onValueChange={setSelectedState}>
+          <SelectTrigger className="w-full md:w-48">
+            <MapPin className="h-4 w-4 mr-2" />
+            <SelectValue placeholder={t("temples.filterByState")} />
+          </SelectTrigger>
+          <SelectContent>
+            {states.map((state) => (
+              <SelectItem key={state} value={state}>
+                {state === "All States" ? t("temples.allStates") : state}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={selectedDeity} onValueChange={setSelectedDeity}>
+          <SelectTrigger className="w-full md:w-48">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder={t("temples.filterByDeity")} />
+          </SelectTrigger>
+          <SelectContent>
+            {deities.map((deity) => (
+              <SelectItem key={deity} value={deity}>
+                {deity === "All Deities" ? t("temples.allDeities") : deity}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Temples Grid */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredTemples.map((temple) => (
+          <TempleCard key={temple.id} temple={temple} />
+        ))}
+      </div>
+
+      {filteredTemples.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">{t("common.noResults")}</p>
+        </div>
+      )}
+    </main>
+  );
+
+  if (isMobile) {
+    return (
+      <MobileLayout showHeader={true}>
+        {content}
+      </MobileLayout>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
-      <main className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-            {t("temples.title")}
-          </h1>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            {t("temples.subtitle")}
-          </p>
-        </div>
-
-        {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder={t("temples.searchPlaceholder")}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={selectedState} onValueChange={setSelectedState}>
-            <SelectTrigger className="w-full md:w-48">
-              <MapPin className="h-4 w-4 mr-2" />
-              <SelectValue placeholder={t("temples.filterByState")} />
-            </SelectTrigger>
-            <SelectContent>
-              {states.map((state) => (
-                <SelectItem key={state} value={state}>
-                  {state === "All States" ? t("temples.allStates") : state}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedDeity} onValueChange={setSelectedDeity}>
-            <SelectTrigger className="w-full md:w-48">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder={t("temples.filterByDeity")} />
-            </SelectTrigger>
-            <SelectContent>
-              {deities.map((deity) => (
-                <SelectItem key={deity} value={deity}>
-                  {deity === "All Deities" ? t("temples.allDeities") : deity}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Temples Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTemples.map((temple) => (
-            <TempleCard key={temple.id} temple={temple} />
-          ))}
-        </div>
-
-        {filteredTemples.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">{t("common.noResults")}</p>
-          </div>
-        )}
-      </main>
-
+      {content}
       <Footer />
     </div>
   );

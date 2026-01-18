@@ -186,7 +186,7 @@ const Signup = () => {
 
   if (isMobile) {
     return (
-      <MobileLayout title="Create Account" showBottomNav={false}>
+      <MobileLayout title="Create Account" showBottomNav={true}>
         {success ? successContent : signupContent}
       </MobileLayout>
     );

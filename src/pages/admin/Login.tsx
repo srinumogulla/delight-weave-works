@@ -1,55 +1,65 @@
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { MobileLayout } from '@/components/mobile/MobileLayout';
+import { Loader2, Eye, EyeOff, Shield } from 'lucide-react';
 
-const Login = () => {
+const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  const { signIn } = useAuth();
+  const { signIn, user, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
-  const isMobile = useIsMobile();
 
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+  // Redirect if already logged in as admin
+  useEffect(() => {
+    if (!authLoading && user && isAdmin) {
+      navigate('/admin');
+    }
+  }, [user, isAdmin, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    const { error } = await signIn(email, password);
+    const { error: signInError } = await signIn(email, password);
     
-    if (error) {
-      setError(error.message);
+    if (signInError) {
+      setError(signInError.message);
       setLoading(false);
-    } else {
-      navigate(from, { replace: true });
+      return;
     }
+
+    // The useEffect above will handle the redirect once auth state updates
+    // But we need to check admin status after login
+    // Give a moment for the auth state to update
+    setTimeout(async () => {
+      // Re-check admin status
+      const { user: currentUser, isAdmin: currentIsAdmin } = useAuth();
+      if (!currentIsAdmin) {
+        setError('Access denied. This portal is for administrators only.');
+        setLoading(false);
+      }
+    }, 1000);
   };
 
-  const loginContent = (
-    <main className="flex-1 flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md border-saffron/20">
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center px-4">
+      <Card className="w-full max-w-md border-primary/20">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-saffron to-gold flex items-center justify-center">
-            <span className="text-3xl">🙏</span>
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center">
+            <Shield className="h-8 w-8 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl font-sanskrit text-saffron">Welcome Back</CardTitle>
-          <CardDescription>Sign in to continue your spiritual journey</CardDescription>
+          <CardTitle className="text-2xl font-heading text-primary">Admin Portal</CardTitle>
+          <CardDescription>Sign in to access the admin dashboard</CardDescription>
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
@@ -61,11 +71,11 @@ const Login = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Admin Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder="admin@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -99,7 +109,7 @@ const Login = () => {
           <CardFooter className="flex flex-col gap-4">
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-saffron to-gold text-temple-dark hover:from-saffron/90 hover:to-gold/90"
+              className="w-full bg-primary hover:bg-primary/90"
               disabled={loading}
             >
               {loading ? (
@@ -108,37 +118,21 @@ const Login = () => {
                   Signing in...
                 </>
               ) : (
-                'Sign In'
+                'Sign In to Admin'
               )}
             </Button>
 
             <p className="text-sm text-center text-muted-foreground">
-              Don't have an account?{' '}
-              <Link to="/signup" className="text-saffron hover:underline">
-                Create one
+              Not an admin?{' '}
+              <Link to="/login" className="text-primary hover:underline">
+                User login
               </Link>
             </p>
           </CardFooter>
         </form>
       </Card>
-    </main>
-  );
-
-  if (isMobile) {
-    return (
-      <MobileLayout title="Sign In" showBottomNav={true}>
-        {loginContent}
-      </MobileLayout>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <Header />
-      {loginContent}
-      <Footer />
     </div>
   );
 };
 
-export default Login;
+export default AdminLogin;

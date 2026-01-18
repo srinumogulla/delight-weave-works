@@ -27,6 +27,10 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import AdminServices from "./pages/admin/Services";
 import AdminBookings from "./pages/admin/Bookings";
 import AdminUsers from "./pages/admin/Users";
+import AdminTemples from "./pages/admin/Temples";
+import AdminPundits from "./pages/admin/Pundits";
+import AdminLogin from "./pages/admin/Login";
+import GiftConfirmation from "./pages/GiftConfirmation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +59,7 @@ const App = () => (
                 
                 {/* New Pages */}
                 <Route path="/gift-pooja" element={<GiftPooja />} />
+                <Route path="/gift/:id" element={<GiftConfirmation />} />
                 <Route path="/pooja/dashachara" element={<Dashachara />} />
                 <Route path="/pooja/vamachara" element={<Vamachara />} />
                 <Route path="/panchang" element={<Panchang />} />
@@ -65,6 +70,7 @@ const App = () => (
                 <Route path="/contact" element={<Contact />} />
                 
                 {/* Admin Routes */}
+                <Route path="/admin/login" element={<AdminLogin />} />
                 <Route path="/admin" element={
                   <ProtectedRoute requireAdmin>
                     <AdminDashboard />
@@ -83,6 +89,16 @@ const App = () => (
                 <Route path="/admin/users" element={
                   <ProtectedRoute requireAdmin>
                     <AdminUsers />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/temples" element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminTemples />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/pundits" element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminPundits />
                   </ProtectedRoute>
                 } />
                 
