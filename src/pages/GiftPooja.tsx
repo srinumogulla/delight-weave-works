@@ -695,6 +695,7 @@ const GiftPooja = () => {
                     senderMessage={senderMessage}
                     selectedServiceData={selectedServiceData}
                     selectedOccasion={selectedOccasion}
+                    showDownloadButton={false}
                   />
                   
                   {/* Quick Tips */}

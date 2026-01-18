@@ -67,11 +67,17 @@ export const CardPreview = forwardRef<CardPreviewHandle, CardPreviewProps>(({
     if (!cardContainerRef.current) return;
     
     try {
-      const canvas = await html2canvas(cardContainerRef.current, {
+      const element = cardContainerRef.current;
+      const originalWidth = element.offsetWidth;
+      const originalHeight = element.offsetHeight;
+      
+      const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
         backgroundColor: null,
         logging: false,
+        width: originalWidth,
+        height: originalHeight,
       });
       
       const link = document.createElement('a');
@@ -91,7 +97,7 @@ export const CardPreview = forwardRef<CardPreviewHandle, CardPreviewProps>(({
     <div className="space-y-4">
       <div 
         ref={cardContainerRef}
-        className={`relative overflow-hidden rounded-2xl border-4 border-double ${theme.borderColor} shadow-xl`}
+        className={`relative overflow-hidden rounded-2xl border-4 border-double ${theme.borderColor} shadow-xl aspect-[3/4] min-h-[450px] md:min-h-[520px] flex flex-col`}
         style={useCustomBg ? {
           backgroundImage: `url(${customBackground})`,
           backgroundSize: 'cover',
@@ -125,13 +131,13 @@ export const CardPreview = forwardRef<CardPreviewHandle, CardPreviewProps>(({
         <div className="absolute bottom-16 right-3 text-xl opacity-50 drop-shadow-lg">{theme.decorations[3]}</div>
         
         {/* Header with themed symbol */}
-        <div className="relative text-center pt-6 pb-3 border-b border-white/20">
+        <div className="relative text-center pt-6 pb-3 border-b border-white/20 shrink-0">
           <span className="text-4xl drop-shadow-lg">{theme.headerSymbol}</span>
           <p className="text-xs mt-1 font-medium tracking-wider uppercase text-white/90">{theme.headerText}</p>
         </div>
         
         {/* From/To Section */}
-        <div className="relative p-4 md:p-6 flex items-center justify-between gap-2 md:gap-4">
+        <div className="relative p-4 md:p-6 flex items-center justify-between gap-2 md:gap-4 flex-1 min-h-0">
           {/* Sender */}
           <div className="flex-1 text-center">
             <div className="relative w-14 h-14 md:w-20 md:h-20 mx-auto">
@@ -172,7 +178,7 @@ export const CardPreview = forwardRef<CardPreviewHandle, CardPreviewProps>(({
         </div>
         
         {/* Message Area */}
-        <div className="relative px-4 md:px-6 pb-4">
+        <div className="relative px-4 md:px-6 pb-4 shrink-0">
           <div className="p-3 md:p-4 bg-white/15 backdrop-blur-md rounded-xl border border-white/20 shadow-inner">
             <p className="text-center italic text-white/95 leading-relaxed text-sm drop-shadow-sm">
               "{senderMessage || 'May divine blessings shower upon you...'}"
@@ -181,7 +187,7 @@ export const CardPreview = forwardRef<CardPreviewHandle, CardPreviewProps>(({
         </div>
         
         {/* Footer with Pooja & Occasion */}
-        <div className="relative px-4 md:px-6 pb-4 flex flex-wrap items-center justify-center gap-2">
+        <div className="relative px-4 md:px-6 pb-4 flex flex-wrap items-center justify-center gap-2 shrink-0">
           {selectedServiceData && (
             <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium shadow-md">
               🙏 {selectedServiceData.name}
@@ -196,7 +202,7 @@ export const CardPreview = forwardRef<CardPreviewHandle, CardPreviewProps>(({
         </div>
         
         {/* Decorative Bottom Border */}
-        <div className={`h-2 bg-gradient-to-r ${theme.accentGradient}`} />
+        <div className={`h-2 bg-gradient-to-r ${theme.accentGradient} shrink-0 mt-auto`} />
       </div>
 
       {/* Download Button */}
