@@ -97,28 +97,57 @@ export function Header() {
               </NavigationMenuContent>
             </NavigationMenuItem>
 
-            {/* Temples */}
-            <NavigationMenuItem className="min-w-[80px]">
-              <Link to="/temples" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
-                <Building2 className="h-4 w-4" />
-                {t("nav.temples")}
-              </Link>
-            </NavigationMenuItem>
-
-            {/* Pundit */}
-            <NavigationMenuItem className="min-w-[75px]">
-              <Link to="/pundits" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
-                <UserCheck className="h-4 w-4" />
-                {t("nav.pundit")}
-              </Link>
-            </NavigationMenuItem>
-
             {/* Panchang */}
             <NavigationMenuItem className="min-w-[90px]">
               <Link to="/panchang" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
                 <Sun className="h-4 w-4" />
                 {t("nav.panchang")}
               </Link>
+            </NavigationMenuItem>
+
+            {/* Explore Dropdown */}
+            <NavigationMenuItem className="min-w-[80px] relative">
+              <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
+                Explore
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <div className="w-[350px] p-4">
+                  <div className="grid gap-3">
+                    <Link
+                      to="/temples"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-sacred-green/10 flex items-center justify-center">
+                          <Building2 className="h-5 w-5 text-sacred-green" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">{t("nav.temples")}</div>
+                          <p className="text-sm text-muted-foreground">
+                            Browse sacred temples & book darshan
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/pundits"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <UserCheck className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">{t("nav.pundit")}</div>
+                          <p className="text-sm text-muted-foreground">
+                            Find verified priests for rituals
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              </NavigationMenuContent>
             </NavigationMenuItem>
 
             {/* Gift */}
@@ -302,24 +331,6 @@ export function Header() {
             </div>
 
             <Link
-              to="/temples"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <Building2 className="h-4 w-4" />
-              Temples
-            </Link>
-
-            <Link
-              to="/pundits"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <UserCheck className="h-4 w-4" />
-              Pundits
-            </Link>
-
-            <Link
               to="/panchang"
               className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
               onClick={() => setIsMenuOpen(false)}
@@ -327,6 +338,37 @@ export function Header() {
               <Sun className="h-4 w-4" />
               Panchang
             </Link>
+
+            {/* Explore Submenu */}
+            <div>
+              <button
+                onClick={() => toggleMobileSubmenu('explore')}
+                className="flex items-center justify-between w-full text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
+              >
+                Explore
+                <ChevronDown className={cn("h-4 w-4 transition-transform", expandedMobile === 'explore' && "rotate-180")} />
+              </button>
+              {expandedMobile === 'explore' && (
+                <div className="pl-4 flex flex-col gap-2 mt-2">
+                  <Link
+                    to="/temples"
+                    className="text-sm text-muted-foreground hover:text-primary py-1 flex items-center gap-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Building2 className="h-4 w-4" />
+                    Temples
+                  </Link>
+                  <Link
+                    to="/pundits"
+                    className="text-sm text-muted-foreground hover:text-primary py-1 flex items-center gap-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <UserCheck className="h-4 w-4" />
+                    Pundits
+                  </Link>
+                </div>
+              )}
+            </div>
 
             <Link
               to="/gift-pooja"
