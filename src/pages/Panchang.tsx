@@ -19,18 +19,20 @@ import { supabase } from "@/integrations/supabase/client";
 interface PanchangData {
   date: string;
   hinduDate: string;
-  tithi: { name: string; endTime: string };
+  tithi: { name: string; endTime: string; paksha?: string };
   nakshatra: { name: string; endTime: string };
-  yoga: string;
-  karana: string;
+  yoga: { name: string; endTime: string };
+  karana: { name: string };
   vara: string;
-  sunrise: string;
-  sunset: string;
-  moonrise: string;
-  moonset: string;
-  rahukaal: string;
-  yamagandam: string;
-  gulika: string;
+  timings: {
+    sunrise: string;
+    sunset: string;
+    moonrise: string;
+    moonset: string;
+    rahukaal: string;
+    yamagandam: string;
+    gulika: string;
+  };
   auspicious: string[];
   inauspicious: string[];
   masa: string;
@@ -204,11 +206,14 @@ const Panchang = () => {
                       </div>
                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">{t("panchang.yoga")}</p>
-                        <p className="font-semibold">{panchangData.yoga}</p>
+                        <p className="font-semibold">{panchangData.yoga.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Until {panchangData.yoga.endTime}
+                        </p>
                       </div>
                       <div className="space-y-1">
                         <p className="text-sm text-muted-foreground">{t("panchang.karana")}</p>
-                        <p className="font-semibold">{panchangData.karana}</p>
+                        <p className="font-semibold">{panchangData.karana.name}</p>
                       </div>
                     </div>
 
@@ -233,28 +238,28 @@ const Panchang = () => {
                         <Sun className="h-5 w-5 text-amber-500" />
                         <div>
                           <p className="text-xs text-muted-foreground">{t("panchang.sunrise")}</p>
-                          <p className="font-semibold">{panchangData.sunrise}</p>
+                          <p className="font-semibold">{panchangData.timings.sunrise}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                         <Sun className="h-5 w-5 text-orange-500" />
                         <div>
                           <p className="text-xs text-muted-foreground">{t("panchang.sunset")}</p>
-                          <p className="font-semibold">{panchangData.sunset}</p>
+                          <p className="font-semibold">{panchangData.timings.sunset}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                         <Moon className="h-5 w-5 text-blue-500" />
                         <div>
                           <p className="text-xs text-muted-foreground">{t("panchang.moonrise")}</p>
-                          <p className="font-semibold">{panchangData.moonrise}</p>
+                          <p className="font-semibold">{panchangData.timings.moonrise}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/20 rounded-lg">
                         <Moon className="h-5 w-5 text-slate-500" />
                         <div>
                           <p className="text-xs text-muted-foreground">{t("panchang.moonset")}</p>
-                          <p className="font-semibold">{panchangData.moonset}</p>
+                          <p className="font-semibold">{panchangData.timings.moonset}</p>
                         </div>
                       </div>
                     </div>
@@ -265,21 +270,21 @@ const Panchang = () => {
                           <AlertTriangle className="h-4 w-4 text-red-500" />
                           <span className="text-sm">{t("panchang.rahukaal")}</span>
                         </div>
-                        <Badge variant="destructive">{panchangData.rahukaal}</Badge>
+                        <Badge variant="destructive">{panchangData.timings.rahukaal}</Badge>
                       </div>
                       <div className="flex items-center justify-between p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                         <div className="flex items-center gap-2">
                           <AlertTriangle className="h-4 w-4 text-yellow-600" />
                           <span className="text-sm">{t("panchang.yamagandam")}</span>
                         </div>
-                        <Badge variant="outline">{panchangData.yamagandam}</Badge>
+                        <Badge variant="outline">{panchangData.timings.yamagandam}</Badge>
                       </div>
                       <div className="flex items-center justify-between p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
                         <div className="flex items-center gap-2">
                           <AlertTriangle className="h-4 w-4 text-purple-600" />
                           <span className="text-sm">{t("panchang.gulika")}</span>
                         </div>
-                        <Badge variant="outline">{panchangData.gulika}</Badge>
+                        <Badge variant="outline">{panchangData.timings.gulika}</Badge>
                       </div>
                     </div>
                   </CardContent>
