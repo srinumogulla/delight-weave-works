@@ -57,8 +57,8 @@ export function Header() {
               <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
                 {t("nav.pooja")}
               </NavigationMenuTrigger>
-              <NavigationMenuContent className="absolute left-0 top-full mt-1.5">
-                <div className="w-[400px] p-4 bg-card shadow-lg border rounded-md">
+              <NavigationMenuContent>
+                <div className="w-[400px] p-4">
                   <div className="grid gap-3">
                     <Link
                       to="/pooja/dashachara"
@@ -143,8 +143,8 @@ export function Header() {
                 <Users className="h-4 w-4" />
                 Community
               </NavigationMenuTrigger>
-              <NavigationMenuContent className="absolute left-0 top-full mt-1.5">
-                <div className="w-[300px] p-4 bg-card shadow-lg border rounded-md">
+              <NavigationMenuContent>
+                <div className="w-[300px] p-4">
                   <Link
                     to="/community/events"
                     className="group block p-3 rounded-lg hover:bg-muted transition-colors"
