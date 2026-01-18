@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, ReactNode } from "react";
-import { Loader2 } from "lucide-react";
 import vedicPattern from "@/assets/vedic-pattern.svg";
 
 interface TempleGateIntroProps {
@@ -31,13 +30,14 @@ export function TempleGateIntro({ children }: TempleGateIntroProps) {
       return;
     }
 
-    // Show skip button immediately
+    // Show skip button after 0.5s
     const skipTimer = setTimeout(() => {
       setShowSkip(true);
-    }, 300);
+    }, 500);
 
     // Play temple bell sound
     const playSound = () => {
+      // Using a temple bell sound from a free source
       audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2840/2840-preview.mp3");
       audioRef.current.volume = 0.4;
       audioRef.current.play().catch(() => {
@@ -47,29 +47,29 @@ export function TempleGateIntro({ children }: TempleGateIntroProps) {
     
     playSound();
 
-    // Start opening animation faster (1.2s instead of 2s)
+    // Start opening animation after brief pause (slower timing)
     const openTimer = setTimeout(() => {
       setIsAnimating(false);
       // Fade out audio
       if (audioRef.current) {
         const fadeOut = setInterval(() => {
           if (audioRef.current && audioRef.current.volume > 0.05) {
-            audioRef.current.volume = Math.max(0, audioRef.current.volume - 0.08);
+            audioRef.current.volume = Math.max(0, audioRef.current.volume - 0.05);
           } else {
             clearInterval(fadeOut);
             if (audioRef.current) {
               audioRef.current.pause();
             }
           }
-        }, 80);
+        }, 100);
       }
-    }, 1200);
+    }, 2000);
 
-    // Complete and hide overlay faster (3s total instead of 5s)
+    // Complete and hide overlay after animation finishes (slower - 5s total)
     const completeTimer = setTimeout(() => {
       setIsComplete(true);
       sessionStorage.setItem("templeIntroShown", "true");
-    }, 3000);
+    }, 5000);
 
     return () => {
       clearTimeout(skipTimer);
@@ -269,25 +269,21 @@ export function TempleGateIntro({ children }: TempleGateIntroProps) {
           {/* Temple threshold at bottom */}
           <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-stone-600 to-stone-700 shadow-inner" />
           
-          {/* Welcome text with loading indicator */}
+          {/* Welcome text */}
           <div className="absolute bottom-20 left-1/2 -translate-x-1/2 text-center z-20">
             <p className="text-amber-400 text-xl md:text-2xl font-heading tracking-widest animate-pulse drop-shadow-lg">
               स्वागतम्
             </p>
             <p className="text-amber-300/70 text-sm mt-2 font-body">Welcome to the Temple</p>
-            <div className="flex items-center justify-center gap-2 mt-3 text-amber-300/50">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span className="text-xs">Loading...</span>
-            </div>
           </div>
           
-          {/* Skip button - shows faster */}
+          {/* Skip button */}
           {showSkip && (
             <button
               onClick={skipIntro}
-              className="absolute bottom-6 right-6 z-30 px-4 py-2 bg-stone-800/90 hover:bg-stone-700 text-amber-300 hover:text-amber-200 text-sm font-medium rounded-lg border border-amber-500/40 transition-all duration-200 backdrop-blur-sm shadow-lg"
+              className="absolute bottom-6 right-6 z-30 px-4 py-2 bg-stone-800/80 hover:bg-stone-700/90 text-amber-300/80 hover:text-amber-200 text-sm font-medium rounded-lg border border-amber-600/30 transition-all duration-300 backdrop-blur-sm animate-fade-in"
             >
-              Skip →
+              Skip Intro →
             </button>
           )}
         </div>
