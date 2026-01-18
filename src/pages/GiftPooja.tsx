@@ -374,67 +374,108 @@ const GiftPooja = () => {
                   />
                 </div>
 
-                {/* Enhanced Gift Card Preview */}
-                {(senderName || recipientName) && (
-                  <div className="relative p-6 bg-gradient-to-br from-primary/20 via-accent/10 to-primary/5 rounded-xl border-2 border-primary/30 overflow-hidden">
-                    {/* Decorative background pattern */}
-                    <div className="absolute inset-0 opacity-10">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,_hsl(var(--primary))_1px,_transparent_1px)] bg-[length:20px_20px]" />
+                {/* Decorative Gift Card - Greeting Card Style */}
+                <div className="relative overflow-hidden rounded-2xl border-4 border-double border-primary/40 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 dark:from-primary/10 dark:via-accent/5 dark:to-primary/10 shadow-xl">
+                  {/* Decorative Corner Elements */}
+                  <div className="absolute top-0 left-0 w-16 h-16">
+                    <svg viewBox="0 0 100 100" className="w-full h-full text-primary/30">
+                      <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                      <circle cx="15" cy="15" r="8" fill="currentColor"/>
+                      <circle cx="8" cy="25" r="4" fill="currentColor"/>
+                      <circle cx="25" cy="8" r="4" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <div className="absolute top-0 right-0 w-16 h-16 rotate-90">
+                    <svg viewBox="0 0 100 100" className="w-full h-full text-primary/30">
+                      <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                      <circle cx="15" cy="15" r="8" fill="currentColor"/>
+                      <circle cx="8" cy="25" r="4" fill="currentColor"/>
+                      <circle cx="25" cy="8" r="4" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <div className="absolute bottom-0 left-0 w-16 h-16 -rotate-90">
+                    <svg viewBox="0 0 100 100" className="w-full h-full text-primary/30">
+                      <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                      <circle cx="15" cy="15" r="8" fill="currentColor"/>
+                      <circle cx="8" cy="25" r="4" fill="currentColor"/>
+                      <circle cx="25" cy="8" r="4" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  <div className="absolute bottom-0 right-0 w-16 h-16 rotate-180">
+                    <svg viewBox="0 0 100 100" className="w-full h-full text-primary/30">
+                      <path d="M0,0 Q50,0 50,50 Q50,0 100,0 L100,100 L0,100 Z" fill="none" stroke="currentColor" strokeWidth="2"/>
+                      <circle cx="15" cy="15" r="8" fill="currentColor"/>
+                      <circle cx="8" cy="25" r="4" fill="currentColor"/>
+                      <circle cx="25" cy="8" r="4" fill="currentColor"/>
+                    </svg>
+                  </div>
+                  
+                  {/* Header with Om symbol */}
+                  <div className="text-center pt-6 pb-3 border-b border-primary/20">
+                    <span className="text-4xl text-primary drop-shadow-sm">ॐ</span>
+                    <p className="text-xs text-muted-foreground mt-1 font-medium tracking-wider uppercase">Divine Blessings</p>
+                  </div>
+                  
+                  {/* From/To Section */}
+                  <div className="p-6 flex items-center justify-between gap-4">
+                    {/* Sender */}
+                    <div className="flex-1 text-center">
+                      <div className="w-20 h-20 mx-auto rounded-full border-4 border-primary/30 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg">
+                        <User className="h-10 w-10 text-primary" />
+                      </div>
+                      <p className="mt-3 text-xs font-semibold text-primary uppercase tracking-wide">From</p>
+                      <p className="font-heading text-lg font-bold text-foreground mt-1">{senderName || "Your Name"}</p>
                     </div>
                     
-                    {/* Occasion icon */}
-                    {selectedOccasion && (
-                      <div className="absolute top-4 right-4">
-                        <selectedOccasion.icon className="h-8 w-8 text-primary/40" />
+                    {/* Decorative Gift/Arrow */}
+                    <div className="flex flex-col items-center px-2">
+                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                        <Gift className="h-7 w-7 text-primary" />
                       </div>
-                    )}
-                    
-                    <p className="text-xs text-muted-foreground mb-4 relative z-10">Gift Card Preview</p>
-                    
-                    <div className="relative z-10 flex items-center justify-center gap-6">
-                      {/* Sender */}
-                      <div className="text-center">
-                        <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mx-auto mb-2">
-                          <User className="h-7 w-7 text-primary" />
-                        </div>
-                        <p className="text-xs text-muted-foreground">From</p>
-                        <p className="text-sm font-semibold text-primary">{senderName || "Your Name"}</p>
-                      </div>
-                      
-                      {/* Gift arrow */}
-                      <div className="flex flex-col items-center">
-                        <Gift className="h-6 w-6 text-primary animate-pulse" />
-                        <ArrowRight className="h-4 w-4 text-muted-foreground mt-1" />
-                      </div>
-                      
-                      {/* Recipient */}
-                      <div className="text-center">
-                        <div className="w-16 h-16 rounded-full bg-accent/20 border-2 border-accent flex items-center justify-center mx-auto mb-2">
-                          <User className="h-7 w-7 text-accent-foreground" />
-                        </div>
-                        <p className="text-xs text-muted-foreground">To</p>
-                        <p className="text-sm font-semibold text-accent-foreground">{recipientName || "Recipient Name"}</p>
+                      <div className="flex items-center gap-1 mt-2">
+                        <div className="w-8 h-0.5 bg-gradient-to-r from-transparent to-primary/50" />
+                        <ArrowRight className="h-4 w-4 text-primary" />
+                        <div className="w-8 h-0.5 bg-gradient-to-r from-primary/50 to-transparent" />
                       </div>
                     </div>
                     
-                    {/* Message preview */}
-                    {senderMessage && (
-                      <div className="mt-4 p-3 bg-background/60 backdrop-blur-sm rounded-lg relative z-10">
-                        <p className="text-sm italic text-center text-muted-foreground">"{senderMessage}"</p>
+                    {/* Recipient */}
+                    <div className="flex-1 text-center">
+                      <div className="w-20 h-20 mx-auto rounded-full border-4 border-accent/40 bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center shadow-lg">
+                        <User className="h-10 w-10 text-accent-foreground" />
                       </div>
+                      <p className="mt-3 text-xs font-semibold text-accent-foreground uppercase tracking-wide">To</p>
+                      <p className="font-heading text-lg font-bold text-foreground mt-1">{recipientName || "Recipient"}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Message Area */}
+                  <div className="px-6 pb-4">
+                    <div className="p-4 bg-white/60 dark:bg-background/40 backdrop-blur-sm rounded-xl border border-primary/10 shadow-inner">
+                      <p className="text-center italic text-muted-foreground leading-relaxed">
+                        "{senderMessage || 'May divine blessings shower upon you and bring peace, prosperity, and happiness to your life...'}"
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Footer with Pooja & Occasion */}
+                  <div className="px-6 pb-6 flex flex-wrap items-center justify-center gap-3">
+                    {selectedServiceData && (
+                      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-primary-foreground text-sm font-medium shadow-md">
+                        🙏 {selectedServiceData.name}
+                      </span>
                     )}
-                    
-                    {/* Occasion badge */}
                     {selectedOccasion && (
-                      <div className="mt-4 flex justify-center relative z-10">
-                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
-                          <selectedOccasion.icon className="h-3 w-3" />
-                          {selectedOccasion.label}
-                        </span>
-                      </div>
+                      <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/20 text-foreground text-sm font-medium border border-accent/30">
+                        <selectedOccasion.icon className="h-4 w-4" />
+                        {selectedOccasion.label}
+                      </span>
                     )}
                   </div>
-                )}
+                  
+                  {/* Decorative Bottom Border */}
+                  <div className="h-2 bg-gradient-to-r from-primary/30 via-accent/20 to-primary/30" />
+                </div>
               </div>
 
               {/* Recipient Contact */}
