@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, Globe, User, LogOut, Settings, Gift, Calendar, Users, BookOpen } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck } from "lucide-react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLanguage } from "@/i18n";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,18 +22,12 @@ import {
 import { useAuth } from "@/components/AuthProvider";
 import { cn } from "@/lib/utils";
 
-const languages = [
-  { code: "en", label: "English" },
-  { code: "hi", label: "हिंदी" },
-  { code: "te", label: "తెలుగు" },
-  { code: "ta", label: "தமிழ்" },
-];
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedLang, setSelectedLang] = useState("en");
   const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
   const { user, profile, isAdmin, signOut } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -59,14 +55,14 @@ export function Header() {
           <NavigationMenuList>
             <NavigationMenuItem>
               <Link to="/" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2">
-                Home
+                {t("nav.home")}
               </Link>
             </NavigationMenuItem>
 
             {/* Pooja Dropdown */}
             <NavigationMenuItem>
               <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
-                Pooja
+                {t("nav.pooja")}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <div className="w-[400px] p-4 bg-card">
@@ -108,11 +104,35 @@ export function Header() {
               </NavigationMenuContent>
             </NavigationMenuItem>
 
+            {/* Panchang */}
+            <NavigationMenuItem>
+              <Link to="/panchang" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
+                <Sun className="h-4 w-4" />
+                {t("nav.panchang")}
+              </Link>
+            </NavigationMenuItem>
+
+            {/* Temples */}
+            <NavigationMenuItem>
+              <Link to="/temples" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
+                <Building2 className="h-4 w-4" />
+                {t("nav.temples")}
+              </Link>
+            </NavigationMenuItem>
+
+            {/* Pundit */}
+            <NavigationMenuItem>
+              <Link to="/pundits" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
+                <UserCheck className="h-4 w-4" />
+                {t("nav.pundit")}
+              </Link>
+            </NavigationMenuItem>
+
             {/* Gift */}
             <NavigationMenuItem>
               <Link to="/gift-pooja" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
                 <Gift className="h-4 w-4" />
-                Gift
+                {t("nav.gift")}
               </Link>
             </NavigationMenuItem>
 
@@ -164,7 +184,7 @@ export function Header() {
             {/* Contact */}
             <NavigationMenuItem>
               <Link to="/contact" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2">
-                Contact
+                {t("nav.contact")}
               </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
@@ -173,26 +193,7 @@ export function Header() {
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
           {/* Language Selector */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="gap-1">
-                <Globe className="h-4 w-4" />
-                <span>{languages.find(l => l.code === selectedLang)?.label}</span>
-                <ChevronDown className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-card">
-              {languages.map((lang) => (
-                <DropdownMenuItem
-                  key={lang.code}
-                  onClick={() => setSelectedLang(lang.code)}
-                  className={selectedLang === lang.code ? "bg-muted" : ""}
-                >
-                  {lang.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <LanguageSwitcher />
 
           {user ? (
             <DropdownMenu>
