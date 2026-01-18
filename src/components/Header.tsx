@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, Globe, User, LogOut, Settings } from "lucide-react";
+import { Menu, X, ChevronDown, Globe, User, LogOut, Settings, Gift, Calendar, Users, BookOpen } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,15 +9,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 import { useAuth } from "@/components/AuthProvider";
-
-const navItems = [
-  { label: "Poojas", href: "/services" },
-  { label: "Panchang", href: "#panchang" },
-  { label: "Temples", href: "#temples" },
-  { label: "Pundit", href: "#pundit" },
-  { label: "Community", href: "#community" },
-];
+import { cn } from "@/lib/utils";
 
 const languages = [
   { code: "en", label: "English" },
@@ -29,12 +30,17 @@ const languages = [
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedLang, setSelectedLang] = useState("en");
+  const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
   const { user, profile, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const toggleMobileSubmenu = (menu: string) => {
+    setExpandedMobile(expandedMobile === menu ? null : menu);
   };
 
   return (
@@ -45,31 +51,124 @@ export function Header() {
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
             <span className="font-heading text-xl font-bold text-primary-foreground">ॐ</span>
           </div>
-          <span className="font-heading text-xl font-bold text-primary">Vedic Pooja</span>
+          <span className="font-heading text-xl font-bold text-primary">Vedha Mantra</span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          {navItems.map((item) => (
-            item.href.startsWith("/") ? (
-              <Link
-                key={item.label}
-                to={item.href}
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-              >
-                {item.label}
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <Link to="/" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2">
+                Home
               </Link>
-            ) : (
-              <a
-                key={item.label}
-                href={item.href}
-                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
-              >
-                {item.label}
-              </a>
-            )
-          ))}
-        </nav>
+            </NavigationMenuItem>
+
+            {/* Pooja Dropdown */}
+            <NavigationMenuItem>
+              <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
+                Pooja
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <div className="w-[400px] p-4 bg-card">
+                  <div className="grid gap-3">
+                    <Link
+                      to="/pooja/dashachara"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <BookOpen className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">Dashachara</div>
+                          <p className="text-sm text-muted-foreground">
+                            Concierge-managed traditional poojas with verified priests
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/pooja/vamachara"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                          <span className="text-lg">🕉️</span>
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">Vamachara</div>
+                          <p className="text-sm text-muted-foreground">
+                            Powerful rituals performed with strict scriptural discipline
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+
+            {/* Gift */}
+            <NavigationMenuItem>
+              <Link to="/gift-pooja" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
+                <Gift className="h-4 w-4" />
+                Gift
+              </Link>
+            </NavigationMenuItem>
+
+            {/* Community Dropdown */}
+            <NavigationMenuItem>
+              <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
+                Community
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <div className="w-[300px] p-4 bg-card">
+                  <div className="grid gap-3">
+                    <Link
+                      to="/community/events"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-sacred-green/10 flex items-center justify-center">
+                          <Calendar className="h-5 w-5 text-sacred-green" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">Events</div>
+                          <p className="text-sm text-muted-foreground">
+                            Spiritual events, festivals & satsangs
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/community/about"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Users className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">About Us</div>
+                          <p className="text-sm text-muted-foreground">
+                            Our mission, vision & principles
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+
+            {/* Contact */}
+            <NavigationMenuItem>
+              <Link to="/contact" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2">
+                Contact
+              </Link>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
@@ -154,28 +253,90 @@ export function Header() {
       {/* Mobile Menu */}
       {isMenuOpen && (
         <div className="md:hidden border-t border-border bg-background">
-          <nav className="container py-4 flex flex-col gap-4">
-            {navItems.map((item) => (
-              item.href.startsWith("/") ? (
-                <Link
-                  key={item.label}
-                  to={item.href}
-                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </a>
-              )
-            ))}
+          <nav className="container py-4 flex flex-col gap-2">
+            <Link
+              to="/"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Home
+            </Link>
+
+            {/* Pooja Submenu */}
+            <div>
+              <button
+                onClick={() => toggleMobileSubmenu('pooja')}
+                className="flex items-center justify-between w-full text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
+              >
+                Pooja
+                <ChevronDown className={cn("h-4 w-4 transition-transform", expandedMobile === 'pooja' && "rotate-180")} />
+              </button>
+              {expandedMobile === 'pooja' && (
+                <div className="pl-4 flex flex-col gap-2 mt-2">
+                  <Link
+                    to="/pooja/dashachara"
+                    className="text-sm text-muted-foreground hover:text-primary py-1"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Dashachara
+                  </Link>
+                  <Link
+                    to="/pooja/vamachara"
+                    className="text-sm text-muted-foreground hover:text-primary py-1"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Vamachara
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <Link
+              to="/gift-pooja"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Gift className="h-4 w-4" />
+              Gift
+            </Link>
+
+            {/* Community Submenu */}
+            <div>
+              <button
+                onClick={() => toggleMobileSubmenu('community')}
+                className="flex items-center justify-between w-full text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
+              >
+                Community
+                <ChevronDown className={cn("h-4 w-4 transition-transform", expandedMobile === 'community' && "rotate-180")} />
+              </button>
+              {expandedMobile === 'community' && (
+                <div className="pl-4 flex flex-col gap-2 mt-2">
+                  <Link
+                    to="/community/events"
+                    className="text-sm text-muted-foreground hover:text-primary py-1"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Events
+                  </Link>
+                  <Link
+                    to="/community/about"
+                    className="text-sm text-muted-foreground hover:text-primary py-1"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    About Us
+                  </Link>
+                </div>
+              )}
+            </div>
+
+            <Link
+              to="/contact"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Contact
+            </Link>
+
             <div className="flex flex-col gap-2 pt-4 border-t border-border">
               {user ? (
                 <>

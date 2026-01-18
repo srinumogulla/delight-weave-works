@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Play, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { BackgroundPattern } from "./BackgroundPattern";
 import heroTemple from "@/assets/hero-temple.jpg";
 
@@ -29,18 +30,22 @@ export function HeroSection() {
             </h1>
             
             <p className="text-lg text-muted-foreground max-w-lg">
-              Experience authentic Vedic rituals performed by verified Purohits at sacred temples. 
-              Participate live from anywhere in the world.
+              Book a pooja that meets you where you are. Verified priests, transparent scheduling, 
+              livestreams when available, and prasadam shipped safely.
             </p>
             
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 shadow-red">
-                Book a Pooja
-                <ArrowRight className="ml-2 h-4 w-4" />
+              <Button size="lg" className="bg-primary hover:bg-primary/90 shadow-red" asChild>
+                <Link to="/pooja/dashachara">
+                  Explore Poojas
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
-              <Button size="lg" variant="outline" className="gap-2">
-                <Play className="h-4 w-4" />
-                How It Works
+              <Button size="lg" variant="outline" className="gap-2" asChild>
+                <Link to="/community/about">
+                  <Play className="h-4 w-4" />
+                  How It Works
+                </Link>
               </Button>
             </div>
             
@@ -52,7 +57,7 @@ export function HeroSection() {
               </div>
               <div>
                 <div className="font-heading text-2xl font-bold text-primary">500+</div>
-                <div className="text-sm text-muted-foreground">Verified Purohits</div>
+                <div className="text-sm text-muted-foreground">Verified Gurus</div>
               </div>
               <div>
                 <div className="font-heading text-2xl font-bold text-primary">50+</div>

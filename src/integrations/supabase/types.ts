@@ -80,6 +80,102 @@ export type Database = {
           },
         ]
       }
+      events: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          event_date: string
+          event_time: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_online: boolean | null
+          location: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          event_date: string
+          event_time?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_online?: boolean | null
+          location?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          event_date?: string
+          event_time?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_online?: boolean | null
+          location?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      gift_bookings: {
+        Row: {
+          amount: number | null
+          booking_date: string
+          created_at: string | null
+          id: string
+          message: string | null
+          occasion: string | null
+          recipient_address: string | null
+          recipient_email: string | null
+          recipient_name: string
+          recipient_phone: string | null
+          send_prasadam: boolean | null
+          service_id: string
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          booking_date: string
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          occasion?: string | null
+          recipient_address?: string | null
+          recipient_email?: string | null
+          recipient_name: string
+          recipient_phone?: string | null
+          send_prasadam?: boolean | null
+          service_id: string
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          booking_date?: string
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          occasion?: string | null
+          recipient_address?: string | null
+          recipient_email?: string | null
+          recipient_name?: string
+          recipient_phone?: string | null
+          send_prasadam?: boolean | null
+          service_id?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       pooja_services: {
         Row: {
           benefits: string[] | null
@@ -87,11 +183,15 @@ export type Database = {
           created_at: string
           description: string | null
           duration: string | null
+          guru_name: string | null
           id: string
           image_url: string | null
           is_active: boolean | null
           name: string
           price: number
+          ritual_type: string | null
+          scheduled_date: string | null
+          scheduled_time: string | null
           temple: string | null
           updated_at: string
         }
@@ -101,11 +201,15 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration?: string | null
+          guru_name?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           name: string
           price?: number
+          ritual_type?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
           temple?: string | null
           updated_at?: string
         }
@@ -115,11 +219,15 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration?: string | null
+          guru_name?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean | null
           name?: string
           price?: number
+          ritual_type?: string | null
+          scheduled_date?: string | null
+          scheduled_time?: string | null
           temple?: string | null
           updated_at?: string
         }
