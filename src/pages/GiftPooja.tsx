@@ -6,27 +6,23 @@ import { Footer } from "@/components/Footer";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Gift, Heart, Cake, Star, Leaf, ArrowRight, ArrowLeft, Phone, Video, Package, Building2, 
-  ChevronLeft, ChevronRight, User, Camera, X, Upload, Image, Sparkles, Check, 
-  Mail, MapPin, Shield, Clock, CheckCircle2
+  ChevronLeft, ChevronRight, Image, Sparkles, Check, CheckCircle2
 } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
+
+// Import components
+import { CardPreview } from "./gift-pooja/CardPreview";
+import { StepSelectBlessing } from "./gift-pooja/StepSelectBlessing";
+import { StepDesignCard } from "./gift-pooja/StepDesignCard";
+import { StepRecipientDetails } from "./gift-pooja/StepRecipientDetails";
+import { StepDeliveryConfirm } from "./gift-pooja/StepDeliveryConfirm";
 
 // Import images
 import heroTemple from "@/assets/hero-temple.jpg";
@@ -227,7 +223,7 @@ const giftSteps = [
 const formSteps = [
   { id: 1, title: "Select Blessing", icon: Gift },
   { id: 2, title: "Design Card", icon: Sparkles },
-  { id: 3, title: "Recipient Details", icon: User },
+  { id: 3, title: "Recipient Details", icon: CheckCircle2 },
   { id: 4, title: "Delivery & Confirm", icon: CheckCircle2 },
 ];
 
@@ -251,7 +247,7 @@ const GiftPooja = () => {
   const [sendPrasadam, setSendPrasadam] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // New state for sender details
+  // Sender details
   const [senderName, setSenderName] = useState("");
   const [senderMessage, setSenderMessage] = useState("");
   
@@ -283,41 +279,6 @@ const GiftPooja = () => {
         return false;
     }
   };
-
-  // Custom background upload handler
-  const handleCustomBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setCustomBackground(url);
-      setSelectedTemplate("custom");
-    }
-  };
-
-  const removeCustomBackground = () => {
-    setCustomBackground(null);
-    setSelectedTemplate("classic");
-  };
-
-  // Photo upload handlers
-  const handleSenderImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setSenderImage(url);
-    }
-  };
-
-  const handleRecipientImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setRecipientImage(url);
-    }
-  };
-
-  const removeSenderImage = () => setSenderImage(null);
-  const removeRecipientImage = () => setRecipientImage(null);
 
   // Embla carousel setup
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [Autoplay({ delay: 4000, stopOnInteraction: false })]);
@@ -419,506 +380,65 @@ const GiftPooja = () => {
     }
   };
 
-  // Get card preview component
-  const CardPreview = () => {
-    const theme = cardThemes[occasion] || cardThemes.blessing;
-    const template = giftTemplates.find(t => t.id === selectedTemplate) || giftTemplates[0];
-    const useCustomBg = selectedTemplate === "custom" && customBackground;
-    
-    return (
-      <div 
-        className={`relative overflow-hidden rounded-2xl border-4 border-double ${theme.borderColor} shadow-xl`}
-        style={useCustomBg ? {
-          backgroundImage: `url(${customBackground})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        } : undefined}
-      >
-        {/* Template Background */}
-        {!useCustomBg && (
-          <div 
-            className={`absolute inset-0 bg-gradient-to-br ${template.background}`}
-            style={{ backgroundImage: template.pattern }}
-          />
-        )}
-        
-        {/* Overlay for custom backgrounds */}
-        {useCustomBg && (
-          <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
-        )}
-        
-        {/* Floating Decorations */}
-        <div className="absolute top-3 left-3 text-2xl opacity-40">{theme.decorations[0]}</div>
-        <div className="absolute top-3 right-3 text-2xl opacity-40">{theme.decorations[1]}</div>
-        <div className="absolute bottom-16 left-3 text-xl opacity-30">{theme.decorations[2]}</div>
-        <div className="absolute bottom-16 right-3 text-xl opacity-30">{theme.decorations[3]}</div>
-        
-        {/* Header with themed symbol */}
-        <div className="relative text-center pt-6 pb-3 border-b border-current/10">
-          <span className="text-4xl drop-shadow-sm">{theme.headerSymbol}</span>
-          <p className={`text-xs mt-1 font-medium tracking-wider uppercase ${useCustomBg ? 'text-white' : 'text-muted-foreground'}`}>{theme.headerText}</p>
-        </div>
-        
-        {/* From/To Section */}
-        <div className="relative p-4 md:p-6 flex items-center justify-between gap-2 md:gap-4">
-          {/* Sender */}
-          <div className="flex-1 text-center">
-            <div className="relative w-14 h-14 md:w-20 md:h-20 mx-auto">
-              <div className="w-full h-full rounded-full border-4 border-primary/30 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shadow-lg overflow-hidden">
-                {senderImage ? (
-                  <img src={senderImage} alt="Sender" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="h-6 w-6 md:h-10 md:w-10 text-primary" />
-                )}
-              </div>
-            </div>
-            <p className={`mt-2 md:mt-3 text-xs font-semibold uppercase tracking-wide ${useCustomBg ? 'text-white' : 'text-primary'}`}>From</p>
-            <p className={`font-heading text-sm md:text-lg font-bold mt-1 ${useCustomBg ? 'text-white' : 'text-foreground'}`}>{senderName || "Your Name"}</p>
-          </div>
-          
-          {/* Decorative Gift/Arrow */}
-          <div className="flex flex-col items-center px-1 md:px-2">
-            <div className="w-10 h-10 md:w-14 md:h-14 rounded-full bg-primary/10 flex items-center justify-center">
-              <Gift className="h-5 w-5 md:h-7 md:w-7 text-primary" />
-            </div>
-            <ArrowRight className="h-4 w-4 text-primary mt-1" />
-          </div>
-          
-          {/* Recipient */}
-          <div className="flex-1 text-center">
-            <div className="relative w-14 h-14 md:w-20 md:h-20 mx-auto">
-              <div className="w-full h-full rounded-full border-4 border-accent/40 bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center shadow-lg overflow-hidden">
-                {recipientImage ? (
-                  <img src={recipientImage} alt="Recipient" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="h-6 w-6 md:h-10 md:w-10 text-accent-foreground" />
-                )}
-              </div>
-            </div>
-            <p className={`mt-2 md:mt-3 text-xs font-semibold uppercase tracking-wide ${useCustomBg ? 'text-white' : 'text-accent-foreground'}`}>To</p>
-            <p className={`font-heading text-sm md:text-lg font-bold mt-1 ${useCustomBg ? 'text-white' : 'text-foreground'}`}>{recipientName || "Recipient"}</p>
-          </div>
-        </div>
-        
-        {/* Message Area */}
-        <div className="relative px-4 md:px-6 pb-4">
-          <div className={`p-3 md:p-4 ${useCustomBg ? 'bg-white/80' : 'bg-white/60 dark:bg-background/40'} backdrop-blur-sm rounded-xl border border-current/10 shadow-inner`}>
-            <p className="text-center italic text-muted-foreground leading-relaxed text-sm">
-              "{senderMessage || 'May divine blessings shower upon you...'}"
-            </p>
-          </div>
-        </div>
-        
-        {/* Footer with Pooja & Occasion */}
-        <div className="relative px-4 md:px-6 pb-4 flex flex-wrap items-center justify-center gap-2">
-          {selectedServiceData && (
-            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium shadow-md">
-              🙏 {selectedServiceData.name}
-            </span>
-          )}
-          {selectedOccasion && (
-            <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full ${useCustomBg ? 'bg-white/80 text-foreground' : 'bg-accent/20 text-foreground'} text-xs font-medium border border-accent/30`}>
-              <selectedOccasion.icon className="h-3 w-3" />
-              {selectedOccasion.label}
-            </span>
-          )}
-        </div>
-        
-        {/* Decorative Bottom Border */}
-        <div className={`h-2 bg-gradient-to-r ${theme.accentGradient}`} />
-      </div>
-    );
-  };
-
-  // Step 1: Select Blessing
-  const StepSelectBlessing = () => (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="service" className="text-base font-medium">Select Pooja *</Label>
-        <Select value={selectedService} onValueChange={setSelectedService}>
-          <SelectTrigger className="h-12">
-            <SelectValue placeholder="Choose a pooja for your loved one" />
-          </SelectTrigger>
-          <SelectContent className="bg-card">
-            {services.map((service) => (
-              <SelectItem key={service.id} value={service.id}>
-                {service.name} - ₹{Number(service.price).toLocaleString()}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-3">
-        <Label className="text-base font-medium">Select an Occasion *</Label>
-        <div className="grid grid-cols-3 gap-3">
-          {occasions.map((occ) => (
-            <button
-              key={occ.value}
-              type="button"
-              onClick={() => setOccasion(occ.value)}
-              className={`p-4 rounded-xl border-2 transition-all text-center group ${
-                occasion === occ.value
-                  ? "border-primary bg-primary/10 shadow-md"
-                  : "border-border hover:border-primary/50 hover:bg-muted/50"
-              }`}
-            >
-              <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-2 transition-colors ${
-                occasion === occ.value ? "bg-primary text-primary-foreground" : "bg-muted group-hover:bg-primary/20"
-              }`}>
-                <occ.icon className={`h-6 w-6 ${occasion === occ.value ? "" : "text-muted-foreground group-hover:text-primary"}`} />
-              </div>
-              <span className={`text-sm font-medium ${occasion === occ.value ? "text-primary" : "text-foreground"}`}>{occ.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {selectedServiceData && (
-        <div className="p-4 bg-primary/5 rounded-xl border border-primary/20 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Selected Pooja</p>
-            <p className="font-medium">{selectedServiceData.name}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Amount</p>
-            <p className="font-heading text-xl font-bold text-primary">₹{Number(selectedServiceData.price).toLocaleString()}</p>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  // Step 2: Design Card
-  const StepDesignCard = () => (
-    <div className="space-y-6">
-      {/* Template Selection */}
-      <div className="space-y-3">
-        <Label className="text-base font-medium flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-primary" />
-          Choose Card Template
-        </Label>
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-          {giftTemplates.map((template) => (
-            <button
-              key={template.id}
-              type="button"
-              onClick={() => {
-                setSelectedTemplate(template.id);
-                setCustomBackground(null);
-              }}
-              className={`relative aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all duration-200 ${
-                selectedTemplate === template.id 
-                  ? "border-primary ring-2 ring-primary/30 scale-105" 
-                  : "border-border hover:border-primary/50"
-              }`}
-            >
-              {/* Background Image */}
-              <img 
-                src={template.image} 
-                alt={template.name}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              {/* Gradient Overlay */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${template.preview} opacity-60`} />
-              {/* Content */}
-              <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-2">
-                <span className="text-3xl mb-1 drop-shadow-md">{template.decorIcon}</span>
-                <span className="text-xs font-medium text-foreground text-center leading-tight drop-shadow-sm bg-white/70 dark:bg-black/50 px-2 py-0.5 rounded">{template.name}</span>
-              </div>
-              {selectedTemplate === template.id && (
-                <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center z-20">
-                  <Check className="h-3 w-3" />
-                </div>
-              )}
-            </button>
-          ))}
-          
-          {/* Custom Upload Option */}
-          {customBackground ? (
-            <div className="relative aspect-[3/4] rounded-xl overflow-hidden border-2 border-primary ring-2 ring-primary/30">
-              <img src={customBackground} alt="Custom" className="w-full h-full object-cover" />
-              <button
-                type="button"
-                onClick={removeCustomBackground}
-                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ) : (
-            <label className="aspect-[3/4] rounded-xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center cursor-pointer transition-colors bg-muted/50">
-              <Upload className="h-6 w-6 text-muted-foreground mb-2" />
-              <span className="text-xs font-medium text-muted-foreground text-center">Upload<br/>Custom</span>
-              <input type="file" accept="image/*" className="hidden" onChange={handleCustomBackgroundUpload} />
-            </label>
-          )}
-        </div>
-      </div>
-
-      {/* Names and Photos */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="space-y-3">
-          <Label htmlFor="senderName" className="text-base font-medium">From (Your Name) *</Label>
-          <div className="flex gap-3">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full border-2 border-primary/30 bg-muted flex items-center justify-center overflow-hidden">
-                {senderImage ? (
-                  <img src={senderImage} alt="Sender" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="h-8 w-8 text-muted-foreground" />
-                )}
-              </div>
-              {senderImage ? (
-                <button
-                  type="button"
-                  onClick={removeSenderImage}
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              ) : (
-                <>
-                  <input 
-                    type="file" 
-                    id="senderImageInput"
-                    accept="image/*" 
-                    className="sr-only" 
-                    onChange={handleSenderImageUpload} 
-                  />
-                  <label 
-                    htmlFor="senderImageInput"
-                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors"
-                  >
-                    <Camera className="h-3 w-3" />
-                  </label>
-                </>
-              )}
-            </div>
-            <Input
-              id="senderName"
-              value={senderName}
-              onChange={(e) => setSenderName(e.target.value)}
-              placeholder="Enter your name"
-              className="flex-1 h-12"
-            />
-          </div>
-        </div>
-
-        <div className="space-y-3">
-          <Label htmlFor="recipientName" className="text-base font-medium">To (Recipient Name) *</Label>
-          <div className="flex gap-3">
-            <div className="relative">
-              <div className="w-16 h-16 rounded-full border-2 border-accent/40 bg-muted flex items-center justify-center overflow-hidden">
-                {recipientImage ? (
-                  <img src={recipientImage} alt="Recipient" className="w-full h-full object-cover" />
-                ) : (
-                  <User className="h-8 w-8 text-muted-foreground" />
-                )}
-              </div>
-              {recipientImage ? (
-                <button
-                  type="button"
-                  onClick={removeRecipientImage}
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              ) : (
-                <>
-                  <input 
-                    type="file" 
-                    id="recipientImageInput"
-                    accept="image/*" 
-                    className="sr-only" 
-                    onChange={handleRecipientImageUpload} 
-                  />
-                  <label 
-                    htmlFor="recipientImageInput"
-                    className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-accent text-accent-foreground flex items-center justify-center cursor-pointer hover:bg-accent/90 transition-colors"
-                  >
-                    <Camera className="h-3 w-3" />
-                  </label>
-                </>
-              )}
-            </div>
-            <Input
-              id="recipientName"
-              value={recipientName}
-              onChange={(e) => setRecipientName(e.target.value)}
-              placeholder="Enter recipient's name"
-              className="flex-1 h-12"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Personal Greeting */}
-      <div className="space-y-2">
-        <Label htmlFor="senderMessage" className="text-base font-medium">Your Blessing Message</Label>
-        <Textarea
-          id="senderMessage"
-          value={senderMessage}
-          onChange={(e) => setSenderMessage(e.target.value)}
-          placeholder="Write a heartfelt blessing for the recipient..."
-          rows={3}
-          className="resize-none"
-        />
-      </div>
-    </div>
-  );
-
-  // Step 3: Recipient Details
-  const StepRecipientDetails = () => (
-    <div className="space-y-6">
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="recipientEmail" className="text-base font-medium flex items-center gap-2">
-            <Mail className="h-4 w-4 text-muted-foreground" />
-            Recipient Email
-          </Label>
-          <Input
-            id="recipientEmail"
-            type="email"
-            value={recipientEmail}
-            onChange={(e) => setRecipientEmail(e.target.value)}
-            placeholder="For gift notification"
-            className="h-12"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="recipientPhone" className="text-base font-medium flex items-center gap-2">
-            <Phone className="h-4 w-4 text-muted-foreground" />
-            Recipient Phone
-          </Label>
-          <Input
-            id="recipientPhone"
-            type="tel"
-            value={recipientPhone}
-            onChange={(e) => setRecipientPhone(e.target.value)}
-            placeholder="For WhatsApp updates"
-            className="h-12"
-          />
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="message" className="text-base font-medium">Additional Notes (Optional)</Label>
-        <Textarea
-          id="message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Any special instructions or requests for the pooja..."
-          rows={3}
-          className="resize-none"
-        />
-      </div>
-
-      {/* Trust Badges */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4">
-        {[
-          { icon: Shield, text: "100% Authentic" },
-          { icon: Check, text: "Verified Priests" },
-          { icon: Clock, text: "Timely Rituals" },
-          { icon: Package, text: "Safe Delivery" },
-        ].map((badge, i) => (
-          <div key={i} className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
-            <badge.icon className="h-4 w-4 text-primary" />
-            <span className="text-xs font-medium text-muted-foreground">{badge.text}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  // Step 4: Delivery & Confirm
-  const StepDeliveryConfirm = () => (
-    <div className="space-y-6">
-      {/* Prasadam Delivery Toggle */}
-      <div className="flex items-center justify-between p-4 bg-primary/5 rounded-xl border border-primary/20">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-            <Package className="h-5 w-5 text-primary" />
-          </div>
-          <div>
-            <Label className="text-base font-medium">Send Prasadam to Recipient</Label>
-            <p className="text-sm text-muted-foreground">
-              Deliver blessed prasadam to their doorstep
-            </p>
-          </div>
-        </div>
-        <Switch
-          checked={sendPrasadam}
-          onCheckedChange={setSendPrasadam}
-        />
-      </div>
-
-      {/* Recipient Address */}
-      {sendPrasadam && (
-        <div className="space-y-2">
-          <Label htmlFor="recipientAddress" className="text-base font-medium flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            Delivery Address *
-          </Label>
-          <Textarea
-            id="recipientAddress"
-            value={recipientAddress}
-            onChange={(e) => setRecipientAddress(e.target.value)}
-            placeholder="Complete address for prasadam delivery"
-            rows={3}
-            className="resize-none"
-          />
-        </div>
-      )}
-
-      {/* Order Summary */}
-      <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div className="p-4 bg-muted/50 border-b border-border">
-          <h3 className="font-heading text-lg font-semibold">Order Summary</h3>
-        </div>
-        <div className="p-4 space-y-3">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Pooja</span>
-            <span className="font-medium">{selectedServiceData?.name || "-"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Occasion</span>
-            <span className="font-medium">{selectedOccasion?.label || "-"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">From</span>
-            <span className="font-medium">{senderName || "-"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">To</span>
-            <span className="font-medium">{recipientName || "-"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Prasadam Delivery</span>
-            <span className="font-medium">{sendPrasadam ? "Yes" : "No"}</span>
-          </div>
-          <div className="border-t border-border pt-3 mt-3 flex justify-between items-center">
-            <span className="font-medium">Total Amount</span>
-            <span className="font-heading text-2xl font-bold text-primary">
-              ₹{Number(selectedServiceData?.price || 0).toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   // Render current step content
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <StepSelectBlessing />;
+        return (
+          <StepSelectBlessing
+            services={services}
+            selectedService={selectedService}
+            setSelectedService={setSelectedService}
+            occasions={occasions}
+            occasion={occasion}
+            setOccasion={setOccasion}
+            selectedServiceData={selectedServiceData}
+          />
+        );
       case 2:
-        return <StepDesignCard />;
+        return (
+          <StepDesignCard
+            giftTemplates={giftTemplates}
+            selectedTemplate={selectedTemplate}
+            setSelectedTemplate={setSelectedTemplate}
+            customBackground={customBackground}
+            setCustomBackground={setCustomBackground}
+            senderName={senderName}
+            setSenderName={setSenderName}
+            recipientName={recipientName}
+            setRecipientName={setRecipientName}
+            senderImage={senderImage}
+            setSenderImage={setSenderImage}
+            recipientImage={recipientImage}
+            setRecipientImage={setRecipientImage}
+            senderMessage={senderMessage}
+            setSenderMessage={setSenderMessage}
+          />
+        );
       case 3:
-        return <StepRecipientDetails />;
+        return (
+          <StepRecipientDetails
+            recipientEmail={recipientEmail}
+            setRecipientEmail={setRecipientEmail}
+            recipientPhone={recipientPhone}
+            setRecipientPhone={setRecipientPhone}
+            message={message}
+            setMessage={setMessage}
+          />
+        );
       case 4:
-        return <StepDeliveryConfirm />;
+        return (
+          <StepDeliveryConfirm
+            sendPrasadam={sendPrasadam}
+            setSendPrasadam={setSendPrasadam}
+            recipientAddress={recipientAddress}
+            setRecipientAddress={setRecipientAddress}
+            selectedServiceData={selectedServiceData}
+            selectedOccasion={selectedOccasion}
+            senderName={senderName}
+            recipientName={recipientName}
+          />
+        );
       default:
         return null;
     }
@@ -959,6 +479,7 @@ const GiftPooja = () => {
                     {bannerSlides.map((_, i) => (
                       <button
                         key={i}
+                        type="button"
                         onClick={() => emblaApi?.scrollTo(i)}
                         className={`w-2 h-2 rounded-full transition-all ${
                           selectedIndex === i ? "bg-white w-6" : "bg-white/50"
@@ -975,6 +496,7 @@ const GiftPooja = () => {
         
         {/* Carousel Controls */}
         <button 
+          type="button"
           onClick={scrollPrev}
           className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
           aria-label="Previous slide"
@@ -982,6 +504,7 @@ const GiftPooja = () => {
           <ChevronLeft className="h-6 w-6" />
         </button>
         <button 
+          type="button"
           onClick={scrollNext}
           className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/30 transition-colors"
           aria-label="Next slide"
@@ -1159,7 +682,20 @@ const GiftPooja = () => {
                     <Image className="h-4 w-4 text-primary" />
                     <Label className="text-base font-medium">Live Card Preview</Label>
                   </div>
-                  <CardPreview />
+                  <CardPreview
+                    occasion={occasion}
+                    cardThemes={cardThemes}
+                    giftTemplates={giftTemplates}
+                    selectedTemplate={selectedTemplate}
+                    customBackground={customBackground}
+                    senderName={senderName}
+                    recipientName={recipientName}
+                    senderImage={senderImage}
+                    recipientImage={recipientImage}
+                    senderMessage={senderMessage}
+                    selectedServiceData={selectedServiceData}
+                    selectedOccasion={selectedOccasion}
+                  />
                   
                   {/* Quick Tips */}
                   <div className="mt-6 p-4 bg-primary/5 rounded-xl border border-primary/20">
