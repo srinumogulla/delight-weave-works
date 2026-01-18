@@ -1,7 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone, Bell, Heart } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone, Bell, Heart, Search } from "lucide-react";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLanguage } from "@/i18n";
 import {
@@ -25,9 +33,48 @@ import { cn } from "@/lib/utils";
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { user, profile, isAdmin, signOut } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setSearchOpen((open) => !open);
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  const searchItems = [
+    { category: "Poojas", items: [
+      { name: "Dashachara Pooja", path: "/pooja/dashachara", icon: BookOpen },
+      { name: "Vamachara Pooja", path: "/pooja/vamachara", icon: BookOpen },
+    ]},
+    { category: "Temples", items: [
+      { name: "Browse Temples", path: "/temples", icon: Building2 },
+    ]},
+    { category: "Pundits", items: [
+      { name: "Find Pundits", path: "/pundits", icon: UserCheck },
+    ]},
+    { category: "Pages", items: [
+      { name: "Panchang Calendar", path: "/panchang", icon: Sun },
+      { name: "Gift a Pooja", path: "/gift-pooja", icon: Gift },
+      { name: "Events", path: "/community/events", icon: Calendar },
+      { name: "About Us", path: "/community/about", icon: Users },
+      { name: "Contact", path: "/contact", icon: Phone },
+    ]},
+  ];
+
+  const handleSearchSelect = (path: string) => {
+    setSearchOpen(false);
+    navigate(path);
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -214,6 +261,17 @@ export function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-2">
+          {/* Search Button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSearchOpen(true)}
+            className="relative"
+          >
+            <Search className="h-5 w-5" />
+            <span className="sr-only">Search (⌘K)</span>
+          </Button>
+
           {/* Language Selector */}
           <LanguageSwitcher />
           
@@ -455,6 +513,28 @@ export function Header() {
           </nav>
         </div>
       )}
+
+      {/* Search Command Dialog */}
+      <CommandDialog open={searchOpen} onOpenChange={setSearchOpen}>
+        <CommandInput placeholder="Search poojas, temples, pundits..." />
+        <CommandList>
+          <CommandEmpty>No results found.</CommandEmpty>
+          {searchItems.map((group) => (
+            <CommandGroup key={group.category} heading={group.category}>
+              {group.items.map((item) => (
+                <CommandItem
+                  key={item.path}
+                  onSelect={() => handleSearchSelect(item.path)}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <item.icon className="h-4 w-4 text-muted-foreground" />
+                  <span>{item.name}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ))}
+        </CommandList>
+      </CommandDialog>
     </header>
   );
 }
