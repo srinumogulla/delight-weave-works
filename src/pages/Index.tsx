@@ -9,6 +9,7 @@ import { Testimonials } from "@/components/Testimonials";
 import { FAQ } from "@/components/FAQ";
 import { Footer } from "@/components/Footer";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
+import { TempleGateIntro } from "@/components/TempleGateIntro";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
@@ -29,22 +30,26 @@ const Index = () => {
 
   if (isMobile) {
     return (
-      <MobileLayout showHeader={true}>
-        <main>
-          {content}
-        </main>
-      </MobileLayout>
+      <TempleGateIntro>
+        <MobileLayout showHeader={true}>
+          <main>
+            {content}
+          </main>
+        </MobileLayout>
+      </TempleGateIntro>
     );
   }
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      <main>
-        {content}
-      </main>
-      <Footer />
-    </div>
+    <TempleGateIntro>
+      <div className="min-h-screen">
+        <Header />
+        <main>
+          {content}
+        </main>
+        <Footer />
+      </div>
+    </TempleGateIntro>
   );
 };
 

@@ -97,14 +97,6 @@ export function Header() {
               </NavigationMenuContent>
             </NavigationMenuItem>
 
-            {/* Panchang */}
-            <NavigationMenuItem className="min-w-[90px]">
-              <Link to="/panchang" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
-                <Sun className="h-4 w-4" />
-                {t("nav.panchang")}
-              </Link>
-            </NavigationMenuItem>
-
             {/* Temples */}
             <NavigationMenuItem className="min-w-[80px]">
               <Link to="/temples" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
@@ -121,19 +113,19 @@ export function Header() {
               </Link>
             </NavigationMenuItem>
 
+            {/* Panchang */}
+            <NavigationMenuItem className="min-w-[90px]">
+              <Link to="/panchang" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
+                <Sun className="h-4 w-4" />
+                {t("nav.panchang")}
+              </Link>
+            </NavigationMenuItem>
+
             {/* Gift */}
             <NavigationMenuItem className="min-w-[60px]">
               <Link to="/gift-pooja" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
                 <Gift className="h-4 w-4" />
                 {t("nav.gift")}
-              </Link>
-            </NavigationMenuItem>
-
-            {/* Contact */}
-            <NavigationMenuItem className="min-w-[70px]">
-              <Link to="/contact" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
-                <Phone className="h-4 w-4" />
-                {t("nav.contact")}
               </Link>
             </NavigationMenuItem>
 
@@ -179,6 +171,14 @@ export function Header() {
                   </Link>
                 </div>
               </NavigationMenuContent>
+            </NavigationMenuItem>
+
+            {/* Contact */}
+            <NavigationMenuItem className="min-w-[70px]">
+              <Link to="/contact" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
+                <Phone className="h-4 w-4" />
+                {t("nav.contact")}
+              </Link>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
@@ -302,15 +302,6 @@ export function Header() {
             </div>
 
             <Link
-              to="/panchang"
-              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <Sun className="h-4 w-4" />
-              Panchang
-            </Link>
-
-            <Link
               to="/temples"
               className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
               onClick={() => setIsMenuOpen(false)}
@@ -326,6 +317,15 @@ export function Header() {
             >
               <UserCheck className="h-4 w-4" />
               Pundits
+            </Link>
+
+            <Link
+              to="/panchang"
+              className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors py-2 flex items-center gap-2"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <Sun className="h-4 w-4" />
+              Panchang
             </Link>
 
             <Link
