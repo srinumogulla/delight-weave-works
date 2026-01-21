@@ -6,6 +6,33 @@ import { useAuth } from "@/components/AuthProvider";
 import { useSavedItems } from "@/hooks/useSavedItems";
 import { cn } from "@/lib/utils";
 
+import ritualHomam from "@/assets/ritual-homam.jpg";
+import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
+import ritualVratam from "@/assets/ritual-vratam.jpg";
+import ritualShanti from "@/assets/ritual-shanti.jpg";
+import ritualLakshmi from "@/assets/ritual-lakshmi.jpg";
+import ritualPooja from "@/assets/ritual-pooja.jpg";
+
+const imageMap: Record<string, string> = {
+  "/ritual-homam.jpg": ritualHomam,
+  "/ritual-abhishekam.jpg": ritualAbhishekam,
+  "/ritual-vratam.jpg": ritualVratam,
+  "/ritual-shanti.jpg": ritualShanti,
+  "/ritual-lakshmi.jpg": ritualLakshmi,
+  "/ritual-pooja.jpg": ritualPooja,
+  "ritual-homam": ritualHomam,
+  "ritual-abhishekam": ritualAbhishekam,
+  "ritual-vratam": ritualVratam,
+  "ritual-shanti": ritualShanti,
+  "ritual-lakshmi": ritualLakshmi,
+  "ritual-pooja": ritualPooja,
+  "homam": ritualHomam,
+  "abhishekam": ritualAbhishekam,
+  "vratam": ritualVratam,
+  "shanti": ritualShanti,
+  "lakshmi": ritualLakshmi,
+};
+
 interface PoojaListingCardProps {
   id: string;
   name: string;
@@ -50,42 +77,40 @@ export function PoojaListingCard({
   return (
     <div className="bg-card rounded-xl border border-border overflow-hidden hover:border-primary/50 transition-all hover:shadow-lg group">
       {/* Image */}
-      {imageUrl && (
-        <div className="relative h-48 overflow-hidden">
-          <img
-            src={imageUrl}
-            alt={name}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
-          
-          {/* Save button */}
-          {user && (
-            <button
-              onClick={handleSaveClick}
-              disabled={isToggling}
-              className={cn(
-                "absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10",
-                isSaved 
-                  ? "bg-destructive text-destructive-foreground" 
-                  : "bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive"
-              )}
-            >
-              <Heart className={cn("h-4 w-4", isSaved && "fill-current")} />
-            </button>
-          )}
-          
-          {/* Badges */}
-          <div className="absolute top-3 left-3 flex gap-2">
-            <Badge variant={isDosha ? "destructive" : "secondary"} className="text-xs">
-              {categoryLabel}
-            </Badge>
-            <Badge variant="outline" className="text-xs bg-card/80">
-              {ritualType}
-            </Badge>
-          </div>
+      <div className="relative h-48 overflow-hidden">
+        <img
+          src={imageMap[imageUrl || ""] || imageUrl || ritualPooja}
+          alt={name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-card/80 via-transparent to-transparent" />
+        
+        {/* Save button */}
+        {user && (
+          <button
+            onClick={handleSaveClick}
+            disabled={isToggling}
+            className={cn(
+              "absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10",
+              isSaved 
+                ? "bg-destructive text-destructive-foreground" 
+                : "bg-background/80 text-muted-foreground hover:bg-background hover:text-destructive"
+            )}
+          >
+            <Heart className={cn("h-4 w-4", isSaved && "fill-current")} />
+          </button>
+        )}
+        
+        {/* Badges */}
+        <div className="absolute top-3 left-3 flex gap-2">
+          <Badge variant={isDosha ? "destructive" : "secondary"} className="text-xs">
+            {categoryLabel}
+          </Badge>
+          <Badge variant="outline" className="text-xs bg-card/80">
+            {ritualType}
+          </Badge>
         </div>
-      )}
+      </div>
 
       <div className="p-5">
         {/* Title */}

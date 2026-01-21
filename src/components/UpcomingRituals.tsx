@@ -2,6 +2,7 @@ import { Calendar, Clock, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 
 import ritualHomam from "@/assets/ritual-homam.jpg";
 import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
@@ -92,9 +93,11 @@ export function UpcomingRituals() {
               Join devotees from around the world in these sacred rituals
             </p>
           </div>
-          <Button variant="outline" className="mt-4 md:mt-0">
-            View All Poojas
-            <ArrowRight className="ml-2 h-4 w-4" />
+          <Button variant="outline" className="mt-4 md:mt-0" asChild>
+            <Link to="/pooja/dashachara">
+              View All Poojas
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
           </Button>
         </div>
 
@@ -165,8 +168,11 @@ export function UpcomingRituals() {
                 <Button
                   size="sm"
                   className={ritual.isLive ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"}
+                  asChild
                 >
-                  {ritual.isLive ? "Join Live" : "Participate"}
+                  <Link to={`/ritual/${ritual.id}`}>
+                    {ritual.isLive ? "Join Live" : "Participate"}
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>

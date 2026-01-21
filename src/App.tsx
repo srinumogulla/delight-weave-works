@@ -23,6 +23,7 @@ import Panchang from "./pages/Panchang";
 import Temples from "./pages/Temples";
 import TempleDetails from "./pages/TempleDetails";
 import Pundits from "./pages/Pundits";
+import RitualDetails from "./pages/RitualDetails";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminServices from "./pages/admin/Services";
 import AdminBookings from "./pages/admin/Bookings";
@@ -69,6 +70,7 @@ const App = () => (
               <Route path="/panchang" element={<Panchang />} />
               <Route path="/temples" element={<Temples />} />
               <Route path="/temple/:id" element={<TempleDetails />} />
+              <Route path="/ritual/:id" element={<RitualDetails />} />
               <Route path="/pundits" element={<Pundits />} />
               <Route path="/community/events" element={<Events />} />
               <Route path="/community/about" element={<About />} />
