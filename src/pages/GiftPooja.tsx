@@ -6,22 +6,19 @@ import { Footer } from "@/components/Footer";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Gift, Heart, Cake, Star, Leaf, ArrowRight, ArrowLeft, Phone, Video, Package, Building2, 
-  ChevronLeft, ChevronRight, Image, Sparkles, Check, CheckCircle2
+  ChevronLeft, ChevronRight, Check, CheckCircle2, User
 } from "lucide-react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 
 // Import components
-import { CardPreview } from "./gift-pooja/CardPreview";
-import { StepSelectBlessing } from "./gift-pooja/StepSelectBlessing";
-import { StepDesignCard } from "./gift-pooja/StepDesignCard";
-import { StepRecipientDetails } from "./gift-pooja/StepRecipientDetails";
+import { ArchanaVideoPreview } from "./gift-pooja/ArchanaVideoPreview";
+import { StepArchanaDetails } from "./gift-pooja/StepArchanaDetails";
 import { StepDeliveryConfirm } from "./gift-pooja/StepDeliveryConfirm";
 
 // Import images
@@ -29,9 +26,6 @@ import heroTemple from "@/assets/hero-temple.jpg";
 import ritualHomam from "@/assets/ritual-homam.jpg";
 import ritualPooja from "@/assets/ritual-pooja.jpg";
 import ritualLakshmi from "@/assets/ritual-lakshmi.jpg";
-import ritualShanti from "@/assets/ritual-shanti.jpg";
-import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
-import meditation from "@/assets/meditation.jpg";
 
 const occasions = [
   { value: "birthday", label: "Birthday", icon: Cake },
@@ -42,190 +36,70 @@ const occasions = [
   { value: "other", label: "Other", icon: Gift },
 ];
 
-// Card themes based on occasion
-const cardThemes: Record<string, {
-  gradient: string;
-  borderColor: string;
-  headerSymbol: string;
-  headerText: string;
-  decorations: string[];
-  accentGradient: string;
-}> = {
-  birthday: {
-    gradient: "from-pink-50 via-purple-50 to-pink-100 dark:from-pink-900/20 dark:via-purple-900/20 dark:to-pink-900/20",
-    borderColor: "border-pink-400/50",
-    headerSymbol: "🎂",
-    headerText: "Birthday Blessings",
-    decorations: ["🎈", "🎉", "✨", "🎁"],
-    accentGradient: "from-pink-400/30 via-purple-400/20 to-pink-400/30",
-  },
-  anniversary: {
-    gradient: "from-rose-50 via-amber-50 to-rose-100 dark:from-rose-900/20 dark:via-amber-900/20 dark:to-rose-900/20",
-    borderColor: "border-rose-400/50",
-    headerSymbol: "💕",
-    headerText: "Anniversary Blessings",
-    decorations: ["💍", "🌹", "❤️", "✨"],
-    accentGradient: "from-rose-400/30 via-amber-400/20 to-rose-400/30",
-  },
-  health: {
-    gradient: "from-emerald-50 via-teal-50 to-emerald-100 dark:from-emerald-900/20 dark:via-teal-900/20 dark:to-emerald-900/20",
-    borderColor: "border-emerald-400/50",
-    headerSymbol: "🙏",
-    headerText: "Healing Blessings",
-    decorations: ["🪷", "☮️", "💚", "🌿"],
-    accentGradient: "from-emerald-400/30 via-teal-400/20 to-emerald-400/30",
-  },
-  memory: {
-    gradient: "from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900/20 dark:via-blue-900/20 dark:to-slate-900/20",
-    borderColor: "border-slate-400/50",
-    headerSymbol: "🪔",
-    headerText: "In Loving Memory",
-    decorations: ["🕊️", "☁️", "🌸", "✨"],
-    accentGradient: "from-slate-400/30 via-blue-400/20 to-slate-400/30",
-  },
-  blessing: {
-    gradient: "from-orange-50 via-amber-50 to-orange-100 dark:from-primary/10 dark:via-accent/5 dark:to-primary/10",
-    borderColor: "border-primary/40",
-    headerSymbol: "ॐ",
-    headerText: "Divine Blessings",
-    decorations: ["🙏", "✨", "🌺", "🪷"],
-    accentGradient: "from-primary/30 via-accent/20 to-primary/30",
-  },
-  other: {
-    gradient: "from-violet-50 via-indigo-50 to-violet-100 dark:from-violet-900/20 dark:via-indigo-900/20 dark:to-violet-900/20",
-    borderColor: "border-violet-400/50",
-    headerSymbol: "🙏",
-    headerText: "Special Blessings",
-    decorations: ["✨", "🌟", "💫", "🪷"],
-    accentGradient: "from-violet-400/30 via-indigo-400/20 to-violet-400/30",
-  },
-};
-
-// Gift card templates with visual styles
-const giftTemplates = [
-  {
-    id: "classic",
-    name: "Classic Divine",
-    preview: "from-orange-100 via-amber-50 to-orange-100",
-    background: "from-orange-50 via-amber-50/80 to-orange-100",
-    overlay: "from-orange-900/20 to-amber-900/10",
-    pattern: "radial-gradient(circle at 20% 80%, rgba(234,179,8,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(234,88,12,0.1) 0%, transparent 50%)",
-    decorIcon: "🕉️",
-    image: ritualPooja,
-  },
-  {
-    id: "celebration",
-    name: "Festive Joy",
-    preview: "from-pink-100 via-purple-50 to-pink-100",
-    background: "from-pink-50 via-purple-50/80 to-pink-100",
-    overlay: "from-pink-900/20 to-purple-900/10",
-    pattern: "radial-gradient(circle at 30% 70%, rgba(236,72,153,0.1) 0%, transparent 50%), radial-gradient(circle at 70% 30%, rgba(168,85,247,0.1) 0%, transparent 50%)",
-    decorIcon: "🎉",
-    image: ritualLakshmi,
-  },
-  {
-    id: "love",
-    name: "Eternal Love",
-    preview: "from-rose-100 via-red-50 to-rose-100",
-    background: "from-rose-50 via-red-50/80 to-rose-100",
-    overlay: "from-rose-900/20 to-red-900/10",
-    pattern: "radial-gradient(circle at 25% 75%, rgba(244,63,94,0.1) 0%, transparent 50%), radial-gradient(circle at 75% 25%, rgba(225,29,72,0.1) 0%, transparent 50%)",
-    decorIcon: "💕",
-    image: meditation,
-  },
-  {
-    id: "healing",
-    name: "Healing Light",
-    preview: "from-emerald-100 via-teal-50 to-emerald-100",
-    background: "from-emerald-50 via-teal-50/80 to-emerald-100",
-    overlay: "from-emerald-900/20 to-teal-900/10",
-    pattern: "radial-gradient(circle at 40% 60%, rgba(16,185,129,0.1) 0%, transparent 50%), radial-gradient(circle at 60% 40%, rgba(20,184,166,0.1) 0%, transparent 50%)",
-    decorIcon: "🪷",
-    image: ritualShanti,
-  },
-  {
-    id: "sacred",
-    name: "Sacred Memory",
-    preview: "from-slate-100 via-blue-50 to-slate-100",
-    background: "from-slate-50 via-blue-50/80 to-slate-100",
-    overlay: "from-slate-900/20 to-blue-900/10",
-    pattern: "radial-gradient(circle at 35% 65%, rgba(100,116,139,0.1) 0%, transparent 50%), radial-gradient(circle at 65% 35%, rgba(59,130,246,0.1) 0%, transparent 50%)",
-    decorIcon: "🪔",
-    image: ritualAbhishekam,
-  },
-  {
-    id: "royal",
-    name: "Royal Blessing",
-    preview: "from-violet-100 via-indigo-50 to-violet-100",
-    background: "from-violet-50 via-indigo-50/80 to-violet-100",
-    overlay: "from-violet-900/20 to-indigo-900/10",
-    pattern: "radial-gradient(circle at 45% 55%, rgba(139,92,246,0.1) 0%, transparent 50%), radial-gradient(circle at 55% 45%, rgba(99,102,241,0.1) 0%, transparent 50%)",
-    decorIcon: "👑",
-    image: ritualHomam,
-  },
-];
-
 const bannerSlides = [
   {
     image: heroTemple,
-    title: "Gift Divine Blessings",
-    subtitle: "Share spiritual grace with your loved ones"
+    title: "Gift Archana Blessings",
+    subtitle: "Send a personalized Archana video to your loved ones"
   },
   {
     image: ritualHomam,
-    title: "Celebrate Special Moments",
-    subtitle: "Birthday, Anniversary, or Health - every occasion blessed"
+    title: "Sacred Temple Ritual",
+    subtitle: "Performed by authentic priests with your recipient's name"
   },
   {
     image: ritualPooja,
-    title: "Traditional Rituals",
-    subtitle: "Authentic poojas performed by verified priests"
+    title: "Traditional Archana",
+    subtitle: "Receive a video of the complete ritual"
   },
   {
     image: ritualLakshmi,
-    title: "Prasadam Delivery",
-    subtitle: "Sacred offerings delivered to their doorstep"
+    title: "Divine Blessings",
+    subtitle: "Share spiritual grace for every occasion"
   }
 ];
 
 const giftSteps = [
   { 
     step: 1, 
-    title: "Pick Blessing & Temple", 
-    icon: Building2, 
-    description: "Choose from our curated selection of sacred poojas and renowned temples across India",
+    title: "Select Occasion", 
+    icon: Gift, 
+    description: "Choose the occasion for the Archana blessing - birthday, health, or any special moment",
     image: ritualPooja 
   },
   { 
     step: 2, 
-    title: "Concierge Call", 
-    icon: Phone, 
-    description: "Our dedicated team confirms all details with you personally for a perfect experience",
+    title: "Enter Details", 
+    icon: User, 
+    description: "Provide the recipient's name and Gotra (family lineage) for the sacred recitation",
     image: heroTemple 
   },
   { 
     step: 3, 
-    title: "Ritual & Live Updates", 
-    icon: Video, 
-    description: "Receive real-time photos and videos as the pooja is performed at the temple",
+    title: "Temple Ritual", 
+    icon: Building2, 
+    description: "Our verified priests perform the Archana at the temple with the provided details",
     image: ritualHomam 
   },
   { 
     step: 4, 
-    title: "Gift Dispatch", 
-    icon: Package, 
-    description: "Sacred prasadam and blessings beautifully packaged and delivered to your loved one",
+    title: "Video Delivery", 
+    icon: Video, 
+    description: "Receive the personalized Archana video to share with your loved one",
     image: ritualLakshmi 
   }
 ];
 
-// Step definitions for multi-step form
+// Step definitions for simplified 3-step form
 const formSteps = [
-  { id: 1, title: "Select Blessing", icon: Gift },
-  { id: 2, title: "Design Card", icon: Sparkles },
-  { id: 3, title: "Recipient Details", icon: CheckCircle2 },
-  { id: 4, title: "Delivery & Confirm", icon: CheckCircle2 },
+  { id: 1, title: "Select Occasion", icon: Gift },
+  { id: 2, title: "Recipient Details", icon: User },
+  { id: 3, title: "Confirm & Gift", icon: CheckCircle2 },
 ];
+
+// Fixed Archana price
+const ARCHANA_PRICE = 151;
+const ARCHANA_NAME = "Archana";
 
 const GiftPooja = () => {
   const isMobile = useIsMobile();
@@ -235,29 +109,14 @@ const GiftPooja = () => {
 
   // Multi-step form state
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 3;
 
-  const [selectedService, setSelectedService] = useState("");
   const [recipientName, setRecipientName] = useState("");
+  const [gotra, setGotra] = useState("");
+  const [occasion, setOccasion] = useState("");
   const [recipientEmail, setRecipientEmail] = useState("");
   const [recipientPhone, setRecipientPhone] = useState("");
-  const [recipientAddress, setRecipientAddress] = useState("");
-  const [occasion, setOccasion] = useState("");
-  const [message, setMessage] = useState("");
-  const [sendPrasadam, setSendPrasadam] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Sender details
-  const [senderName, setSenderName] = useState("");
-  const [senderMessage, setSenderMessage] = useState("");
-  
-  // Photo upload state
-  const [senderImage, setSenderImage] = useState<string | null>(null);
-  const [recipientImage, setRecipientImage] = useState<string | null>(null);
-  
-  // Template selection state
-  const [selectedTemplate, setSelectedTemplate] = useState("classic");
-  const [customBackground, setCustomBackground] = useState<string | null>(null);
 
   // Navigation functions
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps));
@@ -268,13 +127,11 @@ const GiftPooja = () => {
   const isStepValid = (step: number): boolean => {
     switch (step) {
       case 1:
-        return !!selectedService && !!occasion;
+        return !!occasion;
       case 2:
-        return !!senderName && !!recipientName;
+        return !!recipientName && !!gotra;
       case 3:
-        return true; // Optional fields
-      case 4:
-        return !sendPrasadam || !!recipientAddress;
+        return true; // Contact details are optional
       default:
         return false;
     }
@@ -301,21 +158,23 @@ const GiftPooja = () => {
     };
   }, [emblaApi, onSelect]);
 
-  const { data: services = [] } = useQuery({
-    queryKey: ["active-services"],
+  // Get Archana service from database (or use fixed values)
+  const { data: archanaService } = useQuery({
+    queryKey: ["archana-service"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("pooja_services")
         .select("id, name, price")
         .eq("is_active", true)
-        .order("name");
+        .ilike("name", "%archana%")
+        .limit(1)
+        .maybeSingle();
 
       if (error) throw error;
       return data;
     },
   });
 
-  const selectedServiceData = services.find((s) => s.id === selectedService);
   const selectedOccasion = occasions.find(o => o.value === occasion);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -324,17 +183,17 @@ const GiftPooja = () => {
     if (!user) {
       toast({
         title: "Please log in",
-        description: "You need to be logged in to gift a pooja.",
+        description: "You need to be logged in to gift an Archana.",
         variant: "destructive",
       });
       navigate("/login");
       return;
     }
 
-    if (!selectedService || !recipientName || !occasion || !senderName) {
+    if (!recipientName || !gotra || !occasion) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields including your name and occasion.",
+        description: "Please provide recipient name, gotra, and occasion.",
         variant: "destructive",
       });
       return;
@@ -343,36 +202,38 @@ const GiftPooja = () => {
     setIsSubmitting(true);
 
     try {
-      const fullMessage = senderMessage 
-        ? `From: ${senderName}\n\n${senderMessage}${message ? `\n\nAdditional Note: ${message}` : ''}`
-        : `From: ${senderName}${message ? `\n\nMessage: ${message}` : ''}`;
+      const serviceId = archanaService?.id;
+      
+      if (!serviceId) {
+        throw new Error("Archana service not found. Please contact support.");
+      }
 
       const { error } = await supabase.from("gift_bookings").insert({
         user_id: user.id,
-        service_id: selectedService,
+        service_id: serviceId,
         recipient_name: recipientName,
         recipient_email: recipientEmail || null,
         recipient_phone: recipientPhone || null,
-        recipient_address: sendPrasadam ? recipientAddress : null,
         occasion,
-        message: fullMessage,
+        gotra,
+        message: `Archana for ${recipientName}, ${gotra} Gotram`,
         booking_date: new Date().toISOString().split("T")[0],
-        amount: selectedServiceData?.price || 0,
-        send_prasadam: sendPrasadam,
+        amount: archanaService?.price || ARCHANA_PRICE,
+        send_prasadam: false,
       });
 
       if (error) throw error;
 
       toast({
-        title: "Gift booking created!",
-        description: "We'll process your gift pooja and notify the recipient.",
+        title: "Archana Booking Created! 🙏",
+        description: "We'll send you the Archana video after the ritual is performed.",
       });
 
       navigate("/profile");
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create gift booking.",
+        description: error.message || "Failed to create Archana booking.",
         variant: "destructive",
       });
     } finally {
@@ -385,59 +246,129 @@ const GiftPooja = () => {
     switch (currentStep) {
       case 1:
         return (
-          <StepSelectBlessing
-            services={services}
-            selectedService={selectedService}
-            setSelectedService={setSelectedService}
-            occasions={occasions}
-            occasion={occasion}
-            setOccasion={setOccasion}
-            selectedServiceData={selectedServiceData}
-          />
+          <div className="space-y-6">
+            {/* Fixed Archana Info */}
+            <div className="p-4 bg-primary/5 rounded-xl border border-primary/20">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Selected Pooja</p>
+                  <p className="font-heading text-lg font-bold text-foreground">{ARCHANA_NAME}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Amount</p>
+                  <p className="font-heading text-2xl font-bold text-primary">
+                    ₹{(archanaService?.price || ARCHANA_PRICE).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Occasion Selection */}
+            <div className="space-y-3">
+              <p className="text-base font-medium">Select an Occasion *</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {occasions.map((occ) => (
+                  <button
+                    key={occ.value}
+                    type="button"
+                    onClick={() => setOccasion(occ.value)}
+                    className={`p-4 rounded-xl border-2 transition-all text-center group ${
+                      occasion === occ.value
+                        ? "border-primary bg-primary/10 shadow-md"
+                        : "border-border hover:border-primary/50 hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-2 transition-colors ${
+                      occasion === occ.value ? "bg-primary text-primary-foreground" : "bg-muted group-hover:bg-primary/20"
+                    }`}>
+                      <occ.icon className={`h-6 w-6 ${occasion === occ.value ? "" : "text-muted-foreground group-hover:text-primary"}`} />
+                    </div>
+                    <span className={`text-sm font-medium ${occasion === occ.value ? "text-primary" : "text-foreground"}`}>
+                      {occ.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         );
       case 2:
         return (
-          <StepDesignCard
-            giftTemplates={giftTemplates}
-            selectedTemplate={selectedTemplate}
-            setSelectedTemplate={setSelectedTemplate}
-            customBackground={customBackground}
-            setCustomBackground={setCustomBackground}
-            senderName={senderName}
-            setSenderName={setSenderName}
+          <StepArchanaDetails
             recipientName={recipientName}
             setRecipientName={setRecipientName}
-            senderImage={senderImage}
-            setSenderImage={setSenderImage}
-            recipientImage={recipientImage}
-            setRecipientImage={setRecipientImage}
-            senderMessage={senderMessage}
-            setSenderMessage={setSenderMessage}
+            gotra={gotra}
+            setGotra={setGotra}
           />
         );
       case 3:
         return (
-          <StepRecipientDetails
-            recipientEmail={recipientEmail}
-            setRecipientEmail={setRecipientEmail}
-            recipientPhone={recipientPhone}
-            setRecipientPhone={setRecipientPhone}
-            message={message}
-            setMessage={setMessage}
-          />
-        );
-      case 4:
-        return (
-          <StepDeliveryConfirm
-            sendPrasadam={sendPrasadam}
-            setSendPrasadam={setSendPrasadam}
-            recipientAddress={recipientAddress}
-            setRecipientAddress={setRecipientAddress}
-            selectedServiceData={selectedServiceData}
-            selectedOccasion={selectedOccasion}
-            senderName={senderName}
-            recipientName={recipientName}
-          />
+          <div className="space-y-6">
+            {/* Order Summary */}
+            <div className="p-4 bg-card rounded-xl border border-border space-y-3">
+              <h4 className="font-medium text-foreground">Order Summary</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Pooja</span>
+                  <span className="font-medium">{ARCHANA_NAME}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Occasion</span>
+                  <span className="font-medium">{selectedOccasion?.label || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Recipient</span>
+                  <span className="font-medium">{recipientName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Gotra</span>
+                  <span className="font-medium">{gotra} Gotram</span>
+                </div>
+                <div className="pt-2 border-t border-border flex justify-between">
+                  <span className="font-medium">Total Amount</span>
+                  <span className="font-heading text-xl font-bold text-primary">
+                    ₹{(archanaService?.price || ARCHANA_PRICE).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Optional Contact Details */}
+            <div className="space-y-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                Optional: Contact details to send the video
+              </p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Email (Optional)</label>
+                  <input
+                    type="email"
+                    value={recipientEmail}
+                    onChange={(e) => setRecipientEmail(e.target.value)}
+                    placeholder="For video delivery"
+                    className="w-full h-12 px-4 rounded-lg border border-border bg-background text-foreground"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Phone (Optional)</label>
+                  <input
+                    type="tel"
+                    value={recipientPhone}
+                    onChange={(e) => setRecipientPhone(e.target.value)}
+                    placeholder="For WhatsApp updates"
+                    className="w-full h-12 px-4 rounded-lg border border-border bg-background text-foreground"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Note */}
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800/30">
+              <p className="text-xs text-amber-800 dark:text-amber-200 text-center">
+                🙏 The Archana video will be shared with you after the ritual is performed at the temple.
+              </p>
+            </div>
+          </div>
         );
       default:
         return null;
@@ -446,7 +377,7 @@ const GiftPooja = () => {
 
   const content = (
     <div className="min-h-screen">
-      {/* Hero Carousel Section - Reduced Height */}
+      {/* Hero Carousel Section */}
       <section className="relative overflow-hidden">
         <div className="embla" ref={emblaRef}>
           <div className="embla__container flex">
@@ -462,8 +393,8 @@ const GiftPooja = () => {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center px-4 max-w-3xl">
                       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary-foreground text-sm font-medium mb-3 backdrop-blur-sm">
-                        <Gift className="h-4 w-4" />
-                        Gift a Blessing
+                        <Video className="h-4 w-4" />
+                        Gift Archana Video
                       </div>
                       <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2">
                         {slide.title}
@@ -513,14 +444,14 @@ const GiftPooja = () => {
         </button>
       </section>
 
-      {/* Enhanced Process Steps Section with Images */}
+      {/* Process Steps Section */}
       <section className="py-12 md:py-16 bg-gradient-to-b from-primary/5 to-background">
         <div className="container">
           <div className="text-center mb-10">
             <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-              How Gift Pooja Works
+              How Gift Archana Works
             </h2>
-            <p className="text-muted-foreground">A seamless spiritual gifting experience in 4 simple steps</p>
+            <p className="text-muted-foreground">Send personalized Archana blessings in 4 simple steps</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -569,19 +500,19 @@ const GiftPooja = () => {
         <div className="container">
           <div className="text-center mb-8">
             <h2 className="font-heading text-2xl md:text-3xl font-bold text-foreground mb-2">
-              Create Your Gift
+              Gift an Archana
             </h2>
-            <p className="text-muted-foreground">Fill in the details to gift a divine blessing</p>
+            <p className="text-muted-foreground">Fill in the details to gift a divine Archana video blessing</p>
           </div>
 
           {/* Progress Indicator */}
-          <div className="max-w-3xl mx-auto mb-8">
+          <div className="max-w-2xl mx-auto mb-8">
             <div className="flex items-center justify-between">
               {formSteps.map((step, index) => (
                 <div key={step.id} className="flex items-center flex-1 last:flex-none">
                   <button
                     type="button"
-                    onClick={() => goToStep(step.id)}
+                    onClick={() => step.id <= currentStep && goToStep(step.id)}
                     className={`flex flex-col items-center ${step.id <= currentStep ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
                     disabled={step.id > currentStep + 1}
                   >
@@ -616,10 +547,10 @@ const GiftPooja = () => {
           </div>
 
           {/* Form Content - Side by Side Layout on Desktop */}
-          <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-5 gap-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-8">
               {/* Form Panel */}
-              <div className="lg:col-span-3">
+              <div>
                 <form onSubmit={handleSubmit}>
                   <div className="bg-card p-6 md:p-8 rounded-2xl border border-border shadow-sm">
                     <div className="flex items-center gap-3 mb-6 pb-4 border-b border-border">
@@ -666,7 +597,7 @@ const GiftPooja = () => {
                           disabled={isSubmitting || !isStepValid(currentStep)}
                           className="gap-2 bg-primary hover:bg-primary/90"
                         >
-                          {isSubmitting ? "Processing..." : "Gift This Pooja"}
+                          {isSubmitting ? "Processing..." : "Gift Archana"}
                           <Gift className="h-4 w-4" />
                         </Button>
                       )}
@@ -675,41 +606,19 @@ const GiftPooja = () => {
                 </form>
               </div>
               
-              {/* Card Preview Panel - Sticky on Desktop */}
-              <div className="lg:col-span-2">
+              {/* Video Preview Panel */}
+              <div>
                 <div className="lg:sticky lg:top-24">
                   <div className="mb-4 flex items-center gap-2">
-                    <Image className="h-4 w-4 text-primary" />
-                    <Label className="text-base font-medium">Live Card Preview</Label>
+                    <Video className="h-4 w-4 text-primary" />
+                    <span className="text-base font-medium">Sample Archana Video</span>
                   </div>
-                  <CardPreview
-                    occasion={occasion}
-                    cardThemes={cardThemes}
-                    giftTemplates={giftTemplates}
-                    selectedTemplate={selectedTemplate}
-                    customBackground={customBackground}
-                    senderName={senderName}
+                  <ArchanaVideoPreview
                     recipientName={recipientName}
-                    senderImage={senderImage}
-                    recipientImage={recipientImage}
-                    senderMessage={senderMessage}
-                    selectedServiceData={selectedServiceData}
+                    gotra={gotra}
+                    occasion={occasion}
                     selectedOccasion={selectedOccasion}
-                    showDownloadButton={false}
                   />
-                  
-                  {/* Quick Tips */}
-                  <div className="mt-6 p-4 bg-primary/5 rounded-xl border border-primary/20">
-                    <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
-                      <Sparkles className="h-4 w-4 text-primary" />
-                      Quick Tips
-                    </h4>
-                    <ul className="text-xs text-muted-foreground space-y-1">
-                      <li>• Add photos for a personal touch</li>
-                      <li>• Write a heartfelt blessing message</li>
-                      <li>• Choose a template matching the occasion</li>
-                    </ul>
-                  </div>
                 </div>
               </div>
             </div>

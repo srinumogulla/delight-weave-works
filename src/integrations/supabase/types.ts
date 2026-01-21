@@ -127,6 +127,7 @@ export type Database = {
           amount: number | null
           booking_date: string
           created_at: string | null
+          gotra: string | null
           id: string
           message: string | null
           occasion: string | null
@@ -144,6 +145,7 @@ export type Database = {
           amount?: number | null
           booking_date: string
           created_at?: string | null
+          gotra?: string | null
           id?: string
           message?: string | null
           occasion?: string | null
@@ -161,6 +163,7 @@ export type Database = {
           amount?: number | null
           booking_date?: string
           created_at?: string | null
+          gotra?: string | null
           id?: string
           message?: string | null
           occasion?: string | null
