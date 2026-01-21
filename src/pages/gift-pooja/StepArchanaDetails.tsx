@@ -1,12 +1,15 @@
+import { useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { User, Users, Info } from "lucide-react";
+import { User, Users, Info, Camera, X } from "lucide-react";
 
 interface StepArchanaDetailsProps {
   recipientName: string;
   setRecipientName: (value: string) => void;
   gotra: string;
   setGotra: (value: string) => void;
+  recipientImage: string | null;
+  setRecipientImage: (value: string | null) => void;
 }
 
 export const StepArchanaDetails = ({
@@ -14,7 +17,26 @@ export const StepArchanaDetails = ({
   setRecipientName,
   gotra,
   setGotra,
+  recipientImage,
+  setRecipientImage,
 }: StepArchanaDetailsProps) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setRecipientImage(url);
+    }
+  };
+
+  const removeImage = () => {
+    setRecipientImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Info Banner */}
@@ -29,6 +51,58 @@ export const StepArchanaDetails = ({
             </h4>
             <p className="text-xs text-muted-foreground leading-relaxed">
               The priest will recite the recipient's name and gotra while performing the sacred Archana ritual at the temple.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Recipient Photo Upload */}
+      <div className="space-y-2">
+        <Label className="text-base font-medium flex items-center gap-2">
+          <Camera className="h-4 w-4 text-primary" />
+          Recipient's Photo (Optional)
+        </Label>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-20 h-20 rounded-full border-2 border-dashed border-primary/40 bg-muted/50 flex items-center justify-center overflow-hidden">
+              {recipientImage ? (
+                <img
+                  src={recipientImage}
+                  alt="Recipient"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="h-8 w-8 text-muted-foreground" />
+              )}
+            </div>
+            {recipientImage && (
+              <button
+                type="button"
+                onClick={removeImage}
+                className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
+          </div>
+          <div className="flex-1">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="recipient-photo"
+            />
+            <label
+              htmlFor="recipient-photo"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/30 bg-primary/5 text-primary text-sm font-medium cursor-pointer hover:bg-primary/10 transition-colors"
+            >
+              <Camera className="h-4 w-4" />
+              {recipientImage ? "Change Photo" : "Upload Photo"}
+            </label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Photo will appear in the video preview
             </p>
           </div>
         </div>
