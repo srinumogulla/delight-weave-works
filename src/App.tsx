@@ -21,6 +21,7 @@ import About from "./pages/community/About";
 import Contact from "./pages/Contact";
 import Panchang from "./pages/Panchang";
 import Temples from "./pages/Temples";
+import TempleDetails from "./pages/TempleDetails";
 import Pundits from "./pages/Pundits";
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminServices from "./pages/admin/Services";
@@ -67,6 +68,7 @@ const App = () => (
               <Route path="/pooja/vamachara" element={<Vamachara />} />
               <Route path="/panchang" element={<Panchang />} />
               <Route path="/temples" element={<Temples />} />
+              <Route path="/temple/:id" element={<TempleDetails />} />
               <Route path="/pundits" element={<Pundits />} />
               <Route path="/community/events" element={<Events />} />
               <Route path="/community/about" element={<About />} />

@@ -35,7 +35,7 @@ const mockPundits: Pundit[] = [
   {
     id: "1",
     name: "Pandit Ramesh Sharma",
-    photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+    photo_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400",
     specializations: ["Vedic Poojas", "Homam", "Satyanarayan Katha"],
     languages: ["Hindi", "Sanskrit", "English"],
     experience_years: 25,
@@ -47,7 +47,7 @@ const mockPundits: Pundit[] = [
   {
     id: "2",
     name: "Pandit Subramaniam Iyer",
-    photo_url: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400",
+    photo_url: "https://images.unsplash.com/photo-1618077360395-f3068be8e001?w=400",
     specializations: ["Homam", "Navagraha Pooja", "Temple Rituals"],
     languages: ["Tamil", "Sanskrit", "Telugu"],
     experience_years: 30,
@@ -59,7 +59,7 @@ const mockPundits: Pundit[] = [
   {
     id: "3",
     name: "Pandit Venkata Rao",
-    photo_url: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400",
+    photo_url: "https://images.unsplash.com/photo-1566753323558-f4e0952af115?w=400",
     specializations: ["Kalyana Muhurtham", "Griha Pravesh", "Shanti Poojas"],
     languages: ["Telugu", "Sanskrit", "Hindi"],
     experience_years: 20,
@@ -71,7 +71,7 @@ const mockPundits: Pundit[] = [
   {
     id: "4",
     name: "Pandit Ashok Mishra",
-    photo_url: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400",
+    photo_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400",
     specializations: ["Rudra Abhishekam", "Maha Mrityunjaya Japa", "Shiv Poojas"],
     languages: ["Hindi", "Sanskrit"],
     experience_years: 18,
@@ -83,7 +83,7 @@ const mockPundits: Pundit[] = [
   {
     id: "5",
     name: "Pandit Krishna Das",
-    photo_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400",
+    photo_url: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=400",
     specializations: ["Lakshmi Pooja", "Dhanvantari Homam", "Prosperity Rituals"],
     languages: ["Hindi", "Gujarati", "English"],
     experience_years: 15,
@@ -95,7 +95,7 @@ const mockPundits: Pundit[] = [
   {
     id: "6",
     name: "Pandit Balaji Prabhu",
-    photo_url: "https://images.unsplash.com/photo-1463453091185-61582044d556?w=400",
+    photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
     specializations: ["Tirupati Rituals", "Venkateswara Pooja", "Vratams"],
     languages: ["Telugu", "Tamil", "Kannada"],
     experience_years: 22,
