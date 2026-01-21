@@ -1,7 +1,7 @@
-import { MapPin, Phone, ExternalLink, Heart } from "lucide-react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { MapPin, Heart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n";
 import { useAuth } from "@/components/AuthProvider";
 import { useSavedItems } from "@/hooks/useSavedItems";
@@ -28,6 +28,7 @@ interface TempleCardProps {
 export const TempleCard = ({ temple }: TempleCardProps) => {
   const { t } = useLanguage();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { isItemSaved, toggleSave, isToggling } = useSavedItems('temple');
   
   const isSaved = isItemSaved(temple.id, 'temple');
@@ -39,8 +40,15 @@ export const TempleCard = ({ temple }: TempleCardProps) => {
     toggleSave({ itemId: temple.id, type: 'temple' });
   };
 
+  const handleCardClick = () => {
+    navigate(`/temple/${temple.id}`);
+  };
+
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+    <Card 
+      className="overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="relative h-48 overflow-hidden">
         <img
           src={temple.image_url || "/placeholder.svg"}
@@ -93,24 +101,6 @@ export const TempleCard = ({ temple }: TempleCardProps) => {
           </p>
         )}
       </CardContent>
-      <CardFooter className="p-4 pt-0 flex gap-2">
-        {temple.contact_phone && (
-          <Button variant="outline" size="sm" asChild>
-            <a href={`tel:${temple.contact_phone}`}>
-              <Phone className="h-4 w-4 mr-1" />
-              Call
-            </a>
-          </Button>
-        )}
-        {temple.website_url && (
-          <Button variant="outline" size="sm" asChild>
-            <a href={temple.website_url} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="h-4 w-4 mr-1" />
-              Website
-            </a>
-          </Button>
-        )}
-      </CardFooter>
     </Card>
   );
 };

@@ -66,7 +66,6 @@ function getSunLongitude(jd: number): number {
   const T = (jd - 2451545.0) / 36525;
   const L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
   const M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
-  const e = 0.016708634 - 0.000042037 * T - 0.0000001267 * T * T;
   const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(M * Math.PI / 180) +
             (0.019993 - 0.000101 * T) * Math.sin(2 * M * Math.PI / 180) +
             0.000289 * Math.sin(3 * M * Math.PI / 180);
@@ -80,10 +79,7 @@ function getSunLongitude(jd: number): number {
 function getMoonLongitude(jd: number): number {
   const T = (jd - 2451545.0) / 36525;
   const Lp = 218.3164477 + 481267.88123421 * T - 0.0015786 * T * T;
-  const D = 297.8501921 + 445267.1114034 * T - 0.0018819 * T * T;
-  const M = 357.5291092 + 35999.0502909 * T - 0.0001536 * T * T;
   const Mp = 134.9633964 + 477198.8675055 * T + 0.0087414 * T * T;
-  const F = 93.2720950 + 483202.0175233 * T - 0.0036539 * T * T;
   
   let moonLong = Lp + 6.289 * Math.sin(Mp * Math.PI / 180);
   moonLong = moonLong % 360;
@@ -91,41 +87,71 @@ function getMoonLongitude(jd: number): number {
   return moonLong;
 }
 
-// Calculate sunrise/sunset times (approximate)
+// Calculate sunrise/sunset times using proper algorithm
 function getSunTimes(date: Date, latitude: number, longitude: number) {
+  // IST timezone offset in hours (+5:30)
+  const IST_OFFSET = 5.5;
+  
   const jd = getJulianDay(date);
-  const n = jd - 2451545.0 + 0.0008;
-  const Jstar = n - longitude / 360;
+  const n = Math.floor(jd - 2451545.0 + 0.0008);
+  
+  // Mean solar noon
+  const Jstar = n - (longitude / 360);
+  
+  // Solar mean anomaly
   const M = (357.5291 + 0.98560028 * Jstar) % 360;
-  const C = 1.9148 * Math.sin(M * Math.PI / 180) + 0.02 * Math.sin(2 * M * Math.PI / 180);
+  const Mrad = M * Math.PI / 180;
+  
+  // Equation of center
+  const C = 1.9148 * Math.sin(Mrad) + 0.02 * Math.sin(2 * Mrad) + 0.0003 * Math.sin(3 * Mrad);
+  
+  // Ecliptic longitude
   const lambda = (M + C + 180 + 102.9372) % 360;
-  const delta = Math.asin(Math.sin(lambda * Math.PI / 180) * Math.sin(23.44 * Math.PI / 180)) * 180 / Math.PI;
+  const lambdaRad = lambda * Math.PI / 180;
   
-  const cosH = (Math.sin(-0.833 * Math.PI / 180) - Math.sin(latitude * Math.PI / 180) * Math.sin(delta * Math.PI / 180)) /
-               (Math.cos(latitude * Math.PI / 180) * Math.cos(delta * Math.PI / 180));
+  // Solar transit (noon)
+  const Jtransit = 2451545.0 + Jstar + 0.0053 * Math.sin(Mrad) - 0.0069 * Math.sin(2 * lambdaRad);
   
-  if (cosH > 1 || cosH < -1) {
+  // Declination of the Sun
+  const sinDelta = Math.sin(lambdaRad) * Math.sin(23.44 * Math.PI / 180);
+  const delta = Math.asin(sinDelta);
+  
+  // Hour angle
+  const latRad = latitude * Math.PI / 180;
+  const cosOmega = (Math.sin(-0.833 * Math.PI / 180) - Math.sin(latRad) * sinDelta) / 
+                   (Math.cos(latRad) * Math.cos(delta));
+  
+  // Handle polar day/night
+  if (cosOmega > 1 || cosOmega < -1) {
     return { sunrise: '6:00 AM', sunset: '6:00 PM' };
   }
   
-  const H = Math.acos(cosH) * 180 / Math.PI;
-  const Jrise = 2451545.0 + Jstar + ((-H - longitude) / 360) + 0.0008;
-  const Jset = 2451545.0 + Jstar + ((H - longitude) / 360) + 0.0008;
+  const omega = Math.acos(cosOmega) * 180 / Math.PI;
   
-  const sunriseHour = ((Jrise - jd) * 24 + 12 + longitude / 15) % 24;
-  const sunsetHour = ((Jset - jd) * 24 + 12 + longitude / 15) % 24;
+  // Calculate sunrise and sunset Julian dates
+  const Jrise = Jtransit - (omega / 360);
+  const Jset = Jtransit + (omega / 360);
+  
+  // Convert Julian date to hours (UTC)
+  const sunriseUTC = ((Jrise - Math.floor(Jrise)) * 24 + 12) % 24;
+  const sunsetUTC = ((Jset - Math.floor(Jset)) * 24 + 12) % 24;
+  
+  // Add IST offset
+  const sunriseIST = (sunriseUTC + IST_OFFSET) % 24;
+  const sunsetIST = (sunsetUTC + IST_OFFSET) % 24;
   
   const formatTime = (hours: number) => {
-    const h = Math.floor(hours);
+    let h = Math.floor(hours);
     const m = Math.floor((hours - h) * 60);
     const ampm = h >= 12 ? 'PM' : 'AM';
-    const h12 = h % 12 || 12;
-    return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+    h = h % 12;
+    if (h === 0) h = 12;
+    return `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
   };
   
   return {
-    sunrise: formatTime(sunriseHour),
-    sunset: formatTime(sunsetHour)
+    sunrise: formatTime(sunriseIST),
+    sunset: formatTime(sunsetIST)
   };
 }
 
@@ -161,11 +187,12 @@ function parseTimeToHours(time: string): number {
 }
 
 function formatHoursToTime(hours: number): string {
-  const h = Math.floor(hours) % 24;
+  let h = Math.floor(hours) % 24;
   const m = Math.floor((hours - Math.floor(hours)) * 60);
   const ampm = h >= 12 ? 'PM' : 'AM';
-  const h12 = h % 12 || 12;
-  return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
 }
 
 serve(async (req) => {
