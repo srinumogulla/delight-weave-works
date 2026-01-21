@@ -37,6 +37,7 @@ import PunditDashboard from "./pages/pundit/Dashboard";
 import PunditBookings from "./pages/pundit/Bookings";
 import PunditProfile from "./pages/pundit/Profile";
 import PunditEarnings from "./pages/pundit/Earnings";
+import PoojaDetails from "./pages/PoojaDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -67,6 +68,7 @@ const App = () => (
               <Route path="/gift/:id" element={<GiftConfirmation />} />
               <Route path="/pooja/dashachara" element={<Dashachara />} />
               <Route path="/pooja/vamachara" element={<Vamachara />} />
+              <Route path="/pooja/:id" element={<PoojaDetails />} />
               <Route path="/panchang" element={<Panchang />} />
               <Route path="/temples" element={<Temples />} />
               <Route path="/temple/:id" element={<TempleDetails />} />

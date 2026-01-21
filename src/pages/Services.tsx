@@ -10,6 +10,7 @@ import { MobileServiceCard } from "@/components/mobile/MobileServiceCard";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -134,6 +135,7 @@ export default function Services() {
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("popular");
+  const [ritualType, setRitualType] = useState("all");
   const [filters, setFilters] = useState<FilterState>({
     categories: [],
     priceRange: [0, maxPrice],
@@ -153,6 +155,17 @@ export default function Services() {
           s.description.toLowerCase().includes(query) ||
           s.category.toLowerCase().includes(query) ||
           s.temple.toLowerCase().includes(query)
+      );
+    }
+
+    // Ritual type filter (Dashachara/Vamachara simulation - using category for demo)
+    if (ritualType === "dashachara") {
+      result = result.filter((s) => 
+        ["Homam", "Abhishekam", "Pooja", "Vratam"].includes(s.category)
+      );
+    } else if (ritualType === "vamachara") {
+      result = result.filter((s) => 
+        ["Shanti"].includes(s.category)
       );
     }
 
@@ -191,7 +204,7 @@ export default function Services() {
     }
 
     return result;
-  }, [searchQuery, filters, sortBy]);
+  }, [searchQuery, filters, sortBy, ritualType]);
 
   const handleBook = (service: Service) => {
     navigate(`/booking/${service.id}`);
@@ -212,6 +225,19 @@ export default function Services() {
               verified Purohits at sacred temples across India.
             </p>
           </div>
+        </div>
+      </section>
+
+      {/* Ritual Type Tabs */}
+      <section className="py-2 md:py-4">
+        <div className="container">
+          <Tabs value={ritualType} onValueChange={setRitualType} className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-3 mx-auto">
+              <TabsTrigger value="all">All Poojas</TabsTrigger>
+              <TabsTrigger value="dashachara">Dashachara</TabsTrigger>
+              <TabsTrigger value="vamachara">Vamachara</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </section>
 

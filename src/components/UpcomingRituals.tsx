@@ -94,7 +94,7 @@ export function UpcomingRituals() {
             </p>
           </div>
           <Button variant="outline" className="mt-4 md:mt-0" asChild>
-            <Link to="/pooja/dashachara">
+            <Link to="/services">
               View All Poojas
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>

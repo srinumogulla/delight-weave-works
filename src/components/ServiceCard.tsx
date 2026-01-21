@@ -1,5 +1,5 @@
-import { Clock, Star, Users } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Clock, Star, Users, Eye } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 export interface Service {
@@ -83,13 +83,25 @@ export function ServiceCard({ service, onBook }: ServiceCardProps) {
           🛕 {service.temple}
         </p>
         
-        {/* Book button */}
-        <Button 
-          className="w-full" 
-          onClick={() => onBook?.(service)}
-        >
-          Book Now
-        </Button>
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            className="flex-1"
+            asChild
+          >
+            <Link to={`/pooja/${service.id}`}>
+              <Eye className="h-4 w-4 mr-1" />
+              Details
+            </Link>
+          </Button>
+          <Button 
+            className="flex-1" 
+            onClick={() => onBook?.(service)}
+          >
+            Book Now
+          </Button>
+        </div>
       </div>
     </div>
   );
