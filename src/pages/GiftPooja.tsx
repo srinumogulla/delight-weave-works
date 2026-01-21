@@ -11,8 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Gift, Heart, Cake, Star, Leaf, ArrowRight, ArrowLeft, Phone, Video, Package, Building2, 
-  ChevronLeft, ChevronRight, Check, CheckCircle2, User
+  ChevronLeft, ChevronRight, Check, CheckCircle2, User, CreditCard
 } from "lucide-react";
+import { PaymentStep } from "@/components/PaymentStep";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 
@@ -90,11 +91,12 @@ const giftSteps = [
   }
 ];
 
-// Step definitions for simplified 3-step form
+// Step definitions for 4-step form (including payment)
 const formSteps = [
   { id: 1, title: "Select Occasion", icon: Gift },
   { id: 2, title: "Recipient Details", icon: User },
-  { id: 3, title: "Confirm & Gift", icon: CheckCircle2 },
+  { id: 3, title: "Confirm", icon: CheckCircle2 },
+  { id: 4, title: "Payment", icon: CreditCard },
 ];
 
 // Fixed Archana price
@@ -109,7 +111,7 @@ const GiftPooja = () => {
 
   // Multi-step form state
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   const [recipientName, setRecipientName] = useState("");
   const [gotra, setGotra] = useState("");
@@ -181,9 +183,7 @@ const GiftPooja = () => {
 
   const selectedOccasion = occasions.find(o => o.value === occasion);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handlePaymentSuccess = async () => {
     if (!user) {
       toast({
         title: "Please log in",
@@ -191,15 +191,6 @@ const GiftPooja = () => {
         variant: "destructive",
       });
       navigate("/login");
-      return;
-    }
-
-    if (!recipientName || !gotra || !occasion) {
-      toast({
-        title: "Missing information",
-        description: "Please provide recipient name, gotra, and occasion.",
-        variant: "destructive",
-      });
       return;
     }
 
@@ -229,8 +220,8 @@ const GiftPooja = () => {
       if (error) throw error;
 
       toast({
-        title: "Archana Booking Created! 🙏",
-        description: "We'll send you the Archana video after the ritual is performed.",
+        title: "Payment Successful! 🙏",
+        description: "Your Archana gift has been booked. We'll send you the video after the ritual.",
       });
 
       navigate("/profile");
@@ -243,6 +234,32 @@ const GiftPooja = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user) {
+      toast({
+        title: "Please log in",
+        description: "You need to be logged in to gift an Archana.",
+        variant: "destructive",
+      });
+      navigate("/login");
+      return;
+    }
+
+    if (!recipientName || !gotra || !occasion) {
+      toast({
+        title: "Missing information",
+        description: "Please provide recipient name, gotra, and occasion.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Move to payment step
+    nextStep();
   };
 
   // Render current step content
@@ -381,6 +398,18 @@ const GiftPooja = () => {
               </p>
             </div>
           </div>
+        );
+      case 4:
+        return (
+          <PaymentStep
+            serviceName={ARCHANA_NAME}
+            amount={archanaService?.price || ARCHANA_PRICE}
+            recipientName={recipientName}
+            gotra={gotra}
+            onPaymentSuccess={handlePaymentSuccess}
+            onBack={prevStep}
+            isProcessing={isSubmitting}
+          />
         );
       default:
         return null;
@@ -593,7 +622,7 @@ const GiftPooja = () => {
                         Previous
                       </Button>
                       
-                      {currentStep < totalSteps ? (
+                      {currentStep < totalSteps - 1 ? (
                         <Button
                           type="button"
                           onClick={nextStep}
@@ -603,16 +632,16 @@ const GiftPooja = () => {
                           Next Step
                           <ArrowRight className="h-4 w-4" />
                         </Button>
-                      ) : (
+                      ) : currentStep === totalSteps - 1 ? (
                         <Button
                           type="submit"
-                          disabled={isSubmitting || !isStepValid(currentStep)}
+                          disabled={!isStepValid(currentStep)}
                           className="gap-2 bg-primary hover:bg-primary/90"
                         >
-                          {isSubmitting ? "Processing..." : "Gift Archana"}
-                          <Gift className="h-4 w-4" />
+                          Proceed to Payment
+                          <CreditCard className="h-4 w-4" />
                         </Button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </form>

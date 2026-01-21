@@ -11,6 +11,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, ChevronLeft, ChevronRight, CheckCircle, Calendar as CalendarIcon, User, Clock, CreditCard } from 'lucide-react';
+import { PaymentStep } from '@/components/PaymentStep';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -107,7 +108,7 @@ const Booking = () => {
     setLoading(false);
   };
 
-  const handleSubmit = async () => {
+  const handlePaymentSuccess = async () => {
     if (!user || !service || !date || !timeSlot || !sankalpaName) {
       setError('Please fill in all required fields');
       return;
@@ -129,8 +130,8 @@ const Booking = () => {
           nakshatra: nakshatra || null,
           special_requests: specialRequests || null,
           amount: service.price,
-          status: 'pending',
-          payment_status: 'unpaid',
+          status: 'confirmed',
+          payment_status: 'paid',
         });
 
       if (error) throw error;
@@ -152,7 +153,9 @@ const Booking = () => {
       return;
     }
     setError('');
-    setStep(step + 1);
+    if (step < 5) {
+      setStep(step + 1);
+    }
   };
 
   const prevStep = () => {
@@ -173,12 +176,12 @@ const Booking = () => {
       <Card className="w-full max-w-md border-green-500/20 text-center">
         <CardContent className="pt-8">
           <CheckCircle className="w-20 h-20 mx-auto mb-6 text-green-500" />
-          <h2 className="text-2xl font-sanskrit text-saffron mb-2">Booking Confirmed!</h2>
+          <h2 className="text-2xl font-sanskrit text-saffron mb-2">Payment Successful!</h2>
           <p className="text-muted-foreground mb-6">
             Your {service?.name} has been booked for {format(date!, 'MMMM d, yyyy')} at {timeSlot}.
           </p>
           <p className="text-sm text-muted-foreground mb-6">
-            You will receive a confirmation shortly. Please complete the payment to confirm your booking.
+            You will receive a confirmation email shortly with all the details.
           </p>
           <div className="flex gap-3 justify-center">
             <Button 
@@ -217,7 +220,7 @@ const Booking = () => {
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center mb-6 md:mb-8 overflow-x-auto">
-          {[1, 2, 3, 4].map((s) => (
+          {[1, 2, 3, 4, 5].map((s) => (
             <div key={s} className="flex items-center">
               <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm ${
                 s === step ? 'bg-saffron text-temple-dark' : 
@@ -225,8 +228,8 @@ const Booking = () => {
               }`}>
                 {s < step ? <CheckCircle className="w-4 h-4" /> : s}
               </div>
-              {s < 4 && (
-                <div className={`w-8 md:w-16 h-1 ${s < step ? 'bg-green-500' : 'bg-temple-dark'}`} />
+              {s < 5 && (
+                <div className={`w-6 md:w-12 h-1 ${s < step ? 'bg-green-500' : 'bg-temple-dark'}`} />
               )}
             </div>
           ))}
@@ -235,9 +238,10 @@ const Booking = () => {
         {/* Step Labels - Hidden on mobile */}
         <div className="hidden md:flex justify-between mb-8 text-sm text-muted-foreground">
           <span className={step >= 1 ? 'text-saffron' : ''}>Date & Time</span>
-          <span className={step >= 2 ? 'text-saffron' : ''}>Sankalpa Details</span>
-          <span className={step >= 3 ? 'text-saffron' : ''}>Special Requests</span>
+          <span className={step >= 2 ? 'text-saffron' : ''}>Sankalpa</span>
+          <span className={step >= 3 ? 'text-saffron' : ''}>Requests</span>
           <span className={step >= 4 ? 'text-saffron' : ''}>Review</span>
+          <span className={step >= 5 ? 'text-saffron' : ''}>Payment</span>
         </div>
 
         {error && (
@@ -436,45 +440,56 @@ const Booking = () => {
                   <p className="text-sm text-muted-foreground">Total Amount</p>
                   <p className="text-2xl md:text-3xl font-bold text-gold">₹{service?.price}</p>
                 </div>
-                <Badge className="bg-yellow-500">Payment on Confirmation</Badge>
+                <Badge className="bg-primary">Proceed to Pay</Badge>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6 md:mt-8">
-          {step > 1 ? (
-            <Button variant="outline" onClick={prevStep}>
-              <ChevronLeft className="w-4 h-4 mr-2" />
-              Previous
-            </Button>
-          ) : (
-            <div />
-          )}
+        {/* Step 5: Payment */}
+        {step === 5 && service && (
+          <PaymentStep
+            serviceName={service.name}
+            templeName={service.temple}
+            date={date ? format(date, 'MMMM d, yyyy') : undefined}
+            time={timeSlot}
+            amount={service.price}
+            recipientName={sankalpaName}
+            gotra={gotra}
+            onPaymentSuccess={handlePaymentSuccess}
+            onBack={prevStep}
+            isProcessing={submitting}
+          />
+        )}
 
-          {step < 4 ? (
-            <Button onClick={nextStep} className="bg-gradient-to-r from-saffron to-gold text-temple-dark">
-              Next
-              <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : (
-            <Button 
-              onClick={handleSubmit} 
-              disabled={submitting}
-              className="bg-gradient-to-r from-saffron to-gold text-temple-dark"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Booking...
-                </>
-              ) : (
-                'Confirm Booking'
-              )}
-            </Button>
-          )}
-        </div>
+        {/* Navigation Buttons */}
+        {step < 5 && (
+          <div className="flex justify-between mt-6 md:mt-8">
+            {step > 1 ? (
+              <Button variant="outline" onClick={prevStep}>
+                <ChevronLeft className="w-4 h-4 mr-2" />
+                Previous
+              </Button>
+            ) : (
+              <div />
+            )}
+
+            {step < 4 ? (
+              <Button onClick={nextStep} className="bg-gradient-to-r from-saffron to-gold text-temple-dark">
+                Next
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            ) : (
+              <Button 
+                onClick={nextStep}
+                className="bg-gradient-to-r from-saffron to-gold text-temple-dark"
+              >
+                Proceed to Payment
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );
