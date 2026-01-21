@@ -206,22 +206,38 @@ const PunditProfile = () => {
             </p>
           </div>
           <Badge 
-            variant={profile.is_verified ? "default" : "secondary"}
-            className={profile.is_verified ? "bg-green-600" : ""}
+            variant={profile.approval_status === 'approved' ? "default" : profile.approval_status === 'rejected' ? "destructive" : "secondary"}
+            className={profile.approval_status === 'approved' ? "bg-green-600" : profile.approval_status === 'rejected' ? "" : "bg-amber-500"}
           >
-            {profile.is_verified ? (
+            {profile.approval_status === 'approved' ? (
               <>
                 <CheckCircle className="h-3 w-3 mr-1" />
-                Verified
+                Approved
+              </>
+            ) : profile.approval_status === 'rejected' ? (
+              <>
+                <Clock className="h-3 w-3 mr-1" />
+                Rejected
               </>
             ) : (
               <>
                 <Clock className="h-3 w-3 mr-1" />
-                Pending Verification
+                Pending Approval
               </>
             )}
           </Badge>
         </div>
+
+        {/* Pending Approval Notice */}
+        {profile.approval_status === 'pending' && (
+          <Card className="border-amber-500/50 bg-amber-50 dark:bg-amber-900/10">
+            <CardContent className="py-4">
+              <p className="text-sm text-amber-700 dark:text-amber-400">
+                <strong>Complete your profile</strong> to speed up the approval process. Make sure to add your photo, experience, specializations, and a detailed bio.
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Photo Upload Section */}
         <Card>

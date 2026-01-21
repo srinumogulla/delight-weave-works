@@ -50,6 +50,9 @@ const Profile = () => {
   const [gotra, setGotra] = useState('');
   const [nakshatra, setNakshatra] = useState('');
   const [rashi, setRashi] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [timeOfBirth, setTimeOfBirth] = useState('');
+  const [birthLocation, setBirthLocation] = useState('');
   
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [savedPoojas, setSavedPoojas] = useState<SavedPooja[]>([]);
@@ -65,6 +68,9 @@ const Profile = () => {
       setGotra(profile.gotra || '');
       setNakshatra(profile.nakshatra || '');
       setRashi(profile.rashi || '');
+      setDateOfBirth((profile as any).date_of_birth || '');
+      setTimeOfBirth((profile as any).time_of_birth || '');
+      setBirthLocation((profile as any).birth_location || '');
     }
   }, [profile]);
 
@@ -132,6 +138,9 @@ const Profile = () => {
           gotra,
           nakshatra,
           rashi,
+          date_of_birth: dateOfBirth || null,
+          time_of_birth: timeOfBirth || null,
+          birth_location: birthLocation || null,
         })
         .eq('id', user?.id);
 
@@ -448,6 +457,47 @@ const Profile = () => {
                         <option key={r} value={r}>{r}</option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Birth Details Section */}
+                  <div className="pt-4 border-t border-border">
+                    <h3 className="font-semibold mb-3 flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Birth Details (for Kundali)
+                    </h3>
+                    <p className="text-xs text-muted-foreground mb-4">
+                      These details help calculate your horoscope and personalize pooja recommendations.
+                    </p>
+                    
+                    <div className="grid gap-4 md:grid-cols-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                        <Input
+                          id="dateOfBirth"
+                          type="date"
+                          value={dateOfBirth}
+                          onChange={(e) => setDateOfBirth(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="timeOfBirth">Time of Birth</Label>
+                        <Input
+                          id="timeOfBirth"
+                          type="time"
+                          value={timeOfBirth}
+                          onChange={(e) => setTimeOfBirth(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="birthLocation">Birth Location</Label>
+                        <Input
+                          id="birthLocation"
+                          value={birthLocation}
+                          onChange={(e) => setBirthLocation(e.target.value)}
+                          placeholder="e.g., Chennai, Tamil Nadu"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <Button 

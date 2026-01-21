@@ -236,7 +236,9 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          birth_location: string | null
           created_at: string
+          date_of_birth: string | null
           email: string | null
           full_name: string | null
           gotra: string | null
@@ -244,11 +246,14 @@ export type Database = {
           nakshatra: string | null
           phone: string | null
           rashi: string | null
+          time_of_birth: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
+          birth_location?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email?: string | null
           full_name?: string | null
           gotra?: string | null
@@ -256,11 +261,14 @@ export type Database = {
           nakshatra?: string | null
           phone?: string | null
           rashi?: string | null
+          time_of_birth?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
+          birth_location?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email?: string | null
           full_name?: string | null
           gotra?: string | null
@@ -268,12 +276,14 @@ export type Database = {
           nakshatra?: string | null
           phone?: string | null
           rashi?: string | null
+          time_of_birth?: string | null
           updated_at?: string
         }
         Relationships: []
       }
       pundits: {
         Row: {
+          approval_status: string | null
           bio: string | null
           created_at: string | null
           experience_years: number | null
@@ -289,6 +299,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          approval_status?: string | null
           bio?: string | null
           created_at?: string | null
           experience_years?: number | null
@@ -304,6 +315,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          approval_status?: string | null
           bio?: string | null
           created_at?: string | null
           experience_years?: number | null
@@ -466,7 +478,13 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user" | "pundit"
+      app_role:
+        | "admin"
+        | "moderator"
+        | "user"
+        | "pundit"
+        | "temple"
+        | "field_officer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -594,7 +612,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user", "pundit"],
+      app_role: [
+        "admin",
+        "moderator",
+        "user",
+        "pundit",
+        "temple",
+        "field_officer",
+      ],
     },
   },
 } as const

@@ -114,17 +114,49 @@ const PunditDashboard = () => {
           </p>
         </div>
 
-        {/* Verification Status */}
-        {punditProfile && !punditProfile.is_verified && (
+        {/* Approval Status Banners */}
+        {punditProfile?.approval_status === 'pending' && (
           <Card className="border-amber-500/50 bg-amber-50 dark:bg-amber-900/10">
             <CardContent className="flex items-center gap-3 py-4">
               <AlertCircle className="h-5 w-5 text-amber-600" />
               <div>
                 <p className="font-medium text-amber-800 dark:text-amber-400">
-                  Profile Under Review
+                  Profile Pending Approval
                 </p>
                 <p className="text-sm text-amber-700 dark:text-amber-500">
-                  Your profile is pending verification. You'll be notified once approved.
+                  Your profile is under review by our admin team. Complete your profile to speed up approval. You cannot accept bookings yet.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {punditProfile?.approval_status === 'rejected' && (
+          <Card className="border-destructive/50 bg-destructive/10">
+            <CardContent className="flex items-center gap-3 py-4">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              <div>
+                <p className="font-medium text-destructive">
+                  Profile Not Approved
+                </p>
+                <p className="text-sm text-destructive/80">
+                  Unfortunately, your profile was not approved. Please contact support at support@vedhamantra.com for more information.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {punditProfile?.approval_status === 'approved' && (
+          <Card className="border-green-500/50 bg-green-50 dark:bg-green-900/10">
+            <CardContent className="flex items-center gap-3 py-4">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="font-medium text-green-800 dark:text-green-400">
+                  Verified Pundit
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-500">
+                  Your profile is verified. You can now receive and accept bookings from devotees.
                 </p>
               </div>
             </CardContent>

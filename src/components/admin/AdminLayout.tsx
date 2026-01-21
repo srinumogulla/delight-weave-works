@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -8,11 +9,14 @@ import {
   Home,
   BookOpen,
   Building2,
-  UserCheck
+  UserCheck,
+  ClipboardCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/components/AuthProvider';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -25,12 +29,26 @@ const sidebarItems = [
   { label: 'Users', href: '/admin/users', icon: Users },
   { label: 'Temples', href: '/admin/temples', icon: Building2 },
   { label: 'Pundits', href: '/admin/pundits', icon: UserCheck },
+  { label: 'Approvals', href: '/admin/approvals', icon: ClipboardCheck },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const { signOut, profile } = useAuth();
 
+  // Fetch pending approvals count
+  const { data: pendingCount = 0 } = useQuery({
+    queryKey: ['pending-approvals-count'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('pundits')
+        .select('*', { count: 'exact', head: true })
+        .eq('approval_status', 'pending');
+
+      if (error) throw error;
+      return count || 0;
+    },
+  });
   return (
     <div className="min-h-screen bg-muted/30 flex">
       {/* Sidebar */}
@@ -52,6 +70,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <nav className="flex-1 p-4 space-y-1">
           {sidebarItems.map((item) => {
             const isActive = location.pathname === item.href;
+            const showBadge = item.href === '/admin/approvals' && pendingCount > 0;
             return (
               <Link
                 key={item.href}
@@ -65,6 +84,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
               >
                 <item.icon className="h-5 w-5" />
                 {item.label}
+                {showBadge && (
+                  <Badge variant="destructive" className="ml-auto h-5 px-1.5 text-xs">
+                    {pendingCount}
+                  </Badge>
+                )}
               </Link>
             );
           })}

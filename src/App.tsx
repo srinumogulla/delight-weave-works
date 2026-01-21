@@ -28,6 +28,7 @@ import AdminBookings from "./pages/admin/Bookings";
 import AdminUsers from "./pages/admin/Users";
 import AdminTemples from "./pages/admin/Temples";
 import AdminPundits from "./pages/admin/Pundits";
+import AdminApprovals from "./pages/admin/Approvals";
 import AdminLogin from "./pages/admin/Login";
 import GiftConfirmation from "./pages/GiftConfirmation";
 import PunditDashboard from "./pages/pundit/Dashboard";
@@ -123,6 +124,11 @@ const App = () => (
               <Route path="/admin/pundits" element={
                 <ProtectedRoute requireAdmin>
                   <AdminPundits />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/approvals" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminApprovals />
                 </ProtectedRoute>
               } />
               
