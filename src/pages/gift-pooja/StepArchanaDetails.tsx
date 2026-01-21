@@ -1,7 +1,8 @@
 import { useRef } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { User, Users, Info, Camera, X } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { User, Users, Info, Camera, X, Heart, MessageCircle } from "lucide-react";
 
 interface StepArchanaDetailsProps {
   recipientName: string;
@@ -10,6 +11,12 @@ interface StepArchanaDetailsProps {
   setGotra: (value: string) => void;
   recipientImage: string | null;
   setRecipientImage: (value: string | null) => void;
+  senderName: string;
+  setSenderName: (value: string) => void;
+  senderImage: string | null;
+  setSenderImage: (value: string | null) => void;
+  senderMessage: string;
+  setSenderMessage: (value: string) => void;
 }
 
 export const StepArchanaDetails = ({
@@ -19,10 +26,17 @@ export const StepArchanaDetails = ({
   setGotra,
   recipientImage,
   setRecipientImage,
+  senderName,
+  setSenderName,
+  senderImage,
+  setSenderImage,
+  senderMessage,
+  setSenderMessage,
 }: StepArchanaDetailsProps) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recipientFileRef = useRef<HTMLInputElement>(null);
+  const senderFileRef = useRef<HTMLInputElement>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleRecipientImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
@@ -30,10 +44,25 @@ export const StepArchanaDetails = ({
     }
   };
 
-  const removeImage = () => {
+  const handleSenderImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setSenderImage(url);
+    }
+  };
+
+  const removeRecipientImage = () => {
     setRecipientImage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (recipientFileRef.current) {
+      recipientFileRef.current.value = "";
+    }
+  };
+
+  const removeSenderImage = () => {
+    setSenderImage(null);
+    if (senderFileRef.current) {
+      senderFileRef.current.value = "";
     }
   };
 
@@ -56,15 +85,80 @@ export const StepArchanaDetails = ({
         </div>
       </div>
 
-      {/* Recipient Photo Upload */}
-      <div className="space-y-2">
-        <Label className="text-base font-medium flex items-center gap-2">
-          <Camera className="h-4 w-4 text-primary" />
-          Recipient's Photo (Optional)
-        </Label>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <div className="w-20 h-20 rounded-full border-2 border-dashed border-primary/40 bg-muted/50 flex items-center justify-center overflow-hidden">
+      {/* From Section - Sender Details */}
+      <div className="p-4 bg-muted/50 rounded-xl border border-border space-y-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Heart className="h-4 w-4 text-primary" />
+          From (Your Details)
+        </div>
+        
+        <div className="flex items-start gap-4">
+          {/* Sender Photo */}
+          <div className="relative flex-shrink-0">
+            <div className="w-16 h-16 rounded-full border-2 border-dashed border-primary/40 bg-background flex items-center justify-center overflow-hidden">
+              {senderImage ? (
+                <img
+                  src={senderImage}
+                  alt="Sender"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="h-6 w-6 text-muted-foreground" />
+              )}
+            </div>
+            {senderImage ? (
+              <button
+                type="button"
+                onClick={removeSenderImage}
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            ) : (
+              <label
+                htmlFor="sender-photo"
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md cursor-pointer hover:bg-primary/90"
+              >
+                <Camera className="h-3 w-3" />
+              </label>
+            )}
+            <input
+              ref={senderFileRef}
+              type="file"
+              accept="image/*"
+              onChange={handleSenderImageUpload}
+              className="hidden"
+              id="sender-photo"
+            />
+          </div>
+          
+          {/* Sender Name */}
+          <div className="flex-1 space-y-1">
+            <Label htmlFor="senderName" className="text-sm font-medium">
+              Your Name
+            </Label>
+            <Input
+              id="senderName"
+              value={senderName}
+              onChange={(e) => setSenderName(e.target.value)}
+              placeholder="Enter your name"
+              className="h-11"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* To Section - Recipient Details */}
+      <div className="p-4 bg-muted/50 rounded-xl border border-border space-y-4">
+        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <User className="h-4 w-4 text-primary" />
+          To (Recipient Details) *
+        </div>
+        
+        <div className="flex items-start gap-4">
+          {/* Recipient Photo */}
+          <div className="relative flex-shrink-0">
+            <div className="w-16 h-16 rounded-full border-2 border-dashed border-primary/40 bg-background flex items-center justify-center overflow-hidden">
               {recipientImage ? (
                 <img
                   src={recipientImage}
@@ -72,58 +166,49 @@ export const StepArchanaDetails = ({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <User className="h-8 w-8 text-muted-foreground" />
+                <User className="h-6 w-6 text-muted-foreground" />
               )}
             </div>
-            {recipientImage && (
+            {recipientImage ? (
               <button
                 type="button"
-                onClick={removeImage}
-                className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
+                onClick={removeRecipientImage}
+                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md"
               >
                 <X className="h-3 w-3" />
               </button>
+            ) : (
+              <label
+                htmlFor="recipient-photo"
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md cursor-pointer hover:bg-primary/90"
+              >
+                <Camera className="h-3 w-3" />
+              </label>
             )}
-          </div>
-          <div className="flex-1">
             <input
-              ref={fileInputRef}
+              ref={recipientFileRef}
               type="file"
               accept="image/*"
-              onChange={handleImageUpload}
+              onChange={handleRecipientImageUpload}
               className="hidden"
               id="recipient-photo"
             />
-            <label
-              htmlFor="recipient-photo"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-primary/30 bg-primary/5 text-primary text-sm font-medium cursor-pointer hover:bg-primary/10 transition-colors"
-            >
-              <Camera className="h-4 w-4" />
-              {recipientImage ? "Change Photo" : "Upload Photo"}
-            </label>
-            <p className="text-xs text-muted-foreground mt-1">
-              Photo will appear in the video preview
-            </p>
+          </div>
+          
+          {/* Recipient Name */}
+          <div className="flex-1 space-y-1">
+            <Label htmlFor="recipientName" className="text-sm font-medium">
+              Recipient's Full Name *
+            </Label>
+            <Input
+              id="recipientName"
+              value={recipientName}
+              onChange={(e) => setRecipientName(e.target.value)}
+              placeholder="Enter the full name for the Archana"
+              className="h-11"
+            />
           </div>
         </div>
-      </div>
-
-      {/* Recipient Name */}
-      <div className="space-y-2">
-        <Label htmlFor="recipientName" className="text-base font-medium flex items-center gap-2">
-          <User className="h-4 w-4 text-primary" />
-          Recipient's Full Name *
-        </Label>
-        <Input
-          id="recipientName"
-          value={recipientName}
-          onChange={(e) => setRecipientName(e.target.value)}
-          placeholder="Enter the full name for the Archana"
-          className="h-14 text-lg"
-        />
-        <p className="text-xs text-muted-foreground">
-          This name will be recited during the ritual
-        </p>
       </div>
 
       {/* Gotra */}
@@ -137,7 +222,7 @@ export const StepArchanaDetails = ({
           value={gotra}
           onChange={(e) => setGotra(e.target.value)}
           placeholder="e.g., Bharadwaja, Kashyapa, Vasishta..."
-          className="h-14 text-lg"
+          className="h-12 text-base"
         />
         <p className="text-xs text-muted-foreground">
           The ancestral lineage (Gotra) is traditionally recited during Archana
@@ -172,6 +257,26 @@ export const StepArchanaDetails = ({
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Blessing Message */}
+      <div className="space-y-2">
+        <Label htmlFor="senderMessage" className="text-base font-medium flex items-center gap-2">
+          <MessageCircle className="h-4 w-4 text-primary" />
+          Your Blessing Message (Optional)
+        </Label>
+        <Textarea
+          id="senderMessage"
+          value={senderMessage}
+          onChange={(e) => setSenderMessage(e.target.value)}
+          placeholder="Write a heartfelt message for the recipient... e.g., 'Wishing you good health and happiness on your birthday!'"
+          className="min-h-[80px] resize-none"
+          maxLength={200}
+        />
+        <p className="text-xs text-muted-foreground flex justify-between">
+          <span>This message will appear in the video preview</span>
+          <span>{senderMessage.length}/200</span>
+        </p>
       </div>
 
       {/* Preview Card */}

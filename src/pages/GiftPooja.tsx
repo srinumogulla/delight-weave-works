@@ -117,6 +117,9 @@ const GiftPooja = () => {
   const [recipientEmail, setRecipientEmail] = useState("");
   const [recipientPhone, setRecipientPhone] = useState("");
   const [recipientImage, setRecipientImage] = useState<string | null>(null);
+  const [senderName, setSenderName] = useState("");
+  const [senderImage, setSenderImage] = useState<string | null>(null);
+  const [senderMessage, setSenderMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Navigation functions
@@ -302,6 +305,12 @@ const GiftPooja = () => {
             setGotra={setGotra}
             recipientImage={recipientImage}
             setRecipientImage={setRecipientImage}
+            senderName={senderName}
+            setSenderName={setSenderName}
+            senderImage={senderImage}
+            setSenderImage={setSenderImage}
+            senderMessage={senderMessage}
+            setSenderMessage={setSenderMessage}
           />
         );
       case 3:
@@ -622,6 +631,9 @@ const GiftPooja = () => {
                     occasion={occasion}
                     selectedOccasion={selectedOccasion}
                     recipientImage={recipientImage}
+                    senderName={senderName}
+                    senderImage={senderImage}
+                    senderMessage={senderMessage}
                   />
                 </div>
               </div>
