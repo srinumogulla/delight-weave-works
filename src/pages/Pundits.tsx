@@ -27,6 +27,7 @@ interface Pundit {
   location: string | null;
   bio: string | null;
   is_verified: boolean | null;
+  approval_status: string | null;
 }
 
 // Mock data for demonstration
@@ -41,6 +42,7 @@ const mockPundits: Pundit[] = [
     location: "Varanasi, UP",
     bio: "Renowned Vedic scholar with expertise in traditional rituals and ceremonies.",
     is_verified: true,
+    approval_status: "approved",
   },
   {
     id: "2",
@@ -52,6 +54,7 @@ const mockPundits: Pundit[] = [
     location: "Chennai, TN",
     bio: "Expert in South Indian temple traditions and Agamic rituals.",
     is_verified: true,
+    approval_status: "approved",
   },
   {
     id: "3",
@@ -63,6 +66,7 @@ const mockPundits: Pundit[] = [
     location: "Hyderabad, TS",
     bio: "Specialist in wedding ceremonies and auspicious house-warming rituals.",
     is_verified: true,
+    approval_status: "approved",
   },
   {
     id: "4",
@@ -74,6 +78,7 @@ const mockPundits: Pundit[] = [
     location: "Ujjain, MP",
     bio: "Devotee of Lord Shiva with deep knowledge of Shaivite traditions.",
     is_verified: true,
+    approval_status: "approved",
   },
   {
     id: "5",
@@ -84,7 +89,8 @@ const mockPundits: Pundit[] = [
     experience_years: 15,
     location: "Ahmedabad, GJ",
     bio: "Known for prosperity and wealth-attracting ceremonies.",
-    is_verified: false,
+    is_verified: true,
+    approval_status: "approved",
   },
   {
     id: "6",
@@ -96,6 +102,7 @@ const mockPundits: Pundit[] = [
     location: "Tirupati, AP",
     bio: "Temple priest with expertise in Vaishnava traditions.",
     is_verified: true,
+    approval_status: "approved",
   },
 ];
 
@@ -134,7 +141,8 @@ const Pundits = () => {
       const { data, error } = await supabase
         .from("pundits")
         .select("*")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .eq("approval_status", "approved");
       
       if (error) throw error;
       return data as Pundit[];

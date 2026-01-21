@@ -59,6 +59,17 @@ const Signup = () => {
             user_id: data.user.id,
             role: selectedRole
           });
+
+          // If pundit, create pundit record with pending approval status
+          if (selectedRole === 'pundit') {
+            await supabase.from('pundits').insert({
+              user_id: data.user.id,
+              name: fullName,
+              approval_status: 'pending',
+              is_verified: false,
+              is_active: true
+            });
+          }
         } catch (roleError) {
           console.error('Error setting user role:', roleError);
         }
@@ -69,7 +80,7 @@ const Signup = () => {
       // Auto-redirect after showing success
       setTimeout(() => {
         if (selectedRole === 'pundit') {
-          navigate('/pundit');
+          navigate('/pundit/profile');
         } else {
           navigate('/');
         }
@@ -99,10 +110,12 @@ const Signup = () => {
           <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
           <h2 className="text-2xl font-sanskrit text-saffron mb-2">Account Created!</h2>
           <p className="text-muted-foreground mb-4">
-            Welcome to our spiritual community. You are now signed in.
+            {selectedRole === 'pundit' 
+              ? 'Your pundit profile is pending admin approval. Complete your profile to speed up the process.'
+              : 'Welcome to our spiritual community. You are now signed in.'}
           </p>
           <p className="text-sm text-muted-foreground">
-            Redirecting you to {selectedRole === 'pundit' ? 'your dashboard' : 'home'}...
+            Redirecting you to {selectedRole === 'pundit' ? 'complete your profile' : 'home'}...
           </p>
         </CardContent>
       </Card>
