@@ -162,7 +162,7 @@ export function PoojaListingCard({
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link to={`/booking/${id}`}>
+              <Link to={`/pooja/${id}`}>
                 <Eye className="h-4 w-4 mr-1" />
                 Details
               </Link>

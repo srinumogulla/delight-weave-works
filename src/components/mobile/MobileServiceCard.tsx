@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Clock, Star } from 'lucide-react';
+import { Clock, Star, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -71,9 +71,17 @@ export function MobileServiceCard({
               </span>
             )}
           </div>
-          <Button size="sm" className="bg-primary hover:bg-primary/90">
-            Book Now
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" asChild onClick={(e) => e.stopPropagation()}>
+              <Link to={`/pooja/${id}`}>
+                <Eye className="h-3 w-3 mr-1" />
+                Details
+              </Link>
+            </Button>
+            <Button size="sm" className="bg-primary hover:bg-primary/90">
+              Book
+            </Button>
+          </div>
         </div>
       </div>
     </Link>
