@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -7,10 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Clock, Users, MapPin, ArrowLeft, Play, Bell, CheckCircle } from "lucide-react";
-import { useState } from "react";
+import { Calendar, Clock, Users, MapPin, ArrowLeft, Play, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { PaymentStep } from "@/components/PaymentStep";
 
 import ritualHomam from "@/assets/ritual-homam.jpg";
 import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
@@ -136,9 +135,11 @@ export default function RitualDetails() {
     nakshatra: "",
     specialRequests: "",
   });
-  const [showPayment, setShowPayment] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [registrationComplete, setRegistrationComplete] = useState(false);
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
 
   const ritual = rituals.find(r => r.id === Number(id));
 
@@ -167,15 +168,18 @@ export default function RitualDetails() {
       });
       return;
     }
-    setShowPayment(true);
-  };
-
-  const handlePaymentSuccess = () => {
-    setIsProcessing(false);
-    setRegistrationComplete(true);
-    toast({
-      title: "Registration Successful! 🙏",
-      description: `Payment confirmed! You have registered for ${ritual.name}.`,
+    // Navigate to payment page
+    navigate("/payment", {
+      state: {
+        type: "ritual",
+        serviceName: ritual.name,
+        templeName: ritual.temple,
+        date: ritual.date,
+        time: ritual.time,
+        amount: ritual.price,
+        recipientName: formData.name,
+        gotra: formData.gotra,
+      },
     });
   };
 
@@ -316,116 +320,74 @@ export default function RitualDetails() {
             </Card>
           </div>
 
-          {/* Right Column - Participation Form / Payment / Success */}
+          {/* Right Column - Participation Form */}
           <div className="lg:col-span-1">
-            {registrationComplete ? (
-              <Card className="sticky top-24 border-green-500/20 text-center">
-                <CardContent className="pt-8 pb-6">
-                  <div className="w-20 h-20 mx-auto rounded-full bg-green-500/10 flex items-center justify-center mb-4">
-                    <CheckCircle className="w-12 h-12 text-green-500" />
+            <Card className="sticky top-24">
+              <CardHeader>
+                <CardTitle>Participate in this Ritual</CardTitle>
+                <p className="text-muted-foreground text-sm">
+                  Register to receive divine blessings
+                </p>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Your Name (For Sankalpa) *</Label>
+                    <Input
+                      id="name"
+                      placeholder="Enter your full name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
                   </div>
-                  <h3 className="font-heading text-xl font-bold text-foreground mb-2">
-                    Registration Confirmed!
-                  </h3>
-                  <p className="text-muted-foreground mb-2">
-                    Payment of ₹{ritual.price} received
-                  </p>
-                  <p className="text-sm text-muted-foreground mb-6">
-                    You'll receive details for {ritual.name} shortly.
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    <Button onClick={() => navigate('/profile')} className="w-full">
-                      View My Bookings
-                    </Button>
-                    <Button variant="outline" onClick={() => navigate('/')} className="w-full">
-                      Back to Home
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gotra">Gotra (Optional)</Label>
+                    <Input
+                      id="gotra"
+                      placeholder="Enter your gotra"
+                      value={formData.gotra}
+                      onChange={(e) => setFormData({ ...formData, gotra: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="nakshatra">Nakshatra (Optional)</Label>
+                    <Input
+                      id="nakshatra"
+                      placeholder="Enter your nakshatra"
+                      value={formData.nakshatra}
+                      onChange={(e) => setFormData({ ...formData, nakshatra: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="requests">Special Requests (Optional)</Label>
+                    <Textarea
+                      id="requests"
+                      placeholder="Any specific prayers or requests..."
+                      value={formData.specialRequests}
+                      onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="pt-4 border-t border-border">
+                    <div className="flex justify-between items-center mb-4">
+                      <span className="text-muted-foreground">Participation Fee</span>
+                      <span className="text-2xl font-bold text-primary">₹{ritual.price}</span>
+                    </div>
+                    <Button type="submit" className="w-full" size="lg">
+                      Proceed to Payment
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
-            ) : showPayment ? (
-              <div className="sticky top-24">
-                <PaymentStep
-                  serviceName={ritual.name}
-                  templeName={ritual.temple}
-                  date={ritual.date}
-                  time={ritual.time}
-                  amount={ritual.price}
-                  recipientName={formData.name}
-                  gotra={formData.gotra}
-                  onPaymentSuccess={handlePaymentSuccess}
-                  onBack={() => setShowPayment(false)}
-                  isProcessing={isProcessing}
-                />
-              </div>
-            ) : (
-              <Card className="sticky top-24">
-                <CardHeader>
-                  <CardTitle>Participate in this Ritual</CardTitle>
-                  <p className="text-muted-foreground text-sm">
-                    Register to receive divine blessings
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    By participating, you agree to receive prasadam and blessings
                   </p>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Your Name (For Sankalpa) *</Label>
-                      <Input
-                        id="name"
-                        placeholder="Enter your full name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="gotra">Gotra (Optional)</Label>
-                      <Input
-                        id="gotra"
-                        placeholder="Enter your gotra"
-                        value={formData.gotra}
-                        onChange={(e) => setFormData({ ...formData, gotra: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="nakshatra">Nakshatra (Optional)</Label>
-                      <Input
-                        id="nakshatra"
-                        placeholder="Enter your nakshatra"
-                        value={formData.nakshatra}
-                        onChange={(e) => setFormData({ ...formData, nakshatra: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="requests">Special Requests (Optional)</Label>
-                      <Textarea
-                        id="requests"
-                        placeholder="Any specific prayers or requests..."
-                        value={formData.specialRequests}
-                        onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="pt-4 border-t border-border">
-                      <div className="flex justify-between items-center mb-4">
-                        <span className="text-muted-foreground">Participation Fee</span>
-                        <span className="text-2xl font-bold text-primary">₹{ritual.price}</span>
-                      </div>
-                      <Button type="submit" className="w-full" size="lg">
-                        {ritual.isLive ? "Proceed to Payment" : "Proceed to Payment"}
-                      </Button>
-                    </div>
-
-                    <p className="text-xs text-muted-foreground text-center">
-                      By participating, you agree to receive prasadam and blessings
-                    </p>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
+                </form>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, MapPin, Filter } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
@@ -17,6 +17,14 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n";
 
+// Import local assets for temple images
+import heroTemple from "@/assets/hero-temple.jpg";
+import ritualHomam from "@/assets/ritual-homam.jpg";
+import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
+import ritualPooja from "@/assets/ritual-pooja.jpg";
+import ritualLakshmi from "@/assets/ritual-lakshmi.jpg";
+import ritualShanti from "@/assets/ritual-shanti.jpg";
+
 interface Temple {
   id: string;
   name: string;
@@ -31,7 +39,7 @@ interface Temple {
   is_partner: boolean | null;
 }
 
-// Mock data for demonstration
+// Mock data for demonstration with local images
 const mockTemples: Temple[] = [
   {
     id: "1",
@@ -41,7 +49,7 @@ const mockTemples: Temple[] = [
     state: "Andhra Pradesh",
     city: "Tirupati",
     description: "One of the most visited pilgrimage centers in the world, dedicated to Lord Venkateswara.",
-    image_url: "https://images.unsplash.com/photo-1621427728602-28f06c06ef68?w=800",
+    image_url: heroTemple,
     contact_phone: "+91 877 2277777",
     website_url: "https://tirumala.org",
     is_partner: true,
@@ -54,7 +62,7 @@ const mockTemples: Temple[] = [
     state: "Uttar Pradesh",
     city: "Varanasi",
     description: "One of the most famous Hindu temples dedicated to Lord Shiva, located on the western bank of the Ganga.",
-    image_url: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=800",
+    image_url: ritualAbhishekam,
     contact_phone: "+91 542 2392629",
     website_url: "https://shrikashivishwanath.org",
     is_partner: true,
@@ -67,7 +75,7 @@ const mockTemples: Temple[] = [
     state: "Tamil Nadu",
     city: "Madurai",
     description: "Historic Hindu temple dedicated to Meenakshi, a form of Parvati, and her consort, Sundareshwar.",
-    image_url: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?w=800",
+    image_url: ritualPooja,
     contact_phone: "+91 452 2349292",
     website_url: null,
     is_partner: true,
@@ -80,7 +88,7 @@ const mockTemples: Temple[] = [
     state: "Maharashtra",
     city: "Mumbai",
     description: "Hindu temple dedicated to Lord Shri Ganesh, known for granting wishes.",
-    image_url: "https://images.unsplash.com/photo-1567591370504-80a5653e5150?w=800",
+    image_url: ritualHomam,
     contact_phone: "+91 22 24378880",
     website_url: "https://siddhivinayak.org",
     is_partner: false,
@@ -93,7 +101,7 @@ const mockTemples: Temple[] = [
     state: "Odisha",
     city: "Puri",
     description: "Famous Hindu temple dedicated to Lord Jagannath, known for the annual Rath Yatra festival.",
-    image_url: "https://images.unsplash.com/photo-1600359756098-8bc52195bbf4?w=800",
+    image_url: ritualLakshmi,
     contact_phone: "+91 6752 223002",
     website_url: null,
     is_partner: true,
@@ -106,7 +114,7 @@ const mockTemples: Temple[] = [
     state: "Punjab",
     city: "Amritsar",
     description: "The holiest Gurdwara and the most important pilgrimage site of Sikhism.",
-    image_url: "https://images.unsplash.com/photo-1514222134-b57cbb8ce073?w=800",
+    image_url: ritualShanti,
     contact_phone: "+91 183 2553957",
     website_url: "https://sgpc.net",
     is_partner: false,
@@ -122,6 +130,11 @@ const Temples = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedState, setSelectedState] = useState("All States");
   const [selectedDeity, setSelectedDeity] = useState("All Deities");
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const { data: dbTemples = [] } = useQuery({
     queryKey: ["temples"],
