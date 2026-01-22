@@ -54,6 +54,10 @@ const Panchang = () => {
   const [manualLocation, setManualLocation] = useState("");
   const [isLocating, setIsLocating] = useState(false);
   
+  // City autocomplete state
+  const [citySuggestions, setCitySuggestions] = useState<Array<{ display_name: string; lat: string; lon: string }>>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  
   // My Panchang form state
   const [myPanchangData, setMyPanchangData] = useState({
     name: '',
@@ -127,50 +131,45 @@ const Panchang = () => {
     staleTime: 1000 * 60 * 30,
   });
 
-  const handleLocationSearch = async () => {
-    if (!manualLocation.trim()) return;
-    
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(manualLocation)}&format=json&limit=1`
-      );
-      const data = await response.json();
-      
-      if (data.length > 0) {
-        setLocation({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
-        const displayName = data[0].display_name.split(',').slice(0, 2).join(',');
-        setLocationName(displayName);
-        toast({
-          title: "Location Updated",
-          description: `Panchang now showing for ${displayName}`,
-        });
+  // City autocomplete - debounced search
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (manualLocation.length >= 3) {
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(manualLocation)}&format=json&limit=5&addressdetails=1`
+          );
+          const data = await response.json();
+          setCitySuggestions(data);
+          setShowSuggestions(true);
+        } catch {
+          setCitySuggestions([]);
+        }
       } else {
-        toast({
-          title: "City not found",
-          description: "Please try a different city name",
-          variant: "destructive",
-        });
+        setCitySuggestions([]);
+        setShowSuggestions(false);
       }
-    } catch {
-      // Fallback to existing cities object
-      const cities: Record<string, { lat: number; lng: number; name: string }> = {
-        'mumbai': { lat: 19.076, lng: 72.8777, name: 'Mumbai, India' },
-        'delhi': { lat: 28.6139, lng: 77.209, name: 'Delhi, India' },
-        'bangalore': { lat: 12.9716, lng: 77.5946, name: 'Bangalore, India' },
-        'chennai': { lat: 13.0827, lng: 80.2707, name: 'Chennai, India' },
-        'kolkata': { lat: 22.5726, lng: 88.3639, name: 'Kolkata, India' },
-        'hyderabad': { lat: 17.385, lng: 78.4867, name: 'Hyderabad, India' },
-        'varanasi': { lat: 25.3176, lng: 82.9739, name: 'Varanasi, India' },
-      };
-      
-      const searchKey = manualLocation.toLowerCase().trim();
-      const found = Object.entries(cities).find(([key]) => searchKey.includes(key));
-      
-      if (found) {
-        setLocation({ lat: found[1].lat, lng: found[1].lng });
-        setLocationName(found[1].name);
-      }
-    }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [manualLocation]);
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handleClickOutside = () => setShowSuggestions(false);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const selectCity = (city: { display_name: string; lat: string; lon: string }) => {
+    const displayName = city.display_name.split(',').slice(0, 2).join(',');
+    setLocation({ lat: parseFloat(city.lat), lng: parseFloat(city.lon) });
+    setLocationName(displayName);
+    setManualLocation(displayName);
+    setShowSuggestions(false);
+    toast({
+      title: "Location Updated",
+      description: `Panchang now showing for ${displayName}`,
+    });
   };
 
   const handleGenerateMyPanchang = () => {
@@ -219,17 +218,35 @@ const Panchang = () => {
 
         {/* Today's Panchang */}
         <TabsContent value="today" className="space-y-6">
-          {/* Location Search */}
-          <div className="flex gap-2 max-w-md mx-auto">
-            <Input
-              placeholder="Search city (e.g., Mumbai, Varanasi)"
-              value={manualLocation}
-              onChange={(e) => setManualLocation(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleLocationSearch()}
-            />
-            <Button onClick={handleLocationSearch} variant="outline">
-              Search
-            </Button>
+          {/* Location Search with Autocomplete */}
+          <div className="relative max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+              <Input
+                placeholder="Search city (e.g., Mumbai, Varanasi)"
+                value={manualLocation}
+                onChange={(e) => setManualLocation(e.target.value)}
+                onFocus={() => citySuggestions.length > 0 && setShowSuggestions(true)}
+                className="flex-1"
+              />
+            </div>
+            
+            {/* Suggestions Dropdown */}
+            {showSuggestions && citySuggestions.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
+                {citySuggestions.map((city, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className="w-full px-4 py-3 text-left hover:bg-muted flex items-center gap-2 border-b last:border-b-0"
+                    onClick={() => selectCity(city)}
+                  >
+                    <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+                    <span className="truncate text-sm">{city.display_name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {isLoading ? (
