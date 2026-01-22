@@ -179,6 +179,44 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          booking_updates: boolean | null
+          created_at: string | null
+          festival_reminders: boolean | null
+          id: string
+          upcoming_poojas: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_updates?: boolean | null
+          created_at?: string | null
+          festival_reminders?: boolean | null
+          id?: string
+          upcoming_poojas?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_updates?: boolean | null
+          created_at?: string | null
+          festival_reminders?: boolean | null
+          id?: string
+          upcoming_poojas?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pooja_services: {
         Row: {
           benefits: string[] | null
@@ -334,6 +372,41 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string | null
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_items: {
         Row: {

@@ -131,14 +131,44 @@ export function MobileHeader({
                     )}
                   </div>
 
-                  <Link
-                    to="/panchang"
-                    className="flex items-center gap-3 py-3 text-sm font-medium text-foreground hover:text-primary transition-colors"
-                    onClick={closeMenu}
-                  >
-                    <Sun className="h-4 w-4" />
-                    Panchang
-                  </Link>
+                  {/* Panchang Submenu */}
+                  <div>
+                    <button
+                      onClick={() => toggleSubmenu('panchang')}
+                      className="flex items-center justify-between w-full py-3 text-sm font-medium text-foreground hover:text-primary transition-colors"
+                    >
+                      <span className="flex items-center gap-3">
+                        <Sun className="h-4 w-4" />
+                        Panchang
+                      </span>
+                      <ChevronDown className={cn("h-4 w-4 transition-transform", expandedMenu === 'panchang' && "rotate-180")} />
+                    </button>
+                    {expandedMenu === 'panchang' && (
+                      <div className="pl-7 space-y-1">
+                        <Link
+                          to="/panchang"
+                          className="block py-2 text-sm text-muted-foreground hover:text-primary"
+                          onClick={closeMenu}
+                        >
+                          Today's Panchang
+                        </Link>
+                        <Link
+                          to="/kundali"
+                          className="block py-2 text-sm text-muted-foreground hover:text-primary"
+                          onClick={closeMenu}
+                        >
+                          Kundali / Birth Chart
+                        </Link>
+                        <Link
+                          to="/kundali-matching"
+                          className="block py-2 text-sm text-muted-foreground hover:text-primary"
+                          onClick={closeMenu}
+                        >
+                          Kundali Matching
+                        </Link>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Explore Submenu */}
                   <div>

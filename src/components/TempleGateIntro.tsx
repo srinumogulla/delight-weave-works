@@ -37,8 +37,8 @@ export function TempleGateIntro({ children }: TempleGateIntroProps) {
 
     // Play temple bell sound
     const playSound = () => {
-      // Using a temple bell sound from a free source
-      audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2840/2840-preview.mp3");
+      // Using the uploaded temple bell sound
+      audioRef.current = new Audio("/sounds/temple-bell.mp4");
       audioRef.current.volume = 0.4;
       audioRef.current.play().catch(() => {
         // Autoplay blocked, will play on interaction
