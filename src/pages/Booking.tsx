@@ -27,6 +27,8 @@ interface Service {
   temple: string;
   image_url: string;
   benefits: string[];
+  scheduled_date: string | null;
+  scheduled_time: string | null;
 }
 
 const timeSlots = [
@@ -69,6 +71,10 @@ const Booking = () => {
   const [gotra, setGotra] = useState('');
   const [nakshatra, setNakshatra] = useState('');
   const [specialRequests, setSpecialRequests] = useState('');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [serviceId]);
 
   useEffect(() => {
     if (profile) {
@@ -144,16 +150,12 @@ const Booking = () => {
   };
 
   const nextStep = () => {
-    if (step === 1 && (!date || !timeSlot)) {
-      setError('Please select a date and time slot');
-      return;
-    }
-    if (step === 2 && !sankalpaName) {
+    if (step === 1 && !sankalpaName) {
       setError('Please enter the name for sankalpa');
       return;
     }
     setError('');
-    if (step < 5) {
+    if (step < 4) {
       setStep(step + 1);
     }
   };
@@ -161,6 +163,25 @@ const Booking = () => {
   const prevStep = () => {
     setError('');
     setStep(step - 1);
+  };
+
+  const handleProceedToPayment = () => {
+    if (!service) return;
+    navigate("/payment", {
+      state: {
+        type: "booking",
+        serviceName: service.name,
+        templeName: service.temple,
+        date: service.scheduled_date || date ? format(date!, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
+        time: service.scheduled_time || timeSlot,
+        amount: service.price,
+        recipientName: sankalpaName,
+        gotra: gotra,
+        serviceId: service.id,
+        nakshatra: nakshatra,
+        specialRequests: specialRequests,
+      },
+    });
   };
 
   if (loading) {
@@ -218,9 +239,9 @@ const Booking = () => {
           </div>
         </div>
 
-        {/* Progress Steps */}
+        {/* Progress Steps - Now 4 steps */}
         <div className="flex items-center justify-center mb-6 md:mb-8 overflow-x-auto">
-          {[1, 2, 3, 4, 5].map((s) => (
+          {[1, 2, 3, 4].map((s) => (
             <div key={s} className="flex items-center">
               <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-sm ${
                 s === step ? 'bg-saffron text-temple-dark' : 
@@ -228,7 +249,7 @@ const Booking = () => {
               }`}>
                 {s < step ? <CheckCircle className="w-4 h-4" /> : s}
               </div>
-              {s < 5 && (
+              {s < 4 && (
                 <div className={`w-6 md:w-12 h-1 ${s < step ? 'bg-green-500' : 'bg-temple-dark'}`} />
               )}
             </div>
@@ -237,11 +258,10 @@ const Booking = () => {
 
         {/* Step Labels - Hidden on mobile */}
         <div className="hidden md:flex justify-between mb-8 text-sm text-muted-foreground">
-          <span className={step >= 1 ? 'text-saffron' : ''}>Date & Time</span>
-          <span className={step >= 2 ? 'text-saffron' : ''}>Sankalpa</span>
-          <span className={step >= 3 ? 'text-saffron' : ''}>Requests</span>
-          <span className={step >= 4 ? 'text-saffron' : ''}>Review</span>
-          <span className={step >= 5 ? 'text-saffron' : ''}>Payment</span>
+          <span className={step >= 1 ? 'text-saffron' : ''}>Sankalpa</span>
+          <span className={step >= 2 ? 'text-saffron' : ''}>Requests</span>
+          <span className={step >= 3 ? 'text-saffron' : ''}>Review</span>
+          <span className={step >= 4 ? 'text-saffron' : ''}>Payment</span>
         </div>
 
         {error && (
@@ -250,54 +270,8 @@ const Booking = () => {
           </Alert>
         )}
 
-        {/* Step 1: Date & Time */}
+        {/* Step 1: Sankalpa Details */}
         {step === 1 && (
-          <Card className="border-saffron/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <CalendarIcon className="w-5 h-5 text-saffron" />
-                Select Date & Time
-              </CardTitle>
-              <CardDescription>Choose when you'd like the pooja to be performed</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-                <div>
-                  <Label className="mb-3 block">Select Date</Label>
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    disabled={(date) => date < new Date()}
-                    className="rounded-md border border-saffron/20"
-                  />
-                </div>
-                <div>
-                  <Label className="mb-3 block">Select Time Slot</Label>
-                  <div className="grid grid-cols-1 gap-2 max-h-72 overflow-y-auto">
-                    {timeSlots.map((slot) => (
-                      <button
-                        key={slot}
-                        onClick={() => setTimeSlot(slot)}
-                        className={`p-3 rounded-lg border text-left transition-colors ${
-                          timeSlot === slot 
-                            ? 'border-saffron bg-saffron/10 text-saffron' 
-                            : 'border-saffron/20 hover:border-saffron/50'
-                        }`}
-                      >
-                        <Clock className="w-4 h-4 inline-block mr-2" />
-                        {slot}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 2: Sankalpa Details */}
-        {step === 2 && (
           <Card className="border-saffron/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -307,6 +281,27 @@ const Booking = () => {
               <CardDescription>Enter the details for the sankalpa (sacred intention)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Scheduled Date & Time Display */}
+              {(service?.scheduled_date || service?.scheduled_time) && (
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 mb-4">
+                  <p className="text-sm text-muted-foreground mb-2">Scheduled by Temple</p>
+                  <div className="flex flex-wrap gap-4">
+                    {service?.scheduled_date && (
+                      <div className="flex items-center gap-2">
+                        <CalendarIcon className="h-4 w-4 text-primary" />
+                        <span className="font-medium">{service.scheduled_date}</span>
+                      </div>
+                    )}
+                    {service?.scheduled_time && (
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span className="font-medium">{service.scheduled_time}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="sankalpaName">Name for Sankalpa *</Label>
                 <Input
@@ -356,8 +351,8 @@ const Booking = () => {
           </Card>
         )}
 
-        {/* Step 3: Special Requests */}
-        {step === 3 && (
+        {/* Step 2: Special Requests */}
+        {step === 2 && (
           <Card className="border-saffron/20">
             <CardHeader>
               <CardTitle className="text-lg">Special Requests</CardTitle>
@@ -378,8 +373,8 @@ const Booking = () => {
           </Card>
         )}
 
-        {/* Step 4: Review */}
-        {step === 4 && (
+        {/* Step 3: Review */}
+        {step === 3 && (
           <Card className="border-saffron/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
@@ -394,11 +389,11 @@ const Booking = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Date</p>
-                    <p className="text-foreground">{date && format(date, 'MMMM d, yyyy')}</p>
+                    <p className="text-foreground">{service?.scheduled_date || 'To be confirmed'}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Time</p>
-                    <p className="text-foreground">{timeSlot}</p>
+                    <p className="text-foreground">{service?.scheduled_time || 'To be confirmed'}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Temple</p>
@@ -446,24 +441,8 @@ const Booking = () => {
           </Card>
         )}
 
-        {/* Step 5: Payment */}
-        {step === 5 && service && (
-          <PaymentStep
-            serviceName={service.name}
-            templeName={service.temple}
-            date={date ? format(date, 'MMMM d, yyyy') : undefined}
-            time={timeSlot}
-            amount={service.price}
-            recipientName={sankalpaName}
-            gotra={gotra}
-            onPaymentSuccess={handlePaymentSuccess}
-            onBack={prevStep}
-            isProcessing={submitting}
-          />
-        )}
-
         {/* Navigation Buttons */}
-        {step < 5 && (
+        {step <= 3 && (
           <div className="flex justify-between mt-6 md:mt-8">
             {step > 1 ? (
               <Button variant="outline" onClick={prevStep}>
@@ -474,14 +453,14 @@ const Booking = () => {
               <div />
             )}
 
-            {step < 4 ? (
+            {step < 3 ? (
               <Button onClick={nextStep} className="bg-gradient-to-r from-saffron to-gold text-temple-dark">
                 Next
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
               <Button 
-                onClick={nextStep}
+                onClick={handleProceedToPayment}
                 className="bg-gradient-to-r from-saffron to-gold text-temple-dark"
               >
                 Proceed to Payment

@@ -400,17 +400,21 @@ const GiftPooja = () => {
           </div>
         );
       case 4:
-        return (
-          <PaymentStep
-            serviceName={ARCHANA_NAME}
-            amount={archanaService?.price || ARCHANA_PRICE}
-            recipientName={recipientName}
-            gotra={gotra}
-            onPaymentSuccess={handlePaymentSuccess}
-            onBack={prevStep}
-            isProcessing={isSubmitting}
-          />
-        );
+        // Navigate to payment page instead of inline component
+        navigate("/payment", {
+          state: {
+            type: "gift",
+            serviceName: ARCHANA_NAME,
+            amount: archanaService?.price || ARCHANA_PRICE,
+            recipientName: recipientName,
+            gotra: gotra,
+            serviceId: archanaService?.id,
+            occasion: occasion,
+            message: senderMessage,
+            senderName: senderName,
+          },
+        });
+        return null;
       default:
         return null;
     }

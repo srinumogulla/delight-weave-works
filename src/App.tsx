@@ -39,6 +39,7 @@ import PunditProfile from "./pages/pundit/Profile";
 import PunditEarnings from "./pages/pundit/Earnings";
 import PoojaDetails from "./pages/PoojaDetails";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import Payment from "./pages/Payment";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -79,6 +80,7 @@ const App = () => (
               <Route path="/community/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/payment/success" element={<PaymentSuccess />} />
+              <Route path="/payment" element={<Payment />} />
               
               {/* Pundit Routes */}
               <Route path="/pundit" element={
