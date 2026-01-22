@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, Clock, MapPin, Star, Moon, Sun, Loader2, Download, MessageSquare } from "lucide-react";
 import { Header } from "@/components/Header";
@@ -13,6 +13,8 @@ import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
+import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
+import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 
 // Planetary data constants
 const planets = [
@@ -88,8 +90,6 @@ export default function Kundali() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [kundaliData, setKundaliData] = useState<KundaliData | null>(null);
-  const [citySuggestions, setCitySuggestions] = useState<Array<{ display_name: string; lat: string; lon: string }>>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Auto-fill from profile
   useEffect(() => {
@@ -103,33 +103,6 @@ export default function Kundali() {
       }));
     }
   }, [profile]);
-
-  // City autocomplete
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (formData.birthLocation.length >= 3) {
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(formData.birthLocation)}&format=json&limit=5`
-          );
-          const data = await response.json();
-          setCitySuggestions(data);
-          setShowSuggestions(true);
-        } catch {
-          setCitySuggestions([]);
-        }
-      } else {
-        setCitySuggestions([]);
-      }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [formData.birthLocation]);
-
-  const selectCity = (city: { display_name: string }) => {
-    const displayName = city.display_name.split(',').slice(0, 2).join(',');
-    setFormData(prev => ({ ...prev, birthLocation: displayName }));
-    setShowSuggestions(false);
-  };
 
   const generateKundali = () => {
     if (!formData.dateOfBirth || !formData.timeOfBirth || !formData.birthLocation) {
@@ -265,48 +238,27 @@ export default function Kundali() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="timeOfBirth" className="flex items-center gap-2">
+              <Label className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
                 Time of Birth *
               </Label>
-              <Input
-                id="timeOfBirth"
-                type="time"
+              <TimePickerAMPM
                 value={formData.timeOfBirth}
-                onChange={(e) => setFormData(prev => ({ ...prev, timeOfBirth: e.target.value }))}
-                required
+                onChange={(value) => setFormData(prev => ({ ...prev, timeOfBirth: value }))}
               />
             </div>
           </div>
 
-          <div className="space-y-2 relative">
-            <Label htmlFor="birthLocation" className="flex items-center gap-2">
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               Birth Location *
             </Label>
-            <Input
-              id="birthLocation"
+            <CityAutocomplete
               value={formData.birthLocation}
-              onChange={(e) => setFormData(prev => ({ ...prev, birthLocation: e.target.value }))}
-              onFocus={() => citySuggestions.length > 0 && setShowSuggestions(true)}
+              onChange={(value) => setFormData(prev => ({ ...prev, birthLocation: value }))}
               placeholder="City, State, Country"
-              required
             />
-            {showSuggestions && citySuggestions.length > 0 && (
-              <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg max-h-48 overflow-auto">
-                {citySuggestions.map((city, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    className="w-full px-4 py-2 text-left hover:bg-muted flex items-center gap-2 text-sm"
-                    onClick={() => selectCity(city)}
-                  >
-                    <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span className="truncate">{city.display_name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           <Button onClick={generateKundali} className="w-full" disabled={isGenerating}>

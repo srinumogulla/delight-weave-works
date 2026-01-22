@@ -319,7 +319,7 @@ export function Header() {
           {user && (
             <>
               <Button variant="ghost" size="icon" className="relative" asChild>
-                <Link to="/profile?tab=saved">
+                <Link to="/profile/saved">
                   <Heart className="h-5 w-5" />
                 </Link>
               </Button>
@@ -350,9 +350,21 @@ export function Header() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/profile?tab=saved" className="flex items-center gap-2">
+                  <Link to="/profile/bookings" className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    My Bookings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile/saved" className="flex items-center gap-2">
                     <Heart className="h-4 w-4" />
                     Saved Items
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/profile/spiritual" className="flex items-center gap-2">
+                    <Star className="h-4 w-4" />
+                    Spiritual Details
                   </Link>
                 </DropdownMenuItem>
                 {isAdmin && (
