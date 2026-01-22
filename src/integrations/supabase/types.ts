@@ -282,6 +282,7 @@ export type Database = {
           date_of_birth: string | null
           email: string | null
           full_name: string | null
+          gender: string | null
           gotra: string | null
           id: string
           nakshatra: string | null
@@ -297,6 +298,7 @@ export type Database = {
           date_of_birth?: string | null
           email?: string | null
           full_name?: string | null
+          gender?: string | null
           gotra?: string | null
           id: string
           nakshatra?: string | null
@@ -312,6 +314,7 @@ export type Database = {
           date_of_birth?: string | null
           email?: string | null
           full_name?: string | null
+          gender?: string | null
           gotra?: string | null
           id?: string
           nakshatra?: string | null

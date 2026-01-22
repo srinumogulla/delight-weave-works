@@ -45,6 +45,8 @@ import PunditEarnings from "./pages/pundit/Earnings";
 import PoojaDetails from "./pages/PoojaDetails";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Payment from "./pages/Payment";
+import FestivalCalendar from "./pages/FestivalCalendar";
+import Remedies from "./pages/Remedies";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -94,6 +96,8 @@ const App = () => (
               <Route path="/panchang" element={<Panchang />} />
               <Route path="/kundali" element={<Kundali />} />
               <Route path="/kundali-matching" element={<KundaliMatching />} />
+              <Route path="/festivals" element={<FestivalCalendar />} />
+              <Route path="/remedies" element={<Remedies />} />
               <Route path="/temples" element={<Temples />} />
               <Route path="/temple/:id" element={<TempleDetails />} />
               <Route path="/ritual/:id" element={<RitualDetails />} />
