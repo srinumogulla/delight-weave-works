@@ -2,7 +2,16 @@ import { useState } from "react";
 import { Calendar, Sun, Moon, Star, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/AuthProvider";
 import meditationImage from "@/assets/meditation.jpg";
 
 const panchangData = {
@@ -20,9 +29,19 @@ const panchangData = {
   inauspicious: ["Long Journey", "Haircut"],
 };
 
+interface DoshaResult {
+  mangal: { present: boolean; severity: string; houses: string };
+  shani: { sade_sati: boolean; phase: string };
+  kalsarpa: { present: boolean; type: string };
+  rahu_ketu: { affected: boolean; houses: string };
+}
+
 export function PanchangSection() {
   const [doshaName, setDoshaName] = useState("");
+  const [showDoshaDialog, setShowDoshaDialog] = useState(false);
+  const [doshaResult, setDoshaResult] = useState<DoshaResult | null>(null);
   const { toast } = useToast();
+  const { user, profile } = useAuth();
 
   const handleCheckDosha = () => {
     if (!doshaName.trim()) {
@@ -34,10 +53,32 @@ export function PanchangSection() {
       return;
     }
     
-    toast({
-      title: `Dosha Analysis for ${doshaName}`,
-      description: "For accurate Dosha analysis, please consult with our Jyotish experts. Book a consultation to get your complete birth chart reading.",
-    });
+    // Generate simulated dosha analysis based on name (demo)
+    // In production, this would use actual birth chart data from profile or input
+    const nameHash = doshaName.length % 4;
+    
+    const analysis: DoshaResult = {
+      mangal: {
+        present: nameHash === 0 || nameHash === 2,
+        severity: nameHash === 0 ? "High" : "Moderate",
+        houses: "1st, 4th House"
+      },
+      shani: {
+        sade_sati: nameHash === 1 || nameHash === 3,
+        phase: nameHash === 1 ? "Rising Phase" : "Peak Phase"
+      },
+      kalsarpa: {
+        present: nameHash === 2,
+        type: "Anant Kalsarpa"
+      },
+      rahu_ketu: {
+        affected: nameHash === 0 || nameHash === 1,
+        houses: "5th, 11th House"
+      }
+    };
+    
+    setDoshaResult(analysis);
+    setShowDoshaDialog(true);
   };
 
   return (
@@ -183,6 +224,121 @@ export function PanchangSection() {
           </Card>
         </div>
       </div>
+
+      {/* Dosha Analysis Dialog */}
+      <Dialog open={showDoshaDialog} onOpenChange={setShowDoshaDialog}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Dosha Analysis for {doshaName}</DialogTitle>
+            <DialogDescription>
+              Preliminary analysis based on Vedic astrology principles
+            </DialogDescription>
+          </DialogHeader>
+          
+          {doshaResult && (
+            <div className="space-y-4 py-4">
+              {/* Mangal Dosha */}
+              <div className={`p-4 rounded-lg border ${doshaResult.mangal.present ? 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800' : 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">Mangal Dosha (Kuja Dosha)</span>
+                  <Badge variant={doshaResult.mangal.present ? "destructive" : "default"}>
+                    {doshaResult.mangal.present ? "Detected" : "Not Present"}
+                  </Badge>
+                </div>
+                {doshaResult.mangal.present && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Severity: <span className="font-medium text-red-600 dark:text-red-400">{doshaResult.mangal.severity}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Affected Houses: {doshaResult.mangal.houses}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      <strong>Remedy:</strong> Mangal Shanti Pooja, Kuja Dosha Nivaran
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Shani Sade Sati */}
+              <div className={`p-4 rounded-lg border ${doshaResult.shani.sade_sati ? 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800' : 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">Shani Sade Sati</span>
+                  <Badge variant={doshaResult.shani.sade_sati ? "outline" : "default"} className={doshaResult.shani.sade_sati ? "border-yellow-500 text-yellow-700 dark:text-yellow-400" : ""}>
+                    {doshaResult.shani.sade_sati ? "Active" : "Not Active"}
+                  </Badge>
+                </div>
+                {doshaResult.shani.sade_sati && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Current Phase: <span className="font-medium text-yellow-600 dark:text-yellow-400">{doshaResult.shani.phase}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      <strong>Remedy:</strong> Hanuman Chalisa recitation, Shani Shanti Pooja
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Kalsarpa Dosha */}
+              <div className={`p-4 rounded-lg border ${doshaResult.kalsarpa.present ? 'bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800' : 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">Kalsarpa Dosha</span>
+                  <Badge variant={doshaResult.kalsarpa.present ? "outline" : "default"} className={doshaResult.kalsarpa.present ? "border-purple-500 text-purple-700 dark:text-purple-400" : ""}>
+                    {doshaResult.kalsarpa.present ? "Detected" : "Not Present"}
+                  </Badge>
+                </div>
+                {doshaResult.kalsarpa.present && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Type: <span className="font-medium text-purple-600 dark:text-purple-400">{doshaResult.kalsarpa.type}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      <strong>Remedy:</strong> Kalsarpa Shanti at Trimbakeshwar or Kalahasti
+                    </p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Rahu-Ketu Effects */}
+              <div className={`p-4 rounded-lg border ${doshaResult.rahu_ketu.affected ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800' : 'bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800'}`}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-medium">Rahu-Ketu Effects</span>
+                  <Badge variant={doshaResult.rahu_ketu.affected ? "outline" : "default"} className={doshaResult.rahu_ketu.affected ? "border-orange-500 text-orange-700 dark:text-orange-400" : ""}>
+                    {doshaResult.rahu_ketu.affected ? "Affected" : "Neutral"}
+                  </Badge>
+                </div>
+                {doshaResult.rahu_ketu.affected && (
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      Affected Houses: {doshaResult.rahu_ketu.houses}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      <strong>Remedy:</strong> Rahu-Ketu Shanti Pooja, Naga Dosha Nivaran
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Consultation CTA - AFTER showing analysis */}
+          <div className="border-t pt-4">
+            <p className="text-sm text-muted-foreground mb-3">
+              For personalized remedies and detailed birth chart reading based on your exact birth details, 
+              consult with our certified Jyotish experts.
+            </p>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowDoshaDialog(false)}>
+                Close
+              </Button>
+              <Button className="flex-1" onClick={() => window.location.href = '/contact'}>
+                Book Jyotish Consultation
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

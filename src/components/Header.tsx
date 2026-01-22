@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone, Bell, Heart, Search, Loader2 } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone, Bell, Heart, Search, Loader2, Star } from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -146,12 +146,50 @@ export function Header() {
               </NavigationMenuContent>
             </NavigationMenuItem>
 
-            {/* Panchang */}
+            {/* Panchang Dropdown */}
             <NavigationMenuItem className="min-w-[90px]">
-              <Link to="/panchang" className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors px-4 py-2 flex items-center gap-1">
-                <Sun className="h-4 w-4" />
+              <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-primary bg-transparent">
+                <Sun className="h-4 w-4 mr-1" />
                 {t("nav.panchang")}
-              </Link>
+              </NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <div className="w-[350px] p-4">
+                  <div className="grid gap-3">
+                    <Link
+                      to="/panchang"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Calendar className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">Today's Panchang</div>
+                          <p className="text-sm text-muted-foreground">
+                            Daily tithi, nakshatra & muhurat
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/kundali"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
+                          <Star className="h-5 w-5 text-accent-foreground" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">Kundali / Birth Chart</div>
+                          <p className="text-sm text-muted-foreground">
+                            Generate your Vedic horoscope
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+              </NavigationMenuContent>
             </NavigationMenuItem>
 
             {/* Explore Dropdown */}
