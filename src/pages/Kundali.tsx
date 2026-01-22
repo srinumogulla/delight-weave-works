@@ -15,6 +15,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
+import { NorthIndianChart } from "@/components/NorthIndianChart";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 // Planetary data constants
 const planets = [
@@ -90,8 +93,9 @@ export default function Kundali() {
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [kundaliData, setKundaliData] = useState<KundaliData | null>(null);
-
-  // Auto-fill from profile
+  const [chartStyle, setChartStyle] = useState<'south' | 'north'>('south');
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const chartRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (profile) {
       setFormData(prev => ({
@@ -185,6 +189,74 @@ export default function Kundali() {
     }, 2000);
   };
 
+  const handleDownloadPDF = async () => {
+    if (!chartRef.current || !kundaliData) return;
+    
+    setIsExportingPdf(true);
+    
+    try {
+      const canvas = await html2canvas(chartRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Add header
+      pdf.setFontSize(24);
+      pdf.setTextColor(139, 69, 19); // Brown/saffron color
+      pdf.text('॥ श्री गणेशाय नमः ॥', 105, 20, { align: 'center' });
+      
+      pdf.setFontSize(18);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Kundali - ${formData.fullName || 'Birth Chart'}`, 105, 35, { align: 'center' });
+      
+      pdf.setFontSize(11);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Birth: ${formData.dateOfBirth} at ${formData.timeOfBirth}`, 105, 45, { align: 'center' });
+      pdf.text(`Location: ${formData.birthLocation}`, 105, 52, { align: 'center' });
+      
+      // Add basic info
+      pdf.setFontSize(10);
+      pdf.setTextColor(0, 0, 0);
+      pdf.text(`Lagna: ${kundaliData.lagna}  |  Rashi: ${kundaliData.rashi}  |  Nakshatra: ${kundaliData.nakshatra}  |  Pada: ${kundaliData.pada}`, 105, 62, { align: 'center' });
+      
+      // Add chart image
+      const imgWidth = 180;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const maxHeight = 200; // Max height to fit on page
+      const finalHeight = Math.min(imgHeight, maxHeight);
+      const finalWidth = (finalHeight / imgHeight) * imgWidth;
+      
+      pdf.addImage(imgData, 'PNG', (210 - finalWidth) / 2, 70, finalWidth, finalHeight);
+      
+      // Add footer
+      pdf.setFontSize(9);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Generated on ${new Date().toLocaleDateString()} by OnlinePooja.in`, 105, 285, { align: 'center' });
+      pdf.text('For personalized consultation, contact our Jyotish experts', 105, 290, { align: 'center' });
+      
+      pdf.save(`Kundali_${(formData.fullName || 'Chart').replace(/\s+/g, '_')}.pdf`);
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Your Kundali has been saved as PDF"
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast({
+        title: "Export Failed",
+        description: "Could not generate PDF. Please try again.",
+        variant: "destructive"
+      });
+    }
+    
+    setIsExportingPdf(false);
+  };
+
   const content = (
     <div className="container py-8">
       {/* Header */}
@@ -276,7 +348,7 @@ export default function Kundali() {
 
       {/* Kundali Results */}
       {kundaliData && (
-        <div className="space-y-6">
+        <div ref={chartRef} className="space-y-6" id="kundali-export">
           {/* Basic Info */}
           <div className="grid md:grid-cols-4 gap-4">
             <Card className="bg-primary/5 border-primary/20">
@@ -321,36 +393,61 @@ export default function Kundali() {
             <TabsContent value="chart">
               <Card>
                 <CardHeader>
-                  <CardTitle>South Indian Birth Chart</CardTitle>
-                  <CardDescription>Your planetary positions at the time of birth</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {/* South Indian Chart Grid */}
-                  <div className="max-w-md mx-auto">
-                    <div className="grid grid-cols-4 gap-1 aspect-square">
-                      {[12, 1, 2, 3, 11, null, null, 4, 10, null, null, 5, 9, 8, 7, 6].map((houseNum, idx) => {
-                        if (houseNum === null) {
-                          return <div key={idx} className="bg-muted/30" />;
-                        }
-                        const house = kundaliData.houses.find(h => h.number === houseNum);
-                        const isLagna = houseNum === 1;
-                        return (
-                          <div
-                            key={idx}
-                            className={`border p-2 text-center flex flex-col justify-between ${isLagna ? 'bg-primary/10 border-primary' : 'bg-background'}`}
-                          >
-                            <div className="text-xs text-muted-foreground">{houseNum}</div>
-                            <div className="text-lg font-medium">
-                              {house?.planets.join(' ')}
-                            </div>
-                            <div className="text-xs text-muted-foreground truncate">
-                              {house?.sign.split(' ')[0]}
-                            </div>
-                          </div>
-                        );
-                      })}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <CardTitle>{chartStyle === 'south' ? 'South' : 'North'} Indian Birth Chart</CardTitle>
+                      <CardDescription>Your planetary positions at the time of birth</CardDescription>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant={chartStyle === 'south' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setChartStyle('south')}
+                      >
+                        South Indian
+                      </Button>
+                      <Button 
+                        variant={chartStyle === 'north' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setChartStyle('north')}
+                      >
+                        North Indian
+                      </Button>
                     </div>
                   </div>
+                </CardHeader>
+                <CardContent>
+                  {chartStyle === 'south' ? (
+                    /* South Indian Chart Grid */
+                    <div className="max-w-md mx-auto">
+                      <div className="grid grid-cols-4 gap-1 aspect-square">
+                        {[12, 1, 2, 3, 11, null, null, 4, 10, null, null, 5, 9, 8, 7, 6].map((houseNum, idx) => {
+                          if (houseNum === null) {
+                            return <div key={idx} className="bg-muted/30" />;
+                          }
+                          const house = kundaliData.houses.find(h => h.number === houseNum);
+                          const isLagna = houseNum === 1;
+                          return (
+                            <div
+                              key={idx}
+                              className={`border p-2 text-center flex flex-col justify-between ${isLagna ? 'bg-primary/10 border-primary' : 'bg-background'}`}
+                            >
+                              <div className="text-xs text-muted-foreground">{houseNum}</div>
+                              <div className="text-lg font-medium">
+                                {house?.planets.join(' ')}
+                              </div>
+                              <div className="text-xs text-muted-foreground truncate">
+                                {house?.sign.split(' ')[0]}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    /* North Indian Diamond Chart */
+                    <NorthIndianChart houses={kundaliData.houses} />
+                  )}
 
                   {/* Yogas */}
                   {kundaliData.yogas.length > 0 && (
@@ -534,9 +631,23 @@ export default function Kundali() {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button variant="outline" className="gap-2">
-              <Download className="h-4 w-4" />
-              Download Chart
+            <Button 
+              variant="outline" 
+              className="gap-2" 
+              onClick={handleDownloadPDF}
+              disabled={isExportingPdf}
+            >
+              {isExportingPdf ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Generating PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4" />
+                  Download Chart (PDF)
+                </>
+              )}
             </Button>
             <Button className="gap-2" onClick={() => navigate('/contact')}>
               <MessageSquare className="h-4 w-4" />

@@ -187,6 +187,22 @@ export function Header() {
                         </div>
                       </div>
                     </Link>
+                    <Link
+                      to="/kundali-matching"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-pink-100 dark:bg-pink-950 flex items-center justify-center">
+                          <Heart className="h-5 w-5 text-pink-500" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">Kundali Matching</div>
+                          <p className="text-sm text-muted-foreground">
+                            Marriage compatibility analysis
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
                   </div>
                 </div>
               </NavigationMenuContent>
