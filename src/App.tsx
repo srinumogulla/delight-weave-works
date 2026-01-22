@@ -24,6 +24,7 @@ import About from "./pages/community/About";
 import Contact from "./pages/Contact";
 import Panchang from "./pages/Panchang";
 import Kundali from "./pages/Kundali";
+import KundaliMatching from "./pages/KundaliMatching";
 import Temples from "./pages/Temples";
 import TempleDetails from "./pages/TempleDetails";
 import Pundits from "./pages/Pundits";
@@ -92,6 +93,7 @@ const App = () => (
               <Route path="/pooja/:id" element={<PoojaDetails />} />
               <Route path="/panchang" element={<Panchang />} />
               <Route path="/kundali" element={<Kundali />} />
+              <Route path="/kundali-matching" element={<KundaliMatching />} />
               <Route path="/temples" element={<Temples />} />
               <Route path="/temple/:id" element={<TempleDetails />} />
               <Route path="/ritual/:id" element={<RitualDetails />} />

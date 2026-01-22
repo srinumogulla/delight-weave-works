@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Sun, Moon, Star, Clock, MapPin } from "lucide-react";
+import { Calendar, Sun, Moon, Star, Clock, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,24 +14,25 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import meditationImage from "@/assets/meditation.jpg";
 
-const panchangData = {
-  date: "January 10, 2026",
-  hinduDate: "Paush Shukla Navami",
-  tithi: "Navami",
-  nakshatra: "Ashwini",
-  yoga: "Siddhi",
-  karana: "Balava",
-  sunrise: "6:52 AM",
-  sunset: "5:47 PM",
-  moonrise: "12:30 PM",
-  rahukaal: "10:30 AM - 12:00 PM",
-  auspicious: ["Vivah Muhurat", "Griha Pravesh", "Vehicle Purchase"],
-  inauspicious: ["Long Journey", "Haircut"],
-};
+interface PanchangData {
+  date: string;
+  hinduDate: string;
+  tithi: string;
+  nakshatra: string;
+  yoga: string;
+  karana: string;
+  sunrise: string;
+  sunset: string;
+  moonrise: string;
+  rahukaal: string;
+  auspicious: string[];
+  inauspicious: string[];
+}
 
 interface DoshaResult {
   mangal: { present: boolean; severity: string; houses: string };
@@ -50,8 +51,85 @@ export function PanchangSection() {
     timeOfBirth: "",
     birthLocation: ""
   });
+  const [panchangData, setPanchangData] = useState<PanchangData | null>(null);
+  const [isLoadingPanchang, setIsLoadingPanchang] = useState(true);
   const { toast } = useToast();
   const { user, profile } = useAuth();
+
+  // Fetch real panchang data on mount
+  useEffect(() => {
+    const fetchPanchang = async () => {
+      setIsLoadingPanchang(true);
+      try {
+        // Default to Delhi coordinates
+        let latitude = 28.6139;
+        let longitude = 77.2090;
+
+        // Try to get user's location
+        if (navigator.geolocation) {
+          try {
+            const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+            });
+            latitude = position.coords.latitude;
+            longitude = position.coords.longitude;
+          } catch {
+            console.log('Using default location: Delhi');
+          }
+        }
+
+        const { data, error } = await supabase.functions.invoke('get-panchang', {
+          body: {
+            date: new Date().toISOString(),
+            latitude,
+            longitude
+          }
+        });
+
+        if (error) throw error;
+
+        // Transform API response to component format
+        setPanchangData({
+          date: new Date().toLocaleDateString('en-US', { 
+            month: 'long', day: 'numeric', year: 'numeric' 
+          }),
+          hinduDate: data.hinduDate || `${data.tithi?.paksha || ''} ${data.tithi?.name || ''}`,
+          tithi: data.tithi?.name || 'Loading...',
+          nakshatra: data.nakshatra?.name || 'Loading...',
+          yoga: data.yoga?.name || 'Loading...',
+          karana: data.karana?.name || 'Loading...',
+          sunrise: data.timings?.sunrise || '6:00 AM',
+          sunset: data.timings?.sunset || '6:00 PM',
+          moonrise: data.timings?.moonrise || '12:00 PM',
+          rahukaal: data.timings?.rahukaal || 'Loading...',
+          auspicious: data.auspicious || [],
+          inauspicious: data.inauspicious || []
+        });
+      } catch (error) {
+        console.error('Error fetching panchang:', error);
+        // Fallback data
+        setPanchangData({
+          date: new Date().toLocaleDateString('en-US', { 
+            month: 'long', day: 'numeric', year: 'numeric' 
+          }),
+          hinduDate: "Loading...",
+          tithi: "Loading...",
+          nakshatra: "Loading...",
+          yoga: "Loading...",
+          karana: "Loading...",
+          sunrise: "6:00 AM",
+          sunset: "6:00 PM",
+          moonrise: "12:00 PM",
+          rahukaal: "Loading...",
+          auspicious: [],
+          inauspicious: []
+        });
+      }
+      setIsLoadingPanchang(false);
+    };
+
+    fetchPanchang();
+  }, []);
 
   // Auto-fill from profile if logged in
   useEffect(() => {
@@ -136,88 +214,116 @@ export function PanchangSection() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="font-heading text-2xl text-foreground">
-                    {panchangData.date}
+                    {isLoadingPanchang ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Loading...
+                      </span>
+                    ) : (
+                      panchangData?.date
+                    )}
                   </CardTitle>
-                  <p className="text-muted-foreground">{panchangData.hinduDate}</p>
+                  <p className="text-muted-foreground">{panchangData?.hinduDate || 'Loading...'}</p>
                 </div>
                 <Calendar className="h-8 w-8 text-primary" />
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div className="text-center p-4 rounded-lg bg-muted">
-                  <Moon className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <div className="text-sm text-muted-foreground">Tithi</div>
-                  <div className="font-semibold text-foreground">{panchangData.tithi}</div>
+              {isLoadingPanchang ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <span className="ml-2 text-muted-foreground">Calculating today's Panchang...</span>
                 </div>
-                <div className="text-center p-4 rounded-lg bg-muted">
-                  <Star className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <div className="text-sm text-muted-foreground">Nakshatra</div>
-                  <div className="font-semibold text-foreground">{panchangData.nakshatra}</div>
-                </div>
-                <div className="text-center p-4 rounded-lg bg-muted">
-                  <Sun className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <div className="text-sm text-muted-foreground">Yoga</div>
-                  <div className="font-semibold text-foreground">{panchangData.yoga}</div>
-                </div>
-                <div className="text-center p-4 rounded-lg bg-muted">
-                  <Clock className="h-6 w-6 text-primary mx-auto mb-2" />
-                  <div className="text-sm text-muted-foreground">Karana</div>
-                  <div className="font-semibold text-foreground">{panchangData.karana}</div>
-                </div>
-              </div>
+              ) : panchangData ? (
+                <>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="text-center p-4 rounded-lg bg-muted">
+                      <Moon className="h-6 w-6 text-primary mx-auto mb-2" />
+                      <div className="text-sm text-muted-foreground">Tithi</div>
+                      <div className="font-semibold text-foreground">{panchangData.tithi}</div>
+                    </div>
+                    <div className="text-center p-4 rounded-lg bg-muted">
+                      <Star className="h-6 w-6 text-primary mx-auto mb-2" />
+                      <div className="text-sm text-muted-foreground">Nakshatra</div>
+                      <div className="font-semibold text-foreground">{panchangData.nakshatra}</div>
+                    </div>
+                    <div className="text-center p-4 rounded-lg bg-muted">
+                      <Sun className="h-6 w-6 text-primary mx-auto mb-2" />
+                      <div className="text-sm text-muted-foreground">Yoga</div>
+                      <div className="font-semibold text-foreground">{panchangData.yoga}</div>
+                    </div>
+                    <div className="text-center p-4 rounded-lg bg-muted">
+                      <Clock className="h-6 w-6 text-primary mx-auto mb-2" />
+                      <div className="text-sm text-muted-foreground">Karana</div>
+                      <div className="font-semibold text-foreground">{panchangData.karana}</div>
+                    </div>
+                  </div>
 
-              <div className="grid md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-border">
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-foreground flex items-center gap-2">
-                    <Sun className="h-4 w-4 text-accent" />
-                    Sun & Moon Timings
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Sunrise</span>
-                      <span className="font-medium">{panchangData.sunrise}</span>
+                  <div className="grid md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-border">
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-foreground flex items-center gap-2">
+                        <Sun className="h-4 w-4 text-accent" />
+                        Sun & Moon Timings
+                      </h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Sunrise</span>
+                          <span className="font-medium">{panchangData.sunrise}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Sunset</span>
+                          <span className="font-medium">{panchangData.sunset}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Moonrise</span>
+                          <span className="font-medium">{panchangData.moonrise}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Rahu Kaal</span>
+                          <span className="font-medium text-destructive">{panchangData.rahukaal}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Sunset</span>
-                      <span className="font-medium">{panchangData.sunset}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Moonrise</span>
-                      <span className="font-medium">{panchangData.moonrise}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Rahu Kaal</span>
-                      <span className="font-medium text-destructive">{panchangData.rahukaal}</span>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-foreground">Auspicious Activities</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {panchangData.auspicious.map((item) => (
-                      <span
-                        key={item}
-                        className="px-3 py-1 rounded-full bg-sacred-green/10 text-sacred-green text-xs font-medium"
-                      >
-                        ✓ {item}
-                      </span>
-                    ))}
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-foreground">Auspicious Activities</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {panchangData.auspicious.length > 0 ? (
+                          panchangData.auspicious.map((item) => (
+                            <span
+                              key={item}
+                              className="px-3 py-1 rounded-full bg-sacred-green/10 text-sacred-green text-xs font-medium"
+                            >
+                              ✓ {item}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Regular day activities</span>
+                        )}
+                      </div>
+                      <h4 className="font-semibold text-foreground mt-4">Avoid Today</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {panchangData.inauspicious.length > 0 ? (
+                          panchangData.inauspicious.map((item) => (
+                            <span
+                              key={item}
+                              className="px-3 py-1 rounded-full bg-destructive/10 text-destructive text-xs font-medium"
+                            >
+                              ✗ {item}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-sm text-muted-foreground">No major restrictions</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <h4 className="font-semibold text-foreground mt-4">Avoid Today</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {panchangData.inauspicious.map((item) => (
-                      <span
-                        key={item}
-                        className="px-3 py-1 rounded-full bg-destructive/10 text-destructive text-xs font-medium"
-                      >
-                        ✗ {item}
-                      </span>
-                    ))}
-                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Unable to load Panchang data
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
