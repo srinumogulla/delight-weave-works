@@ -215,17 +215,17 @@ export const StepArchanaDetails = ({
       <div className="space-y-2">
         <Label htmlFor="gotra" className="text-base font-medium flex items-center gap-2">
           <Users className="h-4 w-4 text-primary" />
-          Gotra (Family Lineage) *
+          Gotra
         </Label>
         <Input
           id="gotra"
           value={gotra}
           onChange={(e) => setGotra(e.target.value)}
-          placeholder="e.g., Bharadwaja, Kashyapa, Vasishta..."
+          placeholder="Enter Gotra (optional)"
           className="h-12 text-base"
         />
         <p className="text-xs text-muted-foreground">
-          The ancestral lineage (Gotra) is traditionally recited during Archana
+          The ancestral lineage is traditionally recited during Archana (optional)
         </p>
       </div>
 
@@ -282,8 +282,8 @@ export const StepArchanaDetails = ({
       {/* Preview Card */}
       <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 rounded-xl border border-amber-200 dark:border-amber-800/30">
         <p className="text-sm text-center italic text-amber-900 dark:text-amber-200">
-          🙏 <span className="font-medium">{recipientName || "[Name]"}</span>, 
-          <span className="font-medium"> {gotra || "[Gotra]"}</span> Gotrasya/Gotrasyah
+          🙏 <span className="font-medium">{recipientName || "[Name]"}</span>
+          {gotra && <span className="font-medium">, {gotra} Gotrasya/Gotrasyah</span>}
         </p>
         <p className="text-xs text-center text-amber-700 dark:text-amber-400 mt-1">
           This is how the priest will recite during the Archana

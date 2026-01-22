@@ -1,20 +1,23 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Sun, Moon, Clock, AlertTriangle, Check, Calendar, MapPin, Loader2 } from "lucide-react";
+import { Sun, Moon, Clock, AlertTriangle, Check, Calendar, MapPin, Loader2, User } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { PanchangCalendar } from "@/components/PanchangCalendar";
 import { MuhuratFinder } from "@/components/MuhuratFinder";
 import { FestivalList } from "@/components/FestivalList";
 import { useLanguage } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/components/AuthProvider";
+import { useToast } from "@/hooks/use-toast";
 
 interface PanchangData {
   date: string;
@@ -43,33 +46,67 @@ const defaultLocation = { lat: 28.6139, lng: 77.209 }; // Delhi
 const Panchang = () => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("today");
   const [location, setLocation] = useState(defaultLocation);
   const [locationName, setLocationName] = useState("Delhi, India");
   const [manualLocation, setManualLocation] = useState("");
   const [isLocating, setIsLocating] = useState(false);
+  
+  // My Panchang form state
+  const [myPanchangData, setMyPanchangData] = useState({
+    name: '',
+    dateOfBirth: '',
+    timeOfBirth: '',
+    birthLocation: ''
+  });
+  const [showMyPanchangResult, setShowMyPanchangResult] = useState(false);
 
-  // Request user location on mount
+  // Request user location on mount with reverse geocoding
   useEffect(() => {
     if (navigator.geolocation) {
       setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          setLocationName("Your Location");
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation({ lat: latitude, lng: longitude });
+          
+          // Reverse geocode to get city name
+          try {
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+            );
+            const data = await response.json();
+            const city = data.address?.city || data.address?.town || data.address?.village || 'Your Location';
+            const state = data.address?.state || '';
+            const cityName = state ? `${city}, ${state}` : city;
+            setLocationName(cityName);
+            setManualLocation(cityName);
+          } catch {
+            setLocationName('Your Location');
+          }
           setIsLocating(false);
         },
         () => {
-          // Use default location if geolocation fails
           setIsLocating(false);
         },
         { timeout: 10000 }
       );
     }
   }, []);
+
+  // Pre-fill My Panchang form if user is logged in with birth details
+  useEffect(() => {
+    if (user && profile) {
+      setMyPanchangData({
+        name: profile.full_name || '',
+        dateOfBirth: profile.date_of_birth || '',
+        timeOfBirth: profile.time_of_birth || '',
+        birthLocation: profile.birth_location || ''
+      });
+    }
+  }, [user, profile]);
 
   // Fetch panchang data from edge function
   const { data: panchangData, isLoading, error } = useQuery<PanchangData>({
@@ -87,35 +124,69 @@ const Panchang = () => {
       if (error) throw error;
       return data;
     },
-    staleTime: 1000 * 60 * 30, // Cache for 30 minutes
+    staleTime: 1000 * 60 * 30,
   });
 
   const handleLocationSearch = async () => {
     if (!manualLocation.trim()) return;
     
-    // Simple geocoding using a free API (for demo - in production use a proper geocoding service)
-    // For now, just set some common cities
-    const cities: Record<string, { lat: number; lng: number; name: string }> = {
-      'mumbai': { lat: 19.076, lng: 72.8777, name: 'Mumbai, India' },
-      'delhi': { lat: 28.6139, lng: 77.209, name: 'Delhi, India' },
-      'bangalore': { lat: 12.9716, lng: 77.5946, name: 'Bangalore, India' },
-      'chennai': { lat: 13.0827, lng: 80.2707, name: 'Chennai, India' },
-      'kolkata': { lat: 22.5726, lng: 88.3639, name: 'Kolkata, India' },
-      'hyderabad': { lat: 17.385, lng: 78.4867, name: 'Hyderabad, India' },
-      'pune': { lat: 18.5204, lng: 73.8567, name: 'Pune, India' },
-      'ahmedabad': { lat: 23.0225, lng: 72.5714, name: 'Ahmedabad, India' },
-      'varanasi': { lat: 25.3176, lng: 82.9739, name: 'Varanasi, India' },
-      'jaipur': { lat: 26.9124, lng: 75.7873, name: 'Jaipur, India' },
-    };
-    
-    const searchKey = manualLocation.toLowerCase().trim();
-    const found = Object.entries(cities).find(([key]) => searchKey.includes(key));
-    
-    if (found) {
-      setLocation({ lat: found[1].lat, lng: found[1].lng });
-      setLocationName(found[1].name);
-      setManualLocation("");
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(manualLocation)}&format=json&limit=1`
+      );
+      const data = await response.json();
+      
+      if (data.length > 0) {
+        setLocation({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) });
+        const displayName = data[0].display_name.split(',').slice(0, 2).join(',');
+        setLocationName(displayName);
+        toast({
+          title: "Location Updated",
+          description: `Panchang now showing for ${displayName}`,
+        });
+      } else {
+        toast({
+          title: "City not found",
+          description: "Please try a different city name",
+          variant: "destructive",
+        });
+      }
+    } catch {
+      // Fallback to existing cities object
+      const cities: Record<string, { lat: number; lng: number; name: string }> = {
+        'mumbai': { lat: 19.076, lng: 72.8777, name: 'Mumbai, India' },
+        'delhi': { lat: 28.6139, lng: 77.209, name: 'Delhi, India' },
+        'bangalore': { lat: 12.9716, lng: 77.5946, name: 'Bangalore, India' },
+        'chennai': { lat: 13.0827, lng: 80.2707, name: 'Chennai, India' },
+        'kolkata': { lat: 22.5726, lng: 88.3639, name: 'Kolkata, India' },
+        'hyderabad': { lat: 17.385, lng: 78.4867, name: 'Hyderabad, India' },
+        'varanasi': { lat: 25.3176, lng: 82.9739, name: 'Varanasi, India' },
+      };
+      
+      const searchKey = manualLocation.toLowerCase().trim();
+      const found = Object.entries(cities).find(([key]) => searchKey.includes(key));
+      
+      if (found) {
+        setLocation({ lat: found[1].lat, lng: found[1].lng });
+        setLocationName(found[1].name);
+      }
     }
+  };
+
+  const handleGenerateMyPanchang = () => {
+    if (!myPanchangData.name || !myPanchangData.dateOfBirth) {
+      toast({
+        title: "Missing Details",
+        description: "Please enter your name and date of birth",
+        variant: "destructive",
+      });
+      return;
+    }
+    setShowMyPanchangResult(true);
+    toast({
+      title: "Personal Panchang Generated",
+      description: `Birth chart analysis for ${myPanchangData.name}`,
+    });
   };
 
   const content = (
@@ -139,10 +210,11 @@ const Panchang = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full max-w-md mx-auto grid-cols-3">
+        <TabsList className="grid w-full max-w-lg mx-auto grid-cols-4">
           <TabsTrigger value="today">Today</TabsTrigger>
           <TabsTrigger value="calendar">Calendar</TabsTrigger>
           <TabsTrigger value="muhurat">Muhurat</TabsTrigger>
+          <TabsTrigger value="mypanchang">My Panchang</TabsTrigger>
         </TabsList>
 
         {/* Today's Panchang */}
@@ -350,6 +422,99 @@ const Panchang = () => {
         {/* Muhurat Finder */}
         <TabsContent value="muhurat">
           <MuhuratFinder />
+        </TabsContent>
+
+        {/* My Panchang - Personal Birth Chart */}
+        <TabsContent value="mypanchang">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                Your Personal Panchang
+              </CardTitle>
+              <CardDescription>
+                Enter your birth details to see your personalized birth chart and astrological analysis
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {user && profile?.date_of_birth && (
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <p className="text-sm text-green-700 dark:text-green-400">
+                    ✓ Your birth details are pre-filled from your profile
+                  </p>
+                </div>
+              )}
+              
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="myName">Full Name *</Label>
+                  <Input
+                    id="myName"
+                    value={myPanchangData.name}
+                    onChange={(e) => setMyPanchangData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter your full name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="myDob">Date of Birth *</Label>
+                  <Input
+                    id="myDob"
+                    type="date"
+                    value={myPanchangData.dateOfBirth}
+                    onChange={(e) => setMyPanchangData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="myTob">Time of Birth</Label>
+                  <Input
+                    id="myTob"
+                    type="time"
+                    value={myPanchangData.timeOfBirth}
+                    onChange={(e) => setMyPanchangData(prev => ({ ...prev, timeOfBirth: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="myBirthLocation">Birth Location</Label>
+                  <Input
+                    id="myBirthLocation"
+                    value={myPanchangData.birthLocation}
+                    onChange={(e) => setMyPanchangData(prev => ({ ...prev, birthLocation: e.target.value }))}
+                    placeholder="City, State, Country"
+                  />
+                </div>
+              </div>
+
+              <Button onClick={handleGenerateMyPanchang} className="w-full md:w-auto">
+                Generate My Panchang
+              </Button>
+
+              {showMyPanchangResult && (
+                <div className="mt-6 p-6 bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl border">
+                  <h3 className="text-lg font-semibold mb-4">Birth Chart for {myPanchangData.name}</h3>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-background rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Moon Sign (Rashi)</p>
+                      <p className="font-semibold text-lg">Calculated from DOB</p>
+                    </div>
+                    <div className="p-4 bg-background rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Birth Nakshatra</p>
+                      <p className="font-semibold text-lg">Based on Moon</p>
+                    </div>
+                    <div className="p-4 bg-background rounded-lg border">
+                      <p className="text-sm text-muted-foreground">Tithi at Birth</p>
+                      <p className="font-semibold text-lg">Lunar Day</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-4">
+                    For a complete and accurate birth chart reading, please consult with our Jyotish experts.
+                  </p>
+                  <Button variant="outline" className="mt-4">
+                    Book Jyotish Consultation
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </main>

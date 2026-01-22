@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff, CheckCircle, User, UserCheck } from 'lucide-react';
+import { Loader2, Eye, EyeOff, CheckCircle, User, UserCheck, Calendar, Clock, MapPin, Phone } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -26,6 +26,15 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>('user');
   
+  // Additional devotee fields
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [timeOfBirth, setTimeOfBirth] = useState('');
+  const [birthLocation, setBirthLocation] = useState('');
+  const [phone, setPhone] = useState('');
+  
+  // Additional pundit fields
+  const [poojaType, setPoojaType] = useState<'dashachara' | 'vamachara'>('dashachara');
+  
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -44,6 +53,19 @@ const Signup = () => {
       return;
     }
 
+    // Validate required fields based on role
+    if (selectedRole === 'user') {
+      if (!dateOfBirth || !birthLocation || !phone) {
+        setError('Please fill in all required fields');
+        return;
+      }
+    } else if (selectedRole === 'pundit') {
+      if (!phone) {
+        setError('Please provide your mobile number');
+        return;
+      }
+    }
+
     setLoading(true);
 
     const { error: signUpError, data } = await signUp(email, password, fullName);
@@ -60,6 +82,14 @@ const Signup = () => {
             role: selectedRole
           });
 
+          // Update profile with additional fields
+          await supabase.from('profiles').update({
+            phone: phone,
+            date_of_birth: dateOfBirth || null,
+            time_of_birth: timeOfBirth || null,
+            birth_location: birthLocation || null
+          }).eq('id', data.user.id);
+
           // If pundit, create pundit record with pending approval status
           if (selectedRole === 'pundit') {
             await supabase.from('pundits').insert({
@@ -67,7 +97,8 @@ const Signup = () => {
               name: fullName,
               approval_status: 'pending',
               is_verified: false,
-              is_active: true
+              is_active: true,
+              specializations: [poojaType === 'dashachara' ? 'Dashachara' : 'Vamachara']
             });
           }
         } catch (roleError) {
@@ -124,7 +155,7 @@ const Signup = () => {
 
   const signupContent = (
     <main className="flex-1 flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md border-saffron/20">
+      <Card className="w-full max-w-lg border-saffron/20">
         <CardHeader className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-saffron to-gold flex items-center justify-center">
             <span className="text-3xl">🙏</span>
@@ -165,7 +196,7 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+              <Label htmlFor="fullName">Full Name *</Label>
               <Input
                 id="fullName"
                 type="text"
@@ -178,7 +209,7 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
                 type="email"
@@ -190,8 +221,109 @@ const Signup = () => {
               />
             </div>
 
+            {/* Devotee-specific fields */}
+            {selectedRole === 'user' && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dateOfBirth" className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      Date of Birth *
+                    </Label>
+                    <Input
+                      id="dateOfBirth"
+                      type="date"
+                      value={dateOfBirth}
+                      onChange={(e) => setDateOfBirth(e.target.value)}
+                      required
+                      disabled={loading}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="timeOfBirth" className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      Time of Birth
+                    </Label>
+                    <Input
+                      id="timeOfBirth"
+                      type="time"
+                      value={timeOfBirth}
+                      onChange={(e) => setTimeOfBirth(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="birthLocation" className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    Birth Location *
+                  </Label>
+                  <Input
+                    id="birthLocation"
+                    placeholder="City, State, Country"
+                    value={birthLocation}
+                    onChange={(e) => setBirthLocation(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Mobile Number - for both */}
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-primary" />
+                Mobile Number *
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+91 XXXXX XXXXX"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                disabled={loading}
+              />
+            </div>
+
+            {/* Pundit-specific fields */}
+            {selectedRole === 'pundit' && (
+              <div className="space-y-2">
+                <Label>Type of Pooja *</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPoojaType('dashachara')}
+                    disabled={loading}
+                    className={`p-3 rounded-lg border-2 text-left transition-all ${
+                      poojaType === 'dashachara'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <span className="font-medium text-sm">Dashachara</span>
+                    <p className="text-xs text-muted-foreground mt-1">Traditional Vedic rituals</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPoojaType('vamachara')}
+                    disabled={loading}
+                    className={`p-3 rounded-lg border-2 text-left transition-all ${
+                      poojaType === 'vamachara'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <span className="font-medium text-sm">Vamachara</span>
+                    <p className="text-xs text-muted-foreground mt-1">Tantric practices</p>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password *</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -214,7 +346,7 @@ const Signup = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">Confirm Password *</Label>
               <Input
                 id="confirmPassword"
                 type={showPassword ? 'text' : 'password'}

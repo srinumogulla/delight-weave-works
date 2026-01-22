@@ -17,6 +17,14 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useLanguage } from "@/i18n";
 
+// Import local assets for pundit images
+import ritualHomam from "@/assets/ritual-homam.jpg";
+import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
+import ritualPooja from "@/assets/ritual-pooja.jpg";
+import ritualLakshmi from "@/assets/ritual-lakshmi.jpg";
+import ritualShanti from "@/assets/ritual-shanti.jpg";
+import ritualVratam from "@/assets/ritual-vratam.jpg";
+
 interface Pundit {
   id: string;
   name: string;
@@ -30,12 +38,12 @@ interface Pundit {
   approval_status: string | null;
 }
 
-// Mock data for demonstration
+// Mock data with local pundit images
 const mockPundits: Pundit[] = [
   {
     id: "1",
     name: "Pandit Ramesh Sharma",
-    photo_url: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400",
+    photo_url: ritualHomam,
     specializations: ["Vedic Poojas", "Homam", "Satyanarayan Katha"],
     languages: ["Hindi", "Sanskrit", "English"],
     experience_years: 25,
@@ -47,7 +55,7 @@ const mockPundits: Pundit[] = [
   {
     id: "2",
     name: "Pandit Subramaniam Iyer",
-    photo_url: "https://images.unsplash.com/photo-1618077360395-f3068be8e001?w=400",
+    photo_url: ritualAbhishekam,
     specializations: ["Homam", "Navagraha Pooja", "Temple Rituals"],
     languages: ["Tamil", "Sanskrit", "Telugu"],
     experience_years: 30,
@@ -59,7 +67,7 @@ const mockPundits: Pundit[] = [
   {
     id: "3",
     name: "Pandit Venkata Rao",
-    photo_url: "https://images.unsplash.com/photo-1566753323558-f4e0952af115?w=400",
+    photo_url: ritualPooja,
     specializations: ["Kalyana Muhurtham", "Griha Pravesh", "Shanti Poojas"],
     languages: ["Telugu", "Sanskrit", "Hindi"],
     experience_years: 20,
@@ -71,7 +79,7 @@ const mockPundits: Pundit[] = [
   {
     id: "4",
     name: "Pandit Ashok Mishra",
-    photo_url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400",
+    photo_url: ritualLakshmi,
     specializations: ["Rudra Abhishekam", "Maha Mrityunjaya Japa", "Shiv Poojas"],
     languages: ["Hindi", "Sanskrit"],
     experience_years: 18,
@@ -83,7 +91,7 @@ const mockPundits: Pundit[] = [
   {
     id: "5",
     name: "Pandit Krishna Das",
-    photo_url: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=400",
+    photo_url: ritualShanti,
     specializations: ["Lakshmi Pooja", "Dhanvantari Homam", "Prosperity Rituals"],
     languages: ["Hindi", "Gujarati", "English"],
     experience_years: 15,
@@ -95,7 +103,7 @@ const mockPundits: Pundit[] = [
   {
     id: "6",
     name: "Pandit Balaji Prabhu",
-    photo_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+    photo_url: ritualVratam,
     specializations: ["Tirupati Rituals", "Venkateswara Pooja", "Vratams"],
     languages: ["Telugu", "Tamil", "Kannada"],
     experience_years: 22,

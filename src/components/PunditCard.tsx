@@ -7,6 +7,14 @@ import { useAuth } from "@/components/AuthProvider";
 import { useSavedItems } from "@/hooks/useSavedItems";
 import { cn } from "@/lib/utils";
 
+// Import local assets for fallback images
+import ritualHomam from "@/assets/ritual-homam.jpg";
+import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
+import ritualPooja from "@/assets/ritual-pooja.jpg";
+import ritualLakshmi from "@/assets/ritual-lakshmi.jpg";
+import ritualShanti from "@/assets/ritual-shanti.jpg";
+import ritualVratam from "@/assets/ritual-vratam.jpg";
+
 interface Pundit {
   id: string;
   name: string;
@@ -22,6 +30,19 @@ interface Pundit {
 interface PunditCardProps {
   pundit: Pundit;
 }
+
+// Helper to get appropriate pundit image
+const getPunditImage = (pundit: Pundit): string => {
+  // If it's already a local import (not a URL), return it directly
+  if (pundit.photo_url && !pundit.photo_url.startsWith('http')) {
+    return pundit.photo_url;
+  }
+  
+  // For external URLs or null, use fallback based on name hash for variety
+  const fallbacks = [ritualHomam, ritualAbhishekam, ritualPooja, ritualLakshmi, ritualShanti, ritualVratam];
+  const nameHash = pundit.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return fallbacks[nameHash % fallbacks.length];
+};
 
 export const PunditCard = ({ pundit }: PunditCardProps) => {
   const { t } = useLanguage();
@@ -77,7 +98,7 @@ export const PunditCard = ({ pundit }: PunditCardProps) => {
           {/* Avatar - centered */}
           <div className="w-20 h-20 rounded-full border-4 border-background overflow-hidden bg-muted shadow-lg mb-3">
             <img
-              src={pundit.photo_url || "/placeholder.svg"}
+              src={getPunditImage(pundit)}
               alt={pundit.name}
               className="w-full h-full object-cover"
             />
