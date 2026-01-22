@@ -15,12 +15,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface PersonData {
   name: string;
   dateOfBirth: string;
   timeOfBirth: string;
   birthLocation: string;
+  gender: 'male' | 'female' | '';
 }
 
 interface KootaResult {
@@ -70,14 +72,16 @@ export default function KundaliMatching() {
     name: profile?.full_name || "",
     dateOfBirth: profile?.date_of_birth || "",
     timeOfBirth: profile?.time_of_birth || "",
-    birthLocation: profile?.birth_location || ""
+    birthLocation: profile?.birth_location || "",
+    gender: (profile?.gender as 'male' | 'female') || ""
   });
 
   const [personB, setPersonB] = useState<PersonData>({
     name: "",
     dateOfBirth: "",
     timeOfBirth: "",
-    birthLocation: ""
+    birthLocation: "",
+    gender: ""
   });
 
   const [isCalculating, setIsCalculating] = useState(false);
@@ -311,6 +315,23 @@ export default function KundaliMatching() {
                 placeholder="City, State, Country"
               />
             </div>
+            <div className="space-y-2">
+              <Label>Gender *</Label>
+              <RadioGroup 
+                value={personA.gender} 
+                onValueChange={(value: 'male' | 'female') => setPersonA(prev => ({ ...prev, gender: value }))}
+                className="flex gap-6"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="male" id="personA-male" />
+                  <Label htmlFor="personA-male" className="cursor-pointer">Male</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="female" id="personA-female" />
+                  <Label htmlFor="personA-female" className="cursor-pointer">Female</Label>
+                </div>
+              </RadioGroup>
+            </div>
           </CardContent>
         </Card>
 
@@ -364,6 +385,23 @@ export default function KundaliMatching() {
                 onChange={(value) => setPersonB(prev => ({ ...prev, birthLocation: value }))}
                 placeholder="City, State, Country"
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Gender *</Label>
+              <RadioGroup 
+                value={personB.gender} 
+                onValueChange={(value: 'male' | 'female') => setPersonB(prev => ({ ...prev, gender: value }))}
+                className="flex gap-6"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="male" id="personB-male" />
+                  <Label htmlFor="personB-male" className="cursor-pointer">Male</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="female" id="personB-female" />
+                  <Label htmlFor="personB-female" className="cursor-pointer">Female</Label>
+                </div>
+              </RadioGroup>
             </div>
           </CardContent>
         </Card>

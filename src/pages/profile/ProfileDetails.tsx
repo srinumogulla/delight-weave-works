@@ -15,6 +15,7 @@ import { MobileLayout } from '@/components/mobile/MobileLayout';
 import { TimePickerAMPM } from '@/components/ui/time-picker-ampm';
 import { CityAutocomplete } from '@/components/ui/city-autocomplete';
 import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const ProfileDetails = () => {
   const { user, profile, signOut, refreshProfile } = useAuth();
@@ -29,6 +30,7 @@ const ProfileDetails = () => {
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [timeOfBirth, setTimeOfBirth] = useState('');
   const [birthLocation, setBirthLocation] = useState('');
+  const [gender, setGender] = useState('');
   
   // Notification preferences
   const [notifPrefs, setNotifPrefs] = useState({
@@ -49,6 +51,7 @@ const ProfileDetails = () => {
       setDateOfBirth(profile.date_of_birth || '');
       setTimeOfBirth(profile.time_of_birth || '');
       setBirthLocation(profile.birth_location || '');
+      setGender(profile.gender || '');
     }
   }, [profile]);
 
@@ -95,6 +98,7 @@ const ProfileDetails = () => {
           date_of_birth: dateOfBirth || null,
           time_of_birth: timeOfBirth || null,
           birth_location: birthLocation || null,
+          gender: gender || null,
         })
         .eq('id', user?.id);
 
@@ -241,6 +245,23 @@ const ProfileDetails = () => {
                     onChange={(value) => setBirthLocation(value)}
                     placeholder="City, State, Country"
                   />
+                </div>
+                
+                <div className="space-y-2 mt-4">
+                  <Label className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Gender
+                  </Label>
+                  <RadioGroup value={gender} onValueChange={setGender} className="flex gap-6">
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="male" id="gender-male" />
+                      <Label htmlFor="gender-male" className="cursor-pointer">Male</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value="female" id="gender-female" />
+                      <Label htmlFor="gender-female" className="cursor-pointer">Female</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
 

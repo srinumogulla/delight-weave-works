@@ -35,14 +35,27 @@ export function TempleGateIntro({ children }: TempleGateIntroProps) {
       setShowSkip(true);
     }, 500);
 
-    // Play temple bell sound
+    // Play temple bell sound with autoplay fallback
     const playSound = () => {
-      // Using the uploaded temple bell sound
       audioRef.current = new Audio("/sounds/temple-bell.mp4");
       audioRef.current.volume = 0.4;
-      audioRef.current.play().catch(() => {
-        // Autoplay blocked, will play on interaction
-      });
+      
+      const attemptPlay = () => {
+        audioRef.current?.play().catch(() => {
+          // Autoplay blocked - play on user interaction
+          const playOnInteraction = () => {
+            if (audioRef.current) {
+              audioRef.current.play().catch(() => {});
+            }
+            document.removeEventListener('click', playOnInteraction);
+            document.removeEventListener('touchstart', playOnInteraction);
+          };
+          document.addEventListener('click', playOnInteraction, { once: true });
+          document.addEventListener('touchstart', playOnInteraction, { once: true });
+        });
+      };
+      
+      attemptPlay();
     };
     
     playSound();

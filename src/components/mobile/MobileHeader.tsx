@@ -166,6 +166,20 @@ export function MobileHeader({
                         >
                           Kundali Matching
                         </Link>
+                        <Link
+                          to="/festivals"
+                          className="block py-2 text-sm text-muted-foreground hover:text-primary"
+                          onClick={closeMenu}
+                        >
+                          Festival Calendar
+                        </Link>
+                        <Link
+                          to="/remedies"
+                          className="block py-2 text-sm text-muted-foreground hover:text-primary"
+                          onClick={closeMenu}
+                        >
+                          Vedic Remedies
+                        </Link>
                       </div>
                     )}
                   </div>

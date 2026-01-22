@@ -17,6 +17,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import meditationImage from "@/assets/meditation.jpg";
 
 interface PanchangData {
@@ -49,7 +50,8 @@ export function PanchangSection() {
   const [doshaFormData, setDoshaFormData] = useState({
     dateOfBirth: "",
     timeOfBirth: "",
-    birthLocation: ""
+    birthLocation: "",
+    gender: ""
   });
   const [panchangData, setPanchangData] = useState<PanchangData | null>(null);
   const [isLoadingPanchang, setIsLoadingPanchang] = useState(true);
@@ -138,7 +140,8 @@ export function PanchangSection() {
       setDoshaFormData({
         dateOfBirth: profile.date_of_birth || "",
         timeOfBirth: profile.time_of_birth || "",
-        birthLocation: profile.birth_location || ""
+        birthLocation: profile.birth_location || "",
+        gender: profile.gender || ""
       });
     }
   }, [profile]);
@@ -409,6 +412,24 @@ export function PanchangSection() {
                 placeholder="City, State, Country"
               />
             </div>
+            
+            <div className="space-y-2">
+              <Label>Gender *</Label>
+              <RadioGroup 
+                value={doshaFormData.gender} 
+                onValueChange={(value) => setDoshaFormData(prev => ({ ...prev, gender: value }))}
+                className="flex gap-6"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="male" id="dosha-male" />
+                  <Label htmlFor="dosha-male" className="cursor-pointer">Male</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value="female" id="dosha-female" />
+                  <Label htmlFor="dosha-female" className="cursor-pointer">Female</Label>
+                </div>
+              </RadioGroup>
+            </div>
           </div>
           
           <div className="flex gap-2">
@@ -418,7 +439,7 @@ export function PanchangSection() {
             <Button 
               className="flex-1"
               onClick={calculateDosha}
-              disabled={!doshaFormData.dateOfBirth || !doshaFormData.timeOfBirth || !doshaFormData.birthLocation}
+              disabled={!doshaFormData.dateOfBirth || !doshaFormData.timeOfBirth || !doshaFormData.birthLocation || !doshaFormData.gender}
             >
               Calculate Dosha
             </Button>
