@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Clock, MapPin, Star, Moon, Sun, Loader2, Download, MessageSquare } from "lucide-react";
+import { Calendar, Clock, MapPin, Star, Moon, Sun, Loader2, Download, MessageSquare, User } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { NorthIndianChart } from "@/components/NorthIndianChart";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
@@ -89,7 +90,8 @@ export default function Kundali() {
     fullName: "",
     dateOfBirth: "",
     timeOfBirth: "",
-    birthLocation: ""
+    birthLocation: "",
+    gender: ""
   });
   const [isGenerating, setIsGenerating] = useState(false);
   const [kundaliData, setKundaliData] = useState<KundaliData | null>(null);
@@ -103,16 +105,17 @@ export default function Kundali() {
         fullName: profile.full_name || "",
         dateOfBirth: profile.date_of_birth || "",
         timeOfBirth: profile.time_of_birth || "",
-        birthLocation: profile.birth_location || ""
+        birthLocation: profile.birth_location || "",
+        gender: profile.gender || ""
       }));
     }
   }, [profile]);
 
   const generateKundali = () => {
-    if (!formData.dateOfBirth || !formData.timeOfBirth || !formData.birthLocation) {
+    if (!formData.dateOfBirth || !formData.timeOfBirth || !formData.birthLocation || !formData.gender) {
       toast({
         title: "Missing Details",
-        description: "Please fill in all birth details to generate your Kundali",
+        description: "Please fill in all birth details including gender to generate your Kundali",
         variant: "destructive"
       });
       return;
@@ -331,6 +334,27 @@ export default function Kundali() {
               onChange={(value) => setFormData(prev => ({ ...prev, birthLocation: value }))}
               placeholder="City, State, Country"
             />
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Gender *
+            </Label>
+            <RadioGroup 
+              value={formData.gender} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, gender: value }))}
+              className="flex gap-6"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="male" id="kundali-male" />
+                <Label htmlFor="kundali-male" className="cursor-pointer">Male</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="female" id="kundali-female" />
+                <Label htmlFor="kundali-female" className="cursor-pointer">Female</Label>
+              </div>
+            </RadioGroup>
           </div>
 
           <Button onClick={generateKundali} className="w-full" disabled={isGenerating}>

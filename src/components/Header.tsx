@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone, Bell, Heart, Search, Loader2, Star } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, Settings, Gift, Calendar, Users, BookOpen, Sun, Building2, UserCheck, Phone, Bell, Heart, Search, Loader2, Star, Leaf } from "lucide-react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -199,6 +199,38 @@ export function Header() {
                           <div className="font-semibold text-foreground group-hover:text-primary">Kundali Matching</div>
                           <p className="text-sm text-muted-foreground">
                             Marriage compatibility analysis
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/festivals"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-950 flex items-center justify-center">
+                          <Calendar className="h-5 w-5 text-amber-600" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">Festival Calendar</div>
+                          <p className="text-sm text-muted-foreground">
+                            Hindu festivals for 2026
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/remedies"
+                      className="group block p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-950 flex items-center justify-center">
+                          <Leaf className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div>
+                          <div className="font-semibold text-foreground group-hover:text-primary">Vedic Remedies</div>
+                          <p className="text-sm text-muted-foreground">
+                            Personalized pooja & mantra suggestions
                           </p>
                         </div>
                       </div>

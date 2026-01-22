@@ -33,6 +33,7 @@ const Signup = () => {
   const [timeOfBirth, setTimeOfBirth] = useState('');
   const [birthLocation, setBirthLocation] = useState('');
   const [phone, setPhone] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | ''>('');
   
   // Additional pundit fields
   const [poojaType, setPoojaType] = useState<'dashachara' | 'vamachara'>('dashachara');
@@ -57,8 +58,8 @@ const Signup = () => {
 
     // Validate required fields based on role
     if (selectedRole === 'user') {
-      if (!dateOfBirth || !birthLocation || !phone) {
-        setError('Please fill in all required fields');
+      if (!dateOfBirth || !birthLocation || !phone || !gender) {
+        setError('Please fill in all required fields including gender');
         return;
       }
     } else if (selectedRole === 'pundit') {
@@ -89,7 +90,8 @@ const Signup = () => {
             phone: phone,
             date_of_birth: dateOfBirth || null,
             time_of_birth: timeOfBirth || null,
-            birth_location: birthLocation || null
+            birth_location: birthLocation || null,
+            gender: selectedRole === 'user' ? gender : null
           }).eq('id', data.user.id);
 
           // If pundit, create pundit record with pending approval status
@@ -263,6 +265,40 @@ const Signup = () => {
                     placeholder="City, State, Country"
                     disabled={loading}
                   />
+                </div>
+                
+                {/* Gender Selection */}
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-primary" />
+                    Gender *
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setGender('male')}
+                      disabled={loading}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        gender === 'male' 
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <span className="font-medium text-sm">Male</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setGender('female')}
+                      disabled={loading}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        gender === 'female' 
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <span className="font-medium text-sm">Female</span>
+                    </button>
+                  </div>
                 </div>
               </>
             )}

@@ -14,6 +14,7 @@ interface Profile {
   date_of_birth: string | null;
   time_of_birth: string | null;
   birth_location: string | null;
+  gender: string | null;
 }
 
 interface AuthContextType {
