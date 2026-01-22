@@ -142,10 +142,12 @@ export const ArchanaVideoPreview = ({
               {recipientName || "Recipient Name"}
             </h3>
             
-            {/* Gotra */}
-            <p className="text-sm text-white/90 font-medium text-center mb-2 drop-shadow-md">
-              {gotra ? `${gotra} Gotram` : "Your Gotra"}
-            </p>
+            {/* Gotra - only show when filled */}
+            {gotra && (
+              <p className="text-sm text-white/90 font-medium text-center mb-2 drop-shadow-md">
+                {gotra} Gotram
+              </p>
+            )}
             
             {/* Occasion Badge */}
             {selectedOccasion && (
