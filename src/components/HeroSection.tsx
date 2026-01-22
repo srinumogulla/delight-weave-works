@@ -36,7 +36,7 @@ export function HeroSection() {
             
             <div className="flex flex-wrap gap-4">
               <Button size="lg" className="bg-primary hover:bg-primary/90 shadow-red" asChild>
-                <Link to="/pooja/dashachara">
+                <Link to="/services">
                   Explore Poojas
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>

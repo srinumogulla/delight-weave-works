@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Calendar, Sun, Moon, Star, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 import meditationImage from "@/assets/meditation.jpg";
 
 const panchangData = {
@@ -19,6 +21,25 @@ const panchangData = {
 };
 
 export function PanchangSection() {
+  const [doshaName, setDoshaName] = useState("");
+  const { toast } = useToast();
+
+  const handleCheckDosha = () => {
+    if (!doshaName.trim()) {
+      toast({
+        title: "Please enter your name",
+        description: "We need your name to check your dosha",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: `Dosha Analysis for ${doshaName}`,
+      description: "For accurate Dosha analysis, please consult with our Jyotish experts. Book a consultation to get your complete birth chart reading.",
+    });
+  };
+
   return (
     <section id="panchang" className="py-16 md:py-24 bg-background">
       <div className="container">
@@ -148,9 +169,14 @@ export function PanchangSection() {
               <input
                 type="text"
                 placeholder="Enter your name"
+                value={doshaName}
+                onChange={(e) => setDoshaName(e.target.value)}
                 className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
-              <Button className="w-full bg-primary hover:bg-primary/90">
+              <Button 
+                onClick={handleCheckDosha}
+                className="w-full bg-primary hover:bg-primary/90"
+              >
                 Check Dosha
               </Button>
             </CardContent>

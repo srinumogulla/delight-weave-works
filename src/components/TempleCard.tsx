@@ -7,6 +7,29 @@ import { useAuth } from "@/components/AuthProvider";
 import { useSavedItems } from "@/hooks/useSavedItems";
 import { cn } from "@/lib/utils";
 
+// Import local temple images for fallback
+import heroTemple from "@/assets/hero-temple.jpg";
+import ritualHomam from "@/assets/ritual-homam.jpg";
+import ritualAbhishekam from "@/assets/ritual-abhishekam.jpg";
+import ritualPooja from "@/assets/ritual-pooja.jpg";
+import ritualLakshmi from "@/assets/ritual-lakshmi.jpg";
+import ritualShanti from "@/assets/ritual-shanti.jpg";
+
+// Get appropriate temple image based on temple name
+const getTempleImage = (temple: { name: string; image_url: string | null }): string => {
+  const name = temple.name.toLowerCase();
+  
+  if (name.includes('tirupati') || name.includes('balaji') || name.includes('venkateshwara')) return heroTemple;
+  if (name.includes('kashi') || name.includes('vishwanath') || name.includes('shiva') || name.includes('mahadev')) return ritualAbhishekam;
+  if (name.includes('meenakshi') || name.includes('parvati') || name.includes('devi')) return ritualPooja;
+  if (name.includes('siddhivinayak') || name.includes('ganesha') || name.includes('ganesh') || name.includes('ganapati')) return ritualHomam;
+  if (name.includes('jagannath') || name.includes('vishnu') || name.includes('krishna')) return ritualLakshmi;
+  if (name.includes('golden') || name.includes('amritsar')) return ritualShanti;
+  
+  // Default fallback
+  return heroTemple;
+};
+
 interface Temple {
   id: string;
   name: string;
@@ -51,7 +74,7 @@ export const TempleCard = ({ temple }: TempleCardProps) => {
     >
       <div className="relative h-48 overflow-hidden">
         <img
-          src={temple.image_url || "/placeholder.svg"}
+          src={getTempleImage(temple)}
           alt={temple.name}
           className="w-full h-full object-cover"
         />
