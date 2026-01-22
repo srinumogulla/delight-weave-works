@@ -6,12 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff, CheckCircle, User, UserCheck, Calendar, Clock, MapPin, Phone } from 'lucide-react';
+import { Loader2, Eye, EyeOff, CheckCircle, User, UserCheck, Calendar, MapPin, Phone } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileLayout } from '@/components/mobile/MobileLayout';
 import { supabase } from '@/integrations/supabase/client';
+import { TimePickerAMPM } from '@/components/ui/time-picker-ampm';
+import { CityAutocomplete } from '@/components/ui/city-autocomplete';
 
 type UserRole = 'user' | 'pundit';
 
@@ -240,30 +242,25 @@ const Signup = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="timeOfBirth" className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-primary" />
+                    <Label className="flex items-center gap-2">
                       Time of Birth
                     </Label>
-                    <Input
-                      id="timeOfBirth"
-                      type="time"
+                    <TimePickerAMPM
                       value={timeOfBirth}
-                      onChange={(e) => setTimeOfBirth(e.target.value)}
+                      onChange={setTimeOfBirth}
                       disabled={loading}
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="birthLocation" className="flex items-center gap-2">
+                  <Label className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-primary" />
                     Birth Location *
                   </Label>
-                  <Input
-                    id="birthLocation"
-                    placeholder="City, State, Country"
+                  <CityAutocomplete
                     value={birthLocation}
-                    onChange={(e) => setBirthLocation(e.target.value)}
-                    required
+                    onChange={(value) => setBirthLocation(value)}
+                    placeholder="City, State, Country"
                     disabled={loading}
                   />
                 </div>

@@ -11,7 +11,10 @@ import Index from "./pages/Index";
 import Services from "./pages/Services";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Profile from "./pages/Profile";
+import ProfileDetails from "./pages/profile/ProfileDetails";
+import ProfileBookings from "./pages/profile/ProfileBookings";
+import ProfileSaved from "./pages/profile/ProfileSaved";
+import ProfileSpiritual from "./pages/profile/ProfileSpiritual";
 import Booking from "./pages/Booking";
 import GiftPooja from "./pages/GiftPooja";
 import Dashachara from "./pages/pooja/Dashachara";
@@ -60,7 +63,22 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/profile" element={
                 <ProtectedRoute>
-                  <Profile />
+                  <ProfileDetails />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile/bookings" element={
+                <ProtectedRoute>
+                  <ProfileBookings />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile/saved" element={
+                <ProtectedRoute>
+                  <ProfileSaved />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile/spiritual" element={
+                <ProtectedRoute>
+                  <ProfileSpiritual />
                 </ProtectedRoute>
               } />
               <Route path="/booking" element={<Booking />} />

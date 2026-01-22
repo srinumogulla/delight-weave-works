@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bell, Menu, X, ChevronDown, Sun, Building2, UserCheck, Gift, Phone, Users, BookOpen, Heart, Search, Loader2 } from 'lucide-react';
+import { Bell, Menu, X, ChevronDown, Sun, Building2, UserCheck, Gift, Phone, Users, BookOpen, Heart, Search, Loader2, Calendar, Star, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -227,18 +227,35 @@ export function MobileHeader({
                       <>
                         <Link
                           to="/profile"
-                          className="block w-full py-2 text-center text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
+                          className="flex items-center justify-center gap-2 w-full py-2 text-center text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
                           onClick={closeMenu}
                         >
+                          <Settings className="h-4 w-4" />
                           My Profile
                         </Link>
                         <Link
-                          to="/profile?tab=saved"
+                          to="/profile/bookings"
+                          className="flex items-center justify-center gap-2 w-full py-2 text-center text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
+                          onClick={closeMenu}
+                        >
+                          <Calendar className="h-4 w-4" />
+                          My Bookings
+                        </Link>
+                        <Link
+                          to="/profile/saved"
                           className="flex items-center justify-center gap-2 w-full py-2 text-center text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
                           onClick={closeMenu}
                         >
                           <Heart className="h-4 w-4" />
                           Saved Items
+                        </Link>
+                        <Link
+                          to="/profile/spiritual"
+                          className="flex items-center justify-center gap-2 w-full py-2 text-center text-sm font-medium border border-border rounded-md hover:bg-muted transition-colors"
+                          onClick={closeMenu}
+                        >
+                          <Star className="h-4 w-4" />
+                          Spiritual Details
                         </Link>
                         {isAdmin && (
                           <Link
@@ -300,7 +317,7 @@ export function MobileHeader({
               <LanguageSwitcher />
               {user && (
                 <Button variant="ghost" size="icon" className="h-9 w-9" asChild>
-                  <Link to="/profile?tab=saved">
+                  <Link to="/profile/saved">
                     <Heart className="h-5 w-5" />
                   </Link>
                 </Button>

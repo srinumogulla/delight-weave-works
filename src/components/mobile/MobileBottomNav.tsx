@@ -6,7 +6,7 @@ import { useAuth } from '@/components/AuthProvider';
 const navItems = [
   { label: 'Home', href: '/', icon: Home },
   { label: 'Panchang', href: '/panchang', icon: Sun },
-  { label: 'Bookings', href: '/profile', icon: Calendar, requireAuth: true, tab: 'bookings' },
+  { label: 'Bookings', href: '/profile/bookings', icon: Calendar, requireAuth: true },
   { label: 'Profile', href: '/profile', icon: User, requireAuth: true },
 ];
 

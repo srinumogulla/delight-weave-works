@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { Calendar, Sun, Moon, Star, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Calendar, Sun, Moon, Star, Clock, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +14,8 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
+import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
+import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import meditationImage from "@/assets/meditation.jpg";
 
 const panchangData = {
@@ -38,10 +42,28 @@ interface DoshaResult {
 
 export function PanchangSection() {
   const [doshaName, setDoshaName] = useState("");
+  const [showDoshaForm, setShowDoshaForm] = useState(false);
   const [showDoshaDialog, setShowDoshaDialog] = useState(false);
   const [doshaResult, setDoshaResult] = useState<DoshaResult | null>(null);
+  const [doshaFormData, setDoshaFormData] = useState({
+    dateOfBirth: "",
+    timeOfBirth: "",
+    birthLocation: ""
+  });
   const { toast } = useToast();
   const { user, profile } = useAuth();
+
+  // Auto-fill from profile if logged in
+  useEffect(() => {
+    if (profile) {
+      setDoshaName(profile.full_name || "");
+      setDoshaFormData({
+        dateOfBirth: profile.date_of_birth || "",
+        timeOfBirth: profile.time_of_birth || "",
+        birthLocation: profile.birth_location || ""
+      });
+    }
+  }, [profile]);
 
   const handleCheckDosha = () => {
     if (!doshaName.trim()) {
@@ -53,31 +75,41 @@ export function PanchangSection() {
       return;
     }
     
-    // Generate simulated dosha analysis based on name (demo)
-    // In production, this would use actual birth chart data from profile or input
-    const nameHash = doshaName.length % 4;
+    // If user has complete birth details, calculate directly
+    if (doshaFormData.dateOfBirth && doshaFormData.timeOfBirth && doshaFormData.birthLocation) {
+      calculateDosha();
+    } else {
+      // Show form to collect birth details
+      setShowDoshaForm(true);
+    }
+  };
+
+  const calculateDosha = () => {
+    // Generate simulated dosha analysis based on birth data
+    const dateHash = doshaFormData.dateOfBirth ? new Date(doshaFormData.dateOfBirth).getDate() % 4 : doshaName.length % 4;
     
     const analysis: DoshaResult = {
       mangal: {
-        present: nameHash === 0 || nameHash === 2,
-        severity: nameHash === 0 ? "High" : "Moderate",
+        present: dateHash === 0 || dateHash === 2,
+        severity: dateHash === 0 ? "High" : "Moderate",
         houses: "1st, 4th House"
       },
       shani: {
-        sade_sati: nameHash === 1 || nameHash === 3,
-        phase: nameHash === 1 ? "Rising Phase" : "Peak Phase"
+        sade_sati: dateHash === 1 || dateHash === 3,
+        phase: dateHash === 1 ? "Rising Phase" : "Peak Phase"
       },
       kalsarpa: {
-        present: nameHash === 2,
+        present: dateHash === 2,
         type: "Anant Kalsarpa"
       },
       rahu_ketu: {
-        affected: nameHash === 0 || nameHash === 1,
+        affected: dateHash === 0 || dateHash === 1,
         houses: "5th, 11th House"
       }
     };
     
     setDoshaResult(analysis);
+    setShowDoshaForm(false);
     setShowDoshaDialog(true);
   };
 
@@ -224,6 +256,69 @@ export function PanchangSection() {
           </Card>
         </div>
       </div>
+
+      {/* Birth Details Form Dialog */}
+      <Dialog open={showDoshaForm} onOpenChange={setShowDoshaForm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enter Birth Details</DialogTitle>
+            <DialogDescription>
+              For accurate dosha analysis, please provide your birth details
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Date of Birth *
+              </Label>
+              <Input
+                type="date"
+                value={doshaFormData.dateOfBirth}
+                onChange={(e) => setDoshaFormData(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Time of Birth *
+              </Label>
+              <TimePickerAMPM
+                value={doshaFormData.timeOfBirth}
+                onChange={(value) => setDoshaFormData(prev => ({ ...prev, timeOfBirth: value }))}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Birth Location *
+              </Label>
+              <CityAutocomplete
+                value={doshaFormData.birthLocation}
+                onChange={(value) => setDoshaFormData(prev => ({ ...prev, birthLocation: value }))}
+                placeholder="City, State, Country"
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowDoshaForm(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="flex-1"
+              onClick={calculateDosha}
+              disabled={!doshaFormData.dateOfBirth || !doshaFormData.timeOfBirth || !doshaFormData.birthLocation}
+            >
+              Calculate Dosha
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Dosha Analysis Dialog */}
       <Dialog open={showDoshaDialog} onOpenChange={setShowDoshaDialog}>
