@@ -36,6 +36,10 @@ import AdminUsers from "./pages/admin/Users";
 import AdminTemples from "./pages/admin/Temples";
 import AdminPundits from "./pages/admin/Pundits";
 import AdminApprovals from "./pages/admin/Approvals";
+import AdminEvents from "./pages/admin/Events";
+import AdminGiftBookings from "./pages/admin/GiftBookings";
+import AdminSettings from "./pages/admin/Settings";
+import AdminReports from "./pages/admin/Reports";
 import AdminLogin from "./pages/admin/Login";
 import GiftConfirmation from "./pages/GiftConfirmation";
 import PunditDashboard from "./pages/pundit/Dashboard";
@@ -165,6 +169,26 @@ const App = () => (
               <Route path="/admin/approvals" element={
                 <ProtectedRoute requireAdmin>
                   <AdminApprovals />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/events" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminEvents />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/gift-bookings" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminGiftBookings />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/settings" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminSettings />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/reports" element={
+                <ProtectedRoute requireAdmin>
+                  <AdminReports />
                 </ProtectedRoute>
               } />
               

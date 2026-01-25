@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -10,13 +10,21 @@ import {
   BookOpen,
   Building2,
   UserCheck,
-  ClipboardCheck
+  ClipboardCheck,
+  Gift,
+  CalendarDays,
+  Settings,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/components/AuthProvider';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { AdminMobileNav } from './AdminMobileNav';
+import { AdminMobileHeader } from './AdminMobileHeader';
+import { AdminDrawer } from './AdminDrawer';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -26,15 +34,25 @@ const sidebarItems = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Services', href: '/admin/services', icon: BookOpen },
   { label: 'Bookings', href: '/admin/bookings', icon: Calendar },
+  { label: 'Gift Bookings', href: '/admin/gift-bookings', icon: Gift },
+  { label: 'Events', href: '/admin/events', icon: CalendarDays },
   { label: 'Users', href: '/admin/users', icon: Users },
   { label: 'Temples', href: '/admin/temples', icon: Building2 },
   { label: 'Pundits', href: '/admin/pundits', icon: UserCheck },
   { label: 'Approvals', href: '/admin/approvals', icon: ClipboardCheck },
+  { label: 'Reports', href: '/admin/reports', icon: BarChart3 },
+  { label: 'Settings', href: '/admin/settings', icon: Settings },
 ];
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
   const { signOut, profile } = useAuth();
+  const isMobile = useIsMobile();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Get current page title
+  const currentPage = sidebarItems.find(item => item.href === location.pathname);
+  const pageTitle = currentPage?.label || 'Admin';
 
   // Fetch pending approvals count
   const { data: pendingCount = 0 } = useQuery({
@@ -49,10 +67,37 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       return count || 0;
     },
   });
+
+  // Mobile Layout
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-muted/30 pb-16">
+        <AdminMobileHeader 
+          title={pageTitle} 
+          onMenuClick={() => setDrawerOpen(true)}
+          pendingCount={pendingCount}
+        />
+        <AdminDrawer 
+          open={drawerOpen} 
+          onOpenChange={setDrawerOpen}
+          pendingCount={pendingCount}
+        />
+        <main className="p-4">
+          {children}
+        </main>
+        <AdminMobileNav 
+          pendingCount={pendingCount}
+          onMenuClick={() => setDrawerOpen(true)}
+        />
+      </div>
+    );
+  }
+
+  // Desktop Layout
   return (
     <div className="min-h-screen bg-muted/30 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border flex flex-col">
+      <aside className="w-64 bg-card border-r border-border flex flex-col fixed h-full">
         {/* Logo */}
         <div className="p-6 border-b border-border">
           <Link to="/admin" className="flex items-center gap-2">
@@ -67,7 +112,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {sidebarItems.map((item) => {
             const isActive = location.pathname === item.href;
             const showBadge = item.href === '/admin/approvals' && pendingCount > 0;
@@ -115,10 +160,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ml-64">
         {/* Top Bar */}
-        <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
-          <h1 className="text-lg font-semibold">Admin Dashboard</h1>
+        <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-10">
+          <h1 className="text-lg font-semibold">{pageTitle}</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
               Welcome, {profile?.full_name || 'Admin'}
