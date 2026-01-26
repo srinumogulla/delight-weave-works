@@ -85,10 +85,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         <main className="p-4">
           {children}
         </main>
-        <AdminMobileNav 
-          pendingCount={pendingCount}
-          onMenuClick={() => setDrawerOpen(true)}
-        />
+        <AdminMobileNav pendingCount={pendingCount} />
       </div>
     );
   }

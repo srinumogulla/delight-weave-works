@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -33,9 +34,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, Search, UserCheck, Loader2, CheckCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, UserCheck, Loader2, CheckCircle, MapPin, Briefcase } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Pundit {
   id: string;
@@ -48,6 +51,7 @@ interface Pundit {
   bio: string | null;
   is_verified: boolean | null;
   is_active: boolean | null;
+  approval_status: string | null;
 }
 
 const emptyPundit: Partial<Pundit> = {
@@ -60,11 +64,13 @@ const emptyPundit: Partial<Pundit> = {
   bio: "",
   is_verified: false,
   is_active: true,
+  approval_status: "approved",
 };
 
 const AdminPundits = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -180,11 +186,61 @@ const AdminPundits = () => {
       pundit.specializations?.some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  // Mobile Card Component
+  const MobilePunditCard = ({ pundit }: { pundit: Pundit }) => (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          <Avatar className="h-12 w-12">
+            <AvatarImage src={pundit.photo_url || undefined} />
+            <AvatarFallback>{pundit.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold truncate">{pundit.name}</h3>
+              {pundit.is_verified && (
+                <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
+              )}
+            </div>
+            {pundit.location && (
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {pundit.location}
+              </p>
+            )}
+            {pundit.experience_years && (
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Briefcase className="h-3 w-3" />
+                {pundit.experience_years} years experience
+              </p>
+            )}
+            <div className="flex gap-1 mt-2 flex-wrap">
+              <Badge variant={pundit.is_active ? "default" : "secondary"}>
+                {pundit.is_active ? "Active" : "Inactive"}
+              </Badge>
+              {pundit.approval_status === 'pending' && (
+                <Badge variant="outline" className="text-amber-600">Pending</Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1">
+            <Button variant="ghost" size="icon" onClick={() => handleEdit(pundit)}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => handleDelete(pundit)}>
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <UserCheck className="h-6 w-6" />
@@ -209,79 +265,102 @@ const AdminPundits = () => {
           />
         </div>
 
-        {/* Table */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Experience</TableHead>
-                <TableHead>Languages</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Verified</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
+        {/* Mobile: Card View */}
+        {isMobile ? (
+          <div className="space-y-4">
+            {isLoading ? (
+              <p className="text-center py-8 text-muted-foreground">Loading pundits...</p>
+            ) : filteredPundits.length === 0 ? (
+              <p className="text-center py-8 text-muted-foreground">No pundits found</p>
+            ) : (
+              filteredPundits.map((pundit) => (
+                <MobilePunditCard key={pundit.id} pundit={pundit} />
+              ))
+            )}
+          </div>
+        ) : (
+          /* Desktop: Table */
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                  </TableCell>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Experience</TableHead>
+                  <TableHead>Languages</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Verified</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ) : filteredPundits.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    No pundits found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredPundits.map((pundit) => (
-                  <TableRow key={pundit.id}>
-                    <TableCell className="font-medium">{pundit.name}</TableCell>
-                    <TableCell>{pundit.location || "-"}</TableCell>
-                    <TableCell>
-                      {pundit.experience_years ? `${pundit.experience_years} years` : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {pundit.languages?.slice(0, 2).map((lang) => (
-                          <Badge key={lang} variant="outline" className="text-xs">
-                            {lang}
-                          </Badge>
-                        ))}
-                        {(pundit.languages?.length || 0) > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{(pundit.languages?.length || 0) - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={pundit.is_active ? "default" : "secondary"}>
-                        {pundit.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {pundit.is_verified && (
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(pundit)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(pundit)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin mx-auto" />
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                ) : filteredPundits.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      No pundits found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredPundits.map((pundit) => (
+                    <TableRow key={pundit.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={pundit.photo_url || undefined} />
+                            <AvatarFallback>{pundit.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          {pundit.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>{pundit.location || "-"}</TableCell>
+                      <TableCell>
+                        {pundit.experience_years ? `${pundit.experience_years} years` : "-"}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {pundit.languages?.slice(0, 2).map((lang) => (
+                            <Badge key={lang} variant="outline" className="text-xs">
+                              {lang}
+                            </Badge>
+                          ))}
+                          {(pundit.languages?.length || 0) > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{(pundit.languages?.length || 0) - 2}
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={pundit.is_active ? "default" : "secondary"}>
+                          {pundit.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {pundit.is_verified && (
+                          <CheckCircle className="h-4 w-4 text-green-500" />
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(pundit)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(pundit)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Dialog */}
@@ -294,7 +373,7 @@ const AdminPundits = () => {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
                 <Input
@@ -314,7 +393,7 @@ const AdminPundits = () => {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="experience_years">Experience (years)</Label>
                 <Input
@@ -362,7 +441,7 @@ const AdminPundits = () => {
                 rows={3}
               />
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6 flex-wrap">
               <div className="flex items-center space-x-2">
                 <Switch
                   id="is_active"
