@@ -46,6 +46,10 @@ import PunditDashboard from "./pages/pundit/Dashboard";
 import PunditBookings from "./pages/pundit/Bookings";
 import PunditProfile from "./pages/pundit/Profile";
 import PunditEarnings from "./pages/pundit/Earnings";
+import TempleDashboard from "./pages/temple/Dashboard";
+import TempleServices from "./pages/temple/Services";
+import TempleBookings from "./pages/temple/Bookings";
+import TempleProfile from "./pages/temple/Profile";
 import PoojaDetails from "./pages/PoojaDetails";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import Payment from "./pages/Payment";
@@ -131,6 +135,28 @@ const App = () => (
               <Route path="/pundit/earnings" element={
                 <ProtectedRoute>
                   <PunditEarnings />
+                </ProtectedRoute>
+              } />
+              
+              {/* Temple Routes */}
+              <Route path="/temple" element={
+                <ProtectedRoute>
+                  <TempleDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/temple/services" element={
+                <ProtectedRoute>
+                  <TempleServices />
+                </ProtectedRoute>
+              } />
+              <Route path="/temple/bookings" element={
+                <ProtectedRoute>
+                  <TempleBookings />
+                </ProtectedRoute>
+              } />
+              <Route path="/temple/profile" element={
+                <ProtectedRoute>
+                  <TempleProfile />
                 </ProtectedRoute>
               } />
               

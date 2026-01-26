@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Check, X, Clock, User, MapPin, Languages, Briefcase } from 'lucide-react';
+import { Check, X, Clock, MapPin, Languages, Briefcase, Building2, BookOpen } from 'lucide-react';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -35,18 +35,42 @@ interface PendingPundit {
   created_at: string | null;
 }
 
+interface PendingTemple {
+  id: string;
+  name: string;
+  deity: string | null;
+  city: string | null;
+  state: string | null;
+  description: string | null;
+  image_url: string | null;
+  approval_status: string | null;
+  created_at: string | null;
+}
+
+interface PendingService {
+  id: string;
+  name: string;
+  category: string | null;
+  price: number;
+  temple: string | null;
+  description: string | null;
+  is_active: boolean | null;
+  created_at: string;
+}
+
 const AdminApprovals = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
-    punditId: string;
+    id: string;
     action: 'approve' | 'reject';
-    punditName: string;
+    name: string;
+    type: 'pundit' | 'temple' | 'service';
   } | null>(null);
 
   // Fetch pending pundits
-  const { data: pendingPundits = [], isLoading } = useQuery({
+  const { data: pendingPundits = [], isLoading: loadingPundits } = useQuery({
     queryKey: ['pending-pundits'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -60,8 +84,38 @@ const AdminApprovals = () => {
     },
   });
 
-  // Approve/Reject mutation
-  const updateStatusMutation = useMutation({
+  // Fetch pending temples
+  const { data: pendingTemples = [], isLoading: loadingTemples } = useQuery({
+    queryKey: ['pending-temples'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('temples')
+        .select('*')
+        .eq('approval_status', 'pending')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as PendingTemple[];
+    },
+  });
+
+  // Fetch inactive services (pending activation)
+  const { data: pendingServices = [], isLoading: loadingServices } = useQuery({
+    queryKey: ['pending-services'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('pooja_services')
+        .select('*')
+        .eq('is_active', false)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as PendingService[];
+    },
+  });
+
+  // Pundit approval mutation
+  const punditMutation = useMutation({
     mutationFn: async ({ punditId, status }: { punditId: string; status: 'approved' | 'rejected' }) => {
       const { error } = await supabase
         .from('pundits')
@@ -83,26 +137,114 @@ const AdminApprovals = () => {
       setConfirmDialog(null);
     },
     onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     },
   });
 
-  const handleAction = (punditId: string, action: 'approve' | 'reject', punditName: string) => {
-    setConfirmDialog({ open: true, punditId, action, punditName });
+  // Temple approval mutation
+  const templeMutation = useMutation({
+    mutationFn: async ({ templeId, status }: { templeId: string; status: 'approved' | 'rejected' }) => {
+      const { error } = await supabase
+        .from('temples')
+        .update({
+          approval_status: status,
+          is_active: status === 'approved',
+        })
+        .eq('id', templeId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['pending-temples'] });
+      toast({
+        title: variables.status === 'approved' ? 'Temple Approved' : 'Temple Rejected',
+        description: `The temple has been ${variables.status}.`,
+      });
+      setConfirmDialog(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Service approval mutation
+  const serviceMutation = useMutation({
+    mutationFn: async ({ serviceId, activate }: { serviceId: string; activate: boolean }) => {
+      const { error } = await supabase
+        .from('pooja_services')
+        .update({ is_active: activate })
+        .eq('id', serviceId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['pending-services'] });
+      toast({
+        title: variables.activate ? 'Service Activated' : 'Service Rejected',
+        description: `The service has been ${variables.activate ? 'activated' : 'rejected'}.`,
+      });
+      setConfirmDialog(null);
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const handleAction = (id: string, action: 'approve' | 'reject', name: string, type: 'pundit' | 'temple' | 'service') => {
+    setConfirmDialog({ open: true, id, action, name, type });
   };
 
   const confirmAction = () => {
-    if (confirmDialog) {
-      updateStatusMutation.mutate({
-        punditId: confirmDialog.punditId,
+    if (!confirmDialog) return;
+    
+    if (confirmDialog.type === 'pundit') {
+      punditMutation.mutate({
+        punditId: confirmDialog.id,
         status: confirmDialog.action === 'approve' ? 'approved' : 'rejected',
+      });
+    } else if (confirmDialog.type === 'temple') {
+      templeMutation.mutate({
+        templeId: confirmDialog.id,
+        status: confirmDialog.action === 'approve' ? 'approved' : 'rejected',
+      });
+    } else if (confirmDialog.type === 'service') {
+      serviceMutation.mutate({
+        serviceId: confirmDialog.id,
+        activate: confirmDialog.action === 'approve',
       });
     }
   };
+
+  const isPending = punditMutation.isPending || templeMutation.isPending || serviceMutation.isPending;
+
+  const EmptyState = ({ icon: Icon, title, description }: { icon: any; title: string; description: string }) => (
+    <Card>
+      <CardContent className="py-12 text-center">
+        <Icon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+        <h3 className="text-lg font-medium">{title}</h3>
+        <p className="text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+  );
+
+  const LoadingState = () => (
+    <div className="grid gap-4">
+      {[1, 2, 3].map((i) => (
+        <Card key={i}>
+          <CardContent className="p-6">
+            <div className="flex gap-4">
+              <Skeleton className="h-16 w-16 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-64" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
 
   return (
     <AdminLayout>
@@ -122,49 +264,40 @@ const AdminApprovals = () => {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="temples" disabled>
+            <TabsTrigger value="temples">
               Temples
-              <Badge variant="secondary" className="ml-2 text-xs">Coming Soon</Badge>
+              {pendingTemples.length > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 px-1.5 text-xs">
+                  {pendingTemples.length}
+                </Badge>
+              )}
             </TabsTrigger>
-            <TabsTrigger value="poojas" disabled>
-              Poojas
-              <Badge variant="secondary" className="ml-2 text-xs">Coming Soon</Badge>
+            <TabsTrigger value="services">
+              Services
+              {pendingServices.length > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 px-1.5 text-xs">
+                  {pendingServices.length}
+                </Badge>
+              )}
             </TabsTrigger>
           </TabsList>
 
+          {/* Pundits Tab */}
           <TabsContent value="pundits" className="space-y-4">
-            {isLoading ? (
-              <div className="grid gap-4">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i}>
-                    <CardContent className="p-6">
-                      <div className="flex gap-4">
-                        <Skeleton className="h-16 w-16 rounded-full" />
-                        <div className="flex-1 space-y-2">
-                          <Skeleton className="h-5 w-48" />
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-4 w-64" />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+            {loadingPundits ? (
+              <LoadingState />
             ) : pendingPundits.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium">No Pending Approvals</h3>
-                  <p className="text-muted-foreground">All pundit registrations have been reviewed.</p>
-                </CardContent>
-              </Card>
+              <EmptyState 
+                icon={Clock} 
+                title="No Pending Approvals" 
+                description="All pundit registrations have been reviewed."
+              />
             ) : (
               <div className="grid gap-4">
                 {pendingPundits.map((pundit) => (
                   <Card key={pundit.id}>
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row gap-4">
-                        {/* Avatar */}
                         <Avatar className="h-16 w-16">
                           <AvatarImage src={pundit.photo_url || undefined} alt={pundit.name} />
                           <AvatarFallback className="bg-primary/10 text-primary text-xl">
@@ -172,7 +305,6 @@ const AdminApprovals = () => {
                           </AvatarFallback>
                         </Avatar>
 
-                        {/* Details */}
                         <div className="flex-1 space-y-3">
                           <div>
                             <h3 className="text-lg font-semibold">{pundit.name}</h3>
@@ -215,13 +347,12 @@ const AdminApprovals = () => {
                           )}
                         </div>
 
-                        {/* Actions */}
                         <div className="flex md:flex-col gap-2">
                           <Button
                             size="sm"
                             className="flex-1 bg-green-600 hover:bg-green-700"
-                            onClick={() => handleAction(pundit.id, 'approve', pundit.name)}
-                            disabled={updateStatusMutation.isPending}
+                            onClick={() => handleAction(pundit.id, 'approve', pundit.name, 'pundit')}
+                            disabled={isPending}
                           >
                             <Check className="h-4 w-4 mr-1" />
                             Approve
@@ -230,8 +361,8 @@ const AdminApprovals = () => {
                             size="sm"
                             variant="outline"
                             className="flex-1 text-destructive border-destructive hover:bg-destructive/10"
-                            onClick={() => handleAction(pundit.id, 'reject', pundit.name)}
-                            disabled={updateStatusMutation.isPending}
+                            onClick={() => handleAction(pundit.id, 'reject', pundit.name, 'pundit')}
+                            disabled={isPending}
                           >
                             <X className="h-4 w-4 mr-1" />
                             Reject
@@ -245,20 +376,148 @@ const AdminApprovals = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="temples">
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">Temple approvals coming in Phase 2</p>
-              </CardContent>
-            </Card>
+          {/* Temples Tab */}
+          <TabsContent value="temples" className="space-y-4">
+            {loadingTemples ? (
+              <LoadingState />
+            ) : pendingTemples.length === 0 ? (
+              <EmptyState 
+                icon={Building2} 
+                title="No Pending Temples" 
+                description="All temple registrations have been reviewed."
+              />
+            ) : (
+              <div className="grid gap-4">
+                {pendingTemples.map((temple) => (
+                  <Card key={temple.id}>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        {temple.image_url ? (
+                          <img 
+                            src={temple.image_url} 
+                            alt={temple.name}
+                            className="h-16 w-16 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
+                            <Building2 className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                        )}
+
+                        <div className="flex-1 space-y-2">
+                          <div>
+                            <h3 className="text-lg font-semibold">{temple.name}</h3>
+                            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
+                              {temple.deity && <span>Deity: {temple.deity}</span>}
+                              {(temple.city || temple.state) && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-3.5 w-3.5" />
+                                  {[temple.city, temple.state].filter(Boolean).join(', ')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {temple.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {temple.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex md:flex-col gap-2">
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-green-600 hover:bg-green-700"
+                            onClick={() => handleAction(temple.id, 'approve', temple.name, 'temple')}
+                            disabled={isPending}
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-destructive border-destructive hover:bg-destructive/10"
+                            onClick={() => handleAction(temple.id, 'reject', temple.name, 'temple')}
+                            disabled={isPending}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
-          <TabsContent value="poojas">
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">Pooja approvals coming in Phase 4</p>
-              </CardContent>
-            </Card>
+          {/* Services Tab */}
+          <TabsContent value="services" className="space-y-4">
+            {loadingServices ? (
+              <LoadingState />
+            ) : pendingServices.length === 0 ? (
+              <EmptyState 
+                icon={BookOpen} 
+                title="No Pending Services" 
+                description="All services have been activated."
+              />
+            ) : (
+              <div className="grid gap-4">
+                {pendingServices.map((service) => (
+                  <Card key={service.id}>
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="h-16 w-16 rounded-lg bg-muted flex items-center justify-center">
+                          <BookOpen className="h-8 w-8 text-muted-foreground" />
+                        </div>
+
+                        <div className="flex-1 space-y-2">
+                          <div>
+                            <h3 className="text-lg font-semibold">{service.name}</h3>
+                            <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
+                              {service.category && (
+                                <Badge variant="outline">{service.category}</Badge>
+                              )}
+                              <span>₹{service.price.toLocaleString()}</span>
+                              {service.temple && <span>Temple: {service.temple}</span>}
+                            </div>
+                          </div>
+                          {service.description && (
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {service.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex md:flex-col gap-2">
+                          <Button
+                            size="sm"
+                            className="flex-1 bg-green-600 hover:bg-green-700"
+                            onClick={() => handleAction(service.id, 'approve', service.name, 'service')}
+                            disabled={isPending}
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Activate
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="flex-1 text-destructive border-destructive hover:bg-destructive/10"
+                            onClick={() => handleAction(service.id, 'reject', service.name, 'service')}
+                            disabled={isPending}
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -268,12 +527,12 @@ const AdminApprovals = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmDialog?.action === 'approve' ? 'Approve Pundit' : 'Reject Pundit'}
+              {confirmDialog?.action === 'approve' ? 'Approve' : 'Reject'} {confirmDialog?.type}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmDialog?.action === 'approve'
-                ? `Are you sure you want to approve ${confirmDialog.punditName}? They will be able to accept bookings and appear in public listings.`
-                : `Are you sure you want to reject ${confirmDialog?.punditName}? They will be notified and will need to contact support.`}
+                ? `Are you sure you want to approve ${confirmDialog?.name}? They will become active immediately.`
+                : `Are you sure you want to reject ${confirmDialog?.name}? This action cannot be undone.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

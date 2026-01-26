@@ -16,7 +16,9 @@ export type Database = {
     Tables: {
       bookings: {
         Row: {
+          admin_notes: string | null
           amount: number | null
+          assigned_pundit_id: string | null
           booking_date: string
           created_at: string
           gotra: string | null
@@ -32,7 +34,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           amount?: number | null
+          assigned_pundit_id?: string | null
           booking_date: string
           created_at?: string
           gotra?: string | null
@@ -48,7 +52,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           amount?: number | null
+          assigned_pundit_id?: string | null
           booking_date?: string
           created_at?: string
           gotra?: string | null
@@ -64,6 +70,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "bookings_assigned_pundit_id_fkey"
+            columns: ["assigned_pundit_id"]
+            isOneToOne: false
+            referencedRelation: "pundits"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "bookings_service_id_fkey"
             columns: ["service_id"]
@@ -285,6 +298,7 @@ export type Database = {
           gender: string | null
           gotra: string | null
           id: string
+          is_disabled: boolean | null
           nakshatra: string | null
           phone: string | null
           rashi: string | null
@@ -301,6 +315,7 @@ export type Database = {
           gender?: string | null
           gotra?: string | null
           id: string
+          is_disabled?: boolean | null
           nakshatra?: string | null
           phone?: string | null
           rashi?: string | null
@@ -317,6 +332,7 @@ export type Database = {
           gender?: string | null
           gotra?: string | null
           id?: string
+          is_disabled?: boolean | null
           nakshatra?: string | null
           phone?: string | null
           rashi?: string | null
@@ -473,6 +489,7 @@ export type Database = {
       }
       temples: {
         Row: {
+          approval_status: string | null
           city: string | null
           contact_phone: string | null
           created_at: string | null
@@ -486,9 +503,11 @@ export type Database = {
           name: string
           state: string | null
           updated_at: string | null
+          user_id: string | null
           website_url: string | null
         }
         Insert: {
+          approval_status?: string | null
           city?: string | null
           contact_phone?: string | null
           created_at?: string | null
@@ -502,9 +521,11 @@ export type Database = {
           name: string
           state?: string | null
           updated_at?: string | null
+          user_id?: string | null
           website_url?: string | null
         }
         Update: {
+          approval_status?: string | null
           city?: string | null
           contact_phone?: string | null
           created_at?: string | null
@@ -518,6 +539,7 @@ export type Database = {
           name?: string
           state?: string | null
           updated_at?: string | null
+          user_id?: string | null
           website_url?: string | null
         }
         Relationships: []
