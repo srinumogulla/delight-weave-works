@@ -33,6 +33,7 @@ export function AdminMobileNav({ pendingCount = 0 }: AdminMobileNavProps) {
             <Link
               key={item.href}
               to={item.href}
+              onClick={(e) => e.stopPropagation()}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full py-2 transition-colors",
                 isActive 
