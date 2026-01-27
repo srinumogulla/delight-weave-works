@@ -126,6 +126,8 @@ export default function AdminUsers() {
   }
 
   async function saveRoles(userId: string, rolesToAdd: string[], rolesToRemove: string[]) {
+    type AppRole = "admin" | "moderator" | "user" | "pundit" | "temple" | "field_officer";
+    
     try {
       // Remove roles
       for (const role of rolesToRemove) {
@@ -133,15 +135,14 @@ export default function AdminUsers() {
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
-          .eq('role', role);
+          .eq('role', role as AppRole);
       }
 
       // Add roles
       for (const role of rolesToAdd) {
-        const validRole = role as "admin" | "moderator" | "user" | "pundit" | "temple" | "field_officer";
         await supabase
           .from('user_roles')
-          .insert({ user_id: userId, role: validRole });
+          .insert({ user_id: userId, role: role as AppRole });
       }
 
       // Refresh roles
