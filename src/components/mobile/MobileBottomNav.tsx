@@ -1,11 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Sun, Calendar, User } from 'lucide-react';
+import { Home, Sun, Gift, Calendar, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/AuthProvider';
 
 const navItems = [
   { label: 'Home', href: '/', icon: Home },
   { label: 'Panchang', href: '/panchang', icon: Sun },
+  { label: 'Gift', href: '/gift-pooja', icon: Gift },
   { label: 'Bookings', href: '/profile/bookings', icon: Calendar, requireAuth: true },
   { label: 'Profile', href: '/profile', icon: User, requireAuth: true },
 ];
