@@ -25,7 +25,7 @@ export function AdminMobileNav({ pendingCount = 0 }: AdminMobileNavProps) {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-area-bottom md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-[60] bg-card border-t border-border safe-area-bottom md:hidden pointer-events-auto isolate">
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const isActive = location.pathname === item.href;
@@ -33,7 +33,6 @@ export function AdminMobileNav({ pendingCount = 0 }: AdminMobileNavProps) {
             <Link
               key={item.href}
               to={item.href}
-              onClick={(e) => e.stopPropagation()}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full py-2 transition-colors",
                 isActive 

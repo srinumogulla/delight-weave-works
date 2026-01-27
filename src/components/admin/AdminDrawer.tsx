@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -49,11 +49,20 @@ const sidebarItems = [
 
 export function AdminDrawer({ open, onOpenChange, pendingCount }: AdminDrawerProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { signOut, profile } = useAuth();
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'A';
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    navigate(href);
+    requestAnimationFrame(() => {
+      onOpenChange(false);
+    });
   };
 
   return (
@@ -97,7 +106,7 @@ export function AdminDrawer({ open, onOpenChange, pendingCount }: AdminDrawerPro
               <Link
                 key={item.href}
                 to={item.href}
-                onClick={() => onOpenChange(false)}
+                onClick={(e) => handleNavClick(e, item.href)}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                   isActive 
@@ -121,7 +130,7 @@ export function AdminDrawer({ open, onOpenChange, pendingCount }: AdminDrawerPro
         <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border bg-card space-y-1">
           <Link
             to="/"
-            onClick={() => onOpenChange(false)}
+            onClick={(e) => handleNavClick(e, '/')}
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
           >
             <Home className="h-5 w-5" />
