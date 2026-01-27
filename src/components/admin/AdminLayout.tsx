@@ -71,7 +71,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   // Mobile Layout
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-muted/30 pb-16">
+      <div className="min-h-screen bg-muted/30 pb-20 relative">
         <AdminMobileHeader 
           title={pageTitle} 
           onMenuClick={() => setDrawerOpen(true)}
