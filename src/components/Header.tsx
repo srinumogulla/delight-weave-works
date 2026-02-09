@@ -36,7 +36,7 @@ export function Header() {
   const [expandedMobile, setExpandedMobile] = useState<string | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { user, profile, isAdmin, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
   
@@ -386,7 +386,7 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-2">
                   <User className="h-4 w-4" />
-                  <span>{profile?.full_name || user.email?.split('@')[0]}</span>
+                  <span>{user.full_name || user.email?.split('@')[0]}</span>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>

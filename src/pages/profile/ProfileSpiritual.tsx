@@ -29,7 +29,8 @@ const rashis = [
 ];
 
 const ProfileSpiritual = () => {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, refreshProfile } = useAuth();
+  const profile = user;
   const isMobile = useIsMobile();
   
   const [gotra, setGotra] = useState('');

@@ -118,44 +118,44 @@ const App = () => (
               
               {/* Pundit Routes */}
               <Route path="/pundit" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="guru">
                   <PunditDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/pundit/bookings" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="guru">
                   <PunditBookings />
                 </ProtectedRoute>
               } />
               <Route path="/pundit/profile" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="guru">
                   <PunditProfile />
                 </ProtectedRoute>
               } />
               <Route path="/pundit/earnings" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="guru">
                   <PunditEarnings />
                 </ProtectedRoute>
               } />
               
               {/* Temple Routes */}
               <Route path="/temple" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="temple">
                   <TempleDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/temple/services" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="temple">
                   <TempleServices />
                 </ProtectedRoute>
               } />
               <Route path="/temple/bookings" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="temple">
                   <TempleBookings />
                 </ProtectedRoute>
               } />
               <Route path="/temple/profile" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="temple">
                   <TempleProfile />
                 </ProtectedRoute>
               } />

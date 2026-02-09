@@ -54,7 +54,8 @@ const nakshatras = [
 const Booking = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const profile = user;
   const isMobile = useIsMobile();
 
   const [step, setStep] = useState(1);

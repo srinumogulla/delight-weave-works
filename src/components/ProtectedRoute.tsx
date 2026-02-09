@@ -5,10 +5,11 @@ import { Loader2 } from 'lucide-react';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
+  requireRole?: 'admin' | 'guru' | 'pundit' | 'temple';
 }
 
-const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
-  const { user, isAdmin, loading } = useAuth();
+const ProtectedRoute = ({ children, requireAdmin = false, requireRole }: ProtectedRouteProps) => {
+  const { user, role, isAdmin, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -28,6 +29,15 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
 
   if (requireAdmin && !isAdmin) {
     return <Navigate to="/" replace />;
+  }
+
+  if (requireRole) {
+    // 'pundit' and 'guru' are treated as the same role
+    const normalizedRole = role === 'pundit' ? 'guru' : role;
+    const normalizedRequired = requireRole === 'pundit' ? 'guru' : requireRole;
+    if (normalizedRole !== normalizedRequired && role !== 'admin') {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return <>{children}</>;

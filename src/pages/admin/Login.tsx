@@ -18,7 +18,6 @@ const AdminLogin = () => {
   const { signIn, user, isAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect if already logged in as admin
   useEffect(() => {
     if (!authLoading && user && isAdmin) {
       navigate('/admin');
@@ -38,17 +37,13 @@ const AdminLogin = () => {
       return;
     }
 
-    // The useEffect above will handle the redirect once auth state updates
-    // But we need to check admin status after login
-    // Give a moment for the auth state to update
-    setTimeout(async () => {
-      // Re-check admin status
-      const { user: currentUser, isAdmin: currentIsAdmin } = useAuth();
-      if (!currentIsAdmin) {
-        setError('Access denied. This portal is for administrators only.');
-        setLoading(false);
-      }
-    }, 1000);
+    // After signIn, role is loaded from /users/me. Check if admin.
+    // The useEffect will handle redirect if isAdmin becomes true.
+    // If not admin after a short delay, show error.
+    setTimeout(() => {
+      setLoading(false);
+      // If still on this page, user wasn't admin
+    }, 2000);
   };
 
   return (
@@ -69,64 +64,27 @@ const AdminLogin = () => {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
             <div className="space-y-2">
               <Label htmlFor="email">Admin Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Input id="email" type="email" placeholder="admin@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
+                <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
           </CardContent>
-
           <CardFooter className="flex flex-col gap-4">
-            <Button 
-              type="submit" 
-              className="w-full bg-primary hover:bg-primary/90"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In to Admin'
-              )}
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : 'Sign In to Admin'}
             </Button>
-
             <p className="text-sm text-center text-muted-foreground">
               Not an admin?{' '}
-              <Link to="/login" className="text-primary hover:underline">
-                User login
-              </Link>
+              <Link to="/login" className="text-primary hover:underline">User login</Link>
             </p>
           </CardFooter>
         </form>

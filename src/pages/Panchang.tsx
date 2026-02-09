@@ -46,7 +46,8 @@ const defaultLocation = { lat: 28.6139, lng: 77.209 }; // Delhi
 const Panchang = () => {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const profile = user;
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("today");
   const [location, setLocation] = useState(defaultLocation);

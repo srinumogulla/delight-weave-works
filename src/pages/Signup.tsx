@@ -11,7 +11,6 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileLayout } from '@/components/mobile/MobileLayout';
-import { supabase } from '@/integrations/supabase/client';
 import { TimePickerAMPM } from '@/components/ui/time-picker-ampm';
 import { CityAutocomplete } from '@/components/ui/city-autocomplete';
 
@@ -56,7 +55,6 @@ const Signup = () => {
       return;
     }
 
-    // Validate required fields based on role
     if (selectedRole === 'user') {
       if (!dateOfBirth || !birthLocation || !phone || !gender) {
         setError('Please fill in all required fields including gender');
@@ -71,48 +69,24 @@ const Signup = () => {
 
     setLoading(true);
 
-    const { error: signUpError, data } = await signUp(email, password, fullName);
+    const { error: signUpError } = await signUp({
+      full_name: fullName,
+      email,
+      password,
+      phone,
+      role: selectedRole,
+      date_of_birth: dateOfBirth || undefined,
+      time_of_birth: timeOfBirth || undefined,
+      birth_location: birthLocation || undefined,
+      gender: selectedRole === 'user' ? gender || undefined : undefined,
+    });
     
     if (signUpError) {
       setError(signUpError.message);
       setLoading(false);
     } else {
-      // Insert user role if signup successful
-      if (data?.user?.id) {
-        try {
-          await supabase.from('user_roles').insert({
-            user_id: data.user.id,
-            role: selectedRole
-          });
-
-          // Update profile with additional fields
-          await supabase.from('profiles').update({
-            phone: phone,
-            date_of_birth: dateOfBirth || null,
-            time_of_birth: timeOfBirth || null,
-            birth_location: birthLocation || null,
-            gender: selectedRole === 'user' ? gender : null
-          }).eq('id', data.user.id);
-
-          // If pundit, create pundit record with pending approval status
-          if (selectedRole === 'pundit') {
-            await supabase.from('pundits').insert({
-              user_id: data.user.id,
-              name: fullName,
-              approval_status: 'pending',
-              is_verified: false,
-              is_active: true,
-              specializations: [poojaType === 'dashachara' ? 'Dashachara' : 'Vamachara']
-            });
-          }
-        } catch (roleError) {
-          console.error('Error setting user role:', roleError);
-        }
-      }
-      
       setSuccess(true);
       setLoading(false);
-      // Auto-redirect after showing success
       setTimeout(() => {
         if (selectedRole === 'pundit') {
           navigate('/pundit/profile');
@@ -124,18 +98,8 @@ const Signup = () => {
   };
 
   const roleOptions = [
-    {
-      value: 'user' as UserRole,
-      label: 'Devotee',
-      description: 'Book poojas and track spiritual journey',
-      icon: User
-    },
-    {
-      value: 'pundit' as UserRole,
-      label: 'Pundit',
-      description: 'Offer pooja services and manage bookings',
-      icon: UserCheck
-    }
+    { value: 'user' as UserRole, label: 'Devotee', description: 'Book poojas and track spiritual journey', icon: User },
+    { value: 'pundit' as UserRole, label: 'Pundit', description: 'Offer pooja services and manage bookings', icon: UserCheck },
   ];
 
   const successContent = (
@@ -186,9 +150,7 @@ const Signup = () => {
                     type="button"
                     onClick={() => setSelectedRole(role.value)}
                     className={`p-3 rounded-lg border-2 text-left transition-all ${
-                      selectedRole === role.value
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
+                      selectedRole === role.value ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'
                     }`}
                   >
                     <role.icon className={`h-5 w-5 mb-2 ${selectedRole === role.value ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -201,101 +163,37 @@ const Signup = () => {
 
             <div className="space-y-2">
               <Label htmlFor="fullName">Full Name *</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Your full name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Input id="fullName" type="text" placeholder="Your full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required disabled={loading} />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Input id="email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
             </div>
 
-            {/* Devotee-specific fields */}
             {selectedRole === 'user' && (
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="dateOfBirth" className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      Date of Birth *
-                    </Label>
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={dateOfBirth}
-                      onChange={(e) => setDateOfBirth(e.target.value)}
-                      required
-                      disabled={loading}
-                    />
+                    <Label htmlFor="dateOfBirth" className="flex items-center gap-2"><Calendar className="h-4 w-4 text-primary" />Date of Birth *</Label>
+                    <Input id="dateOfBirth" type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} required disabled={loading} />
                   </div>
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      Time of Birth
-                    </Label>
-                    <TimePickerAMPM
-                      value={timeOfBirth}
-                      onChange={setTimeOfBirth}
-                      disabled={loading}
-                    />
+                    <Label className="flex items-center gap-2">Time of Birth</Label>
+                    <TimePickerAMPM value={timeOfBirth} onChange={setTimeOfBirth} disabled={loading} />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    Birth Location *
-                  </Label>
-                  <CityAutocomplete
-                    value={birthLocation}
-                    onChange={(value) => setBirthLocation(value)}
-                    placeholder="City, State, Country"
-                    disabled={loading}
-                  />
+                  <Label className="flex items-center gap-2"><MapPin className="h-4 w-4 text-primary" />Birth Location *</Label>
+                  <CityAutocomplete value={birthLocation} onChange={(value) => setBirthLocation(value)} placeholder="City, State, Country" disabled={loading} />
                 </div>
-                
-                {/* Gender Selection */}
                 <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-primary" />
-                    Gender *
-                  </Label>
+                  <Label className="flex items-center gap-2"><User className="h-4 w-4 text-primary" />Gender *</Label>
                   <div className="grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setGender('male')}
-                      disabled={loading}
-                      className={`p-3 rounded-lg border-2 transition-all ${
-                        gender === 'male' 
-                          ? 'border-primary bg-primary/10' 
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
+                    <button type="button" onClick={() => setGender('male')} disabled={loading} className={`p-3 rounded-lg border-2 transition-all ${gender === 'male' ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
                       <span className="font-medium text-sm">Male</span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setGender('female')}
-                      disabled={loading}
-                      className={`p-3 rounded-lg border-2 transition-all ${
-                        gender === 'female' 
-                          ? 'border-primary bg-primary/10' 
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
+                    <button type="button" onClick={() => setGender('female')} disabled={loading} className={`p-3 rounded-lg border-2 transition-all ${gender === 'female' ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
                       <span className="font-medium text-sm">Female</span>
                     </button>
                   </div>
@@ -303,51 +201,20 @@ const Signup = () => {
               </>
             )}
 
-            {/* Mobile Number - for both */}
             <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="h-4 w-4 text-primary" />
-                Mobile Number *
-              </Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="+91 XXXXX XXXXX"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4 text-primary" />Mobile Number *</Label>
+              <Input id="phone" type="tel" placeholder="+91 XXXXX XXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} required disabled={loading} />
             </div>
 
-            {/* Pundit-specific fields */}
             {selectedRole === 'pundit' && (
               <div className="space-y-2">
                 <Label>Type of Pooja *</Label>
                 <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPoojaType('dashachara')}
-                    disabled={loading}
-                    className={`p-3 rounded-lg border-2 text-left transition-all ${
-                      poojaType === 'dashachara'
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
+                  <button type="button" onClick={() => setPoojaType('dashachara')} disabled={loading} className={`p-3 rounded-lg border-2 text-left transition-all ${poojaType === 'dashachara' ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
                     <span className="font-medium text-sm">Dashachara</span>
                     <p className="text-xs text-muted-foreground mt-1">Traditional Vedic rituals</p>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setPoojaType('vamachara')}
-                    disabled={loading}
-                    className={`p-3 rounded-lg border-2 text-left transition-all ${
-                      poojaType === 'vamachara'
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
+                  <button type="button" onClick={() => setPoojaType('vamachara')} disabled={loading} className={`p-3 rounded-lg border-2 text-left transition-all ${poojaType === 'vamachara' ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50'}`}>
                     <span className="font-medium text-sm">Vamachara</span>
                     <p className="text-xs text-muted-foreground mt-1">Tantric practices</p>
                   </button>
@@ -358,21 +225,8 @@ const Signup = () => {
             <div className="space-y-2">
               <Label htmlFor="password">Password *</Label>
               <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                  minLength={6}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
+                <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} minLength={6} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -380,39 +234,17 @@ const Signup = () => {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password *</Label>
-              <Input
-                id="confirmPassword"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Input id="confirmPassword" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required disabled={loading} />
             </div>
           </CardContent>
 
           <CardFooter className="flex flex-col gap-4">
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-saffron to-gold text-temple-dark hover:from-saffron/90 hover:to-gold/90"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                `Create ${selectedRole === 'pundit' ? 'Pundit' : ''} Account`
-              )}
+            <Button type="submit" className="w-full bg-gradient-to-r from-saffron to-gold text-temple-dark hover:from-saffron/90 hover:to-gold/90" disabled={loading}>
+              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Creating account...</> : `Create ${selectedRole === 'pundit' ? 'Pundit ' : ''}Account`}
             </Button>
-
             <p className="text-sm text-center text-muted-foreground">
               Already have an account?{' '}
-              <Link to="/login" className="text-saffron hover:underline">
-                Sign in
-              </Link>
+              <Link to="/login" className="text-saffron hover:underline">Sign in</Link>
             </p>
           </CardFooter>
         </form>

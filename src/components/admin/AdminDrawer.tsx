@@ -50,7 +50,7 @@ const sidebarItems = [
 export function AdminDrawer({ open, onOpenChange, pendingCount }: AdminDrawerProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut, profile } = useAuth();
+  const { signOut, user: profile } = useAuth();
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return 'A';

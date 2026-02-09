@@ -81,7 +81,8 @@ interface KundaliData {
 }
 
 export default function Kundali() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const profile = user;
   const { toast } = useToast();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
