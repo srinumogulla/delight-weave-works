@@ -214,7 +214,7 @@ export default function Remedies() {
   const { t } = useLanguage();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { user: profile } = useAuth();
 
   // Form state
   const [name, setName] = useState("");

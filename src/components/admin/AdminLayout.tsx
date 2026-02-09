@@ -46,7 +46,7 @@ const sidebarItems = [
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
-  const { signOut, profile } = useAuth();
+  const { signOut, user: profile } = useAuth();
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
 

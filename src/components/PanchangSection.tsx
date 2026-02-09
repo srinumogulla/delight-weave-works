@@ -56,7 +56,7 @@ export function PanchangSection() {
   const [panchangData, setPanchangData] = useState<PanchangData | null>(null);
   const [isLoadingPanchang, setIsLoadingPanchang] = useState(true);
   const { toast } = useToast();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
 
   // Fetch real panchang data on mount
   useEffect(() => {
@@ -135,16 +135,16 @@ export function PanchangSection() {
 
   // Auto-fill from profile if logged in
   useEffect(() => {
-    if (profile) {
-      setDoshaName(profile.full_name || "");
+    if (user) {
+      setDoshaName(user.full_name || "");
       setDoshaFormData({
-        dateOfBirth: profile.date_of_birth || "",
-        timeOfBirth: profile.time_of_birth || "",
-        birthLocation: profile.birth_location || "",
-        gender: profile.gender || ""
+        dateOfBirth: user.date_of_birth || "",
+        timeOfBirth: user.time_of_birth || "",
+        birthLocation: user.birth_location || "",
+        gender: user.gender || ""
       });
     }
-  }, [profile]);
+  }, [user]);
 
   const handleCheckDosha = () => {
     if (!doshaName.trim()) {
