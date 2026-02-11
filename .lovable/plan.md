@@ -1,107 +1,68 @@
 
-# Continue API Migration -- Admin Panel + Public Pages + Profile
 
-## What's Already Done
-- API client foundation (all vedhaApi service files)
-- Authentication system (AuthProvider, Login, Signup)
-- Role-based routing (ProtectedRoute, App.tsx)
-- Pundit portal pages (Dashboard, Bookings, Earnings, Profile)
-- Temple portal pages (Dashboard, Services, Profile, Bookings)
-- Notification and LiveStream hooks
+# Fix Login 422 Error -- Form-Encoded Auth Request
 
-## What Still Needs Migration
+## Root Cause
 
-### Part A: Admin Panel Pages (6 files)
+The FastAPI backend's `/auth/login` endpoint uses `OAuth2PasswordRequestForm`, which requires:
+- **Content-Type**: `application/x-www-form-urlencoded`
+- **Fields**: `username` (not `email`) and `password`
 
-#### 1. Admin Dashboard (`src/pages/admin/Dashboard.tsx`)
-- Replace all `supabase.from(...)` queries with `getAdminAnalytics()` from vedhaApi
-- Stats will come from `GET /jambalakadipamba/analytics/overview`
-- Recent bookings from admin transactions endpoint
-- Booking trend from `GET /jambalakadipamba/analytics/revenue`
-- Remove `supabase` import entirely
+The frontend currently sends:
+- **Content-Type**: `application/json`
+- **Body**: `{"email": "...", "password": "..."}`
 
-#### 2. Admin Users (`src/pages/admin/Users.tsx`)
-- Replace `supabase.from('profiles')` with `getAdminUsers()` from vedhaApi
-- Remove role management via Supabase -- use admin API endpoints
-- Remove `toggleUserDisabled` Supabase call -- use admin API
-- Keep the existing table/card UI, just swap data source
+This mismatch causes the 422 Unprocessable Entity error.
 
-#### 3. Admin Bookings (`src/pages/admin/Bookings.tsx`)
-- Replace `supabase.from('bookings')` with `getAdminTransactions()` from vedhaApi
-- Replace `updateBookingStatus` and `assignPundit` with admin API calls
-- Remove verified pundits query from Supabase
+## Fix
 
-#### 4. Admin Services (`src/pages/admin/Services.tsx`)
-- Replace `supabase.from('pooja_services')` with `getAdminPoojas()` / `createAdminPooja()` / `updateAdminPooja()` / `deleteAdminPooja()` from vedhaApi
-- Image upload via admin API endpoint
-- Remove `supabase` import
+### 1. Add a form-post helper to `src/integrations/vedhaApi/client.ts`
 
-#### 5. Admin Temples (`src/pages/admin/Temples.tsx`)
-- Replace `supabase.from('temples')` with `getAdminTemples()` / `createAdminTemple()` / `updateAdminTemple()` / `deleteAdminTemple()` from vedhaApi
-- Remove `supabase` import
+Add a new `apiPostForm` function that sends `application/x-www-form-urlencoded` data instead of JSON:
 
-#### 6. Admin Reports (`src/pages/admin/Reports.tsx`)
-- Replace all `supabase` analytics queries with `getAdminAnalyticsRevenue()` and `getAdminAnalyticsUsers()` from vedhaApi
-- Remove `supabase` import
+```typescript
+export function apiPostForm<T = any>(path: string, data: Record<string, string>): Promise<T> {
+  const body = new URLSearchParams(data).toString();
+  return request<T>(path, {
+    method: 'POST',
+    body,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  });
+}
+```
 
-### Part B: Public Pages (3 files)
+### 2. Update `src/integrations/vedhaApi/auth.ts`
 
-#### 7. Services Page (`src/pages/Services.tsx`)
-- Replace hardcoded `servicesData` array with `useQuery` calling `listPoojas()` from vedhaApi
-- Map API response fields to existing `Service` type
-- Show loading skeletons while fetching
-- Keep existing filter/sort UI, just change data source
+Change the `login` function to use form-encoded data with `username` field:
 
-#### 8. Pooja Details (`src/pages/PoojaDetails.tsx`)
-- Replace `supabase.from('pooja_services')` with a single pooja fetch from vedhaApi (e.g., `listPoojas()` filtered by ID, or a dedicated endpoint if available)
-- Remove `supabase` import
+```typescript
+import { apiPost, apiPostForm } from './client';
 
-#### 9. Gift Pooja (`src/pages/GiftPooja.tsx`)
-- Replace `supabase` calls with `getGiftsOverview()`, `getGiftOccasions()`, and `presignGiftUpload()` from vedhaApi
-- Remove `supabase` import
+export const login = (data: LoginPayload) =>
+  apiPostForm<AuthResponse>('/auth/login', {
+    username: data.email,
+    password: data.password,
+  });
+```
 
-### Part C: Profile Page (1 file)
+The `signup`, `sendMobileCode`, and `verifyMobileCode` functions remain unchanged (they use JSON as expected by their Pydantic schemas).
 
-#### 10. Profile Bookings (`src/pages/profile/ProfileBookings.tsx`)
-- Replace `supabase.from('bookings')` with `getMyTransactions()` from vedhaApi
-- Remove `supabase` import
+### 3. Improve 422 error handling in `src/integrations/vedhaApi/client.ts`
 
-### Part D: Admin Layout (`src/components/admin/AdminLayout.tsx`)
-- Replace pending approvals count query (currently `supabase.from('pundits')`) with an admin API call
-- Remove `supabase` import
+Show the actual validation error detail from FastAPI instead of the generic message. FastAPI returns structured validation errors like:
+```json
+{"detail": [{"loc": ["body", "username"], "msg": "field required", "type": "value_error.missing"}]}
+```
 
----
+Update the 422 handler to parse and display these details.
 
-## Technical Approach
-
-For each file, the pattern is the same:
-1. Remove `import { supabase } from '@/integrations/supabase/client'`
-2. Add `import { relevantFunction } from '@/integrations/vedhaApi'`
-3. Replace `supabase.from('table').select(...)` with `useQuery({ queryFn: () => apiFunction() })`
-4. Replace mutations (insert/update/delete) with `useMutation({ mutationFn: () => apiFunction() })`
-5. Keep all existing UI components and layouts unchanged
-
-## Files Changed (11 total)
+## Files Changed (2)
 
 | File | Change |
 |------|--------|
-| `src/pages/admin/Dashboard.tsx` | Replace Supabase queries with admin analytics API |
-| `src/pages/admin/Users.tsx` | Replace Supabase queries with admin users API |
-| `src/pages/admin/Bookings.tsx` | Replace Supabase queries with admin transactions API |
-| `src/pages/admin/Services.tsx` | Replace Supabase queries with admin poojas API |
-| `src/pages/admin/Temples.tsx` | Replace Supabase queries with admin temples API |
-| `src/pages/admin/Reports.tsx` | Replace Supabase queries with admin analytics API |
-| `src/pages/Services.tsx` | Replace hardcoded data with listPoojas() API call |
-| `src/pages/PoojaDetails.tsx` | Replace Supabase query with vedhaApi call |
-| `src/pages/GiftPooja.tsx` | Replace Supabase queries with gifts API |
-| `src/pages/profile/ProfileBookings.tsx` | Replace Supabase query with getMyTransactions() |
-| `src/components/admin/AdminLayout.tsx` | Replace pending count Supabase query with admin API |
+| `src/integrations/vedhaApi/client.ts` | Add `apiPostForm` helper; improve 422 error parsing |
+| `src/integrations/vedhaApi/auth.ts` | Use `apiPostForm` for login with `username` field |
 
-## Implementation Order
-1. Admin Layout (pending count fix)
-2. Admin Dashboard
-3. Admin Users, Bookings, Services, Temples, Reports (in parallel)
-4. Public Services page
-5. Pooja Details
-6. Gift Pooja
-7. Profile Bookings
+## Why This Works
+
+FastAPI's `OAuth2PasswordRequestForm` is the standard way to handle login in FastAPI. It requires form-encoded data with `username` + `password` per the OAuth2 spec. The `username` field receives the email address -- this is standard practice since OAuth2 uses "username" generically.
