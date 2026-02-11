@@ -32,7 +32,17 @@ async function handleResponse<T>(response: Response): Promise<T> {
     if (response.status === 403) {
       errorMessage = 'Access denied. You do not have permission.';
     } else if (response.status === 422) {
-      errorMessage = 'Validation error. Please check your input.';
+      // Try to extract FastAPI validation details
+      try {
+        const detail = JSON.parse(errorMessage);
+        if (Array.isArray(detail)) {
+          errorMessage = detail.map((e: any) => e.msg || JSON.stringify(e)).join('; ');
+        }
+      } catch {
+        if (errorMessage === `Request failed (${response.status})`) {
+          errorMessage = 'Validation error. Please check your input.';
+        }
+      }
     } else if (response.status >= 500) {
       errorMessage = 'Server error. Please try again later.';
     }
@@ -105,6 +115,15 @@ export function apiPatch<T = any>(path: string, body?: any): Promise<T> {
 
 export function apiDelete<T = any>(path: string): Promise<T> {
   return request<T>(path, { method: 'DELETE' });
+}
+
+export function apiPostForm<T = any>(path: string, data: Record<string, string>): Promise<T> {
+  const body = new URLSearchParams(data).toString();
+  return request<T>(path, {
+    method: 'POST',
+    body,
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  });
 }
 
 export async function apiUpload<T = any>(path: string, file: File, fieldName = 'file'): Promise<T> {
