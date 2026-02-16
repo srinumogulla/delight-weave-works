@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { listPoojas } from "@/integrations/vedhaApi/poojas";
-import type { ApiPooja } from "@/integrations/vedhaApi/types";
+import { listPoojas } from "@/api/poojas";
+import type { ApiPooja } from "@/api/types";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WhatsAppButton } from "@/components/WhatsAppButton";

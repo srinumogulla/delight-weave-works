@@ -4,7 +4,7 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getAdminAnalytics, getAdminAnalyticsRevenue, getAdminTransactions } from '@/integrations/vedhaApi/admin';
+import { getAdminAnalytics, getAdminAnalyticsRevenue, getAdminTransactions } from '@/api/admin';
 import { 
   Calendar, Users, BookOpen, TrendingUp, IndianRupee, Gift, Building2, UserCheck,
   ArrowRight, Clock, CheckCircle, AlertCircle

@@ -18,9 +18,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/auth/AuthProvider';
 import { cn } from '@/lib/utils';
-import { apiGet } from '@/integrations/vedhaApi/client';
+import { apiGet } from '@/api/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AdminMobileNav } from './AdminMobileNav';
 import { AdminMobileHeader } from './AdminMobileHeader';

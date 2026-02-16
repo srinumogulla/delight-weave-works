@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/components/AuthProvider';
-import { getMyGuruProfile, getGuruAnalytics, getGuruEarnings } from '@/integrations/vedhaApi/gurus';
+import { getMyGuruProfile, getGuruAnalytics, getGuruEarnings } from '@/api/gurus';
 import { PunditLayout } from '@/components/pundit/PunditLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

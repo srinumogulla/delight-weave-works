@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getAdminUsers } from '@/integrations/vedhaApi/admin';
-import { apiPut } from '@/integrations/vedhaApi/client';
+import { getAdminUsers } from '@/api/admin';
+import { apiPut } from '@/api/client';
 import { Search, Eye, UserCog } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {

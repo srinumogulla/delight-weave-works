@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/components/AuthProvider';
-import { getMyGuruProfile, createGuruProfile } from '@/integrations/vedhaApi/gurus';
-import { apiPut } from '@/integrations/vedhaApi/client';
+import { getMyGuruProfile, createGuruProfile } from '@/api/gurus';
+import { apiPut } from '@/api/client';
 import { PunditLayout } from '@/components/pundit/PunditLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

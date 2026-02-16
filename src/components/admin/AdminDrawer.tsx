@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/auth/AuthProvider';
 import { cn } from '@/lib/utils';
 import {
   Sheet,

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/components/AuthProvider';
-import { apiGet, apiPut } from '@/integrations/vedhaApi/client';
+import { apiGet, apiPut } from '@/api/client';
 import { PunditLayout } from '@/components/pundit/PunditLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

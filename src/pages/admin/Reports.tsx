@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { getAdminAnalyticsRevenue, getAdminAnalyticsUsers, getAdminAnalytics } from '@/integrations/vedhaApi/admin';
+import { getAdminAnalyticsRevenue, getAdminAnalyticsUsers, getAdminAnalytics } from '@/api/admin';
 import { useToast } from '@/hooks/use-toast';
 import { BarChart3, Download, Calendar, IndianRupee, Users, TrendingUp, Loader2, Gift } from 'lucide-react';
 import { format, startOfMonth, endOfMonth } from 'date-fns';

@@ -5,8 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { getAdminTransactions } from '@/integrations/vedhaApi/admin';
-import { apiPut, apiGet } from '@/integrations/vedhaApi/client';
+import { getAdminTransactions } from '@/api/admin';
+import { apiPut, apiGet } from '@/api/client';
 import { Search, Check, X, Eye, Calendar as CalendarIcon, List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
