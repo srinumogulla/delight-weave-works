@@ -12,8 +12,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getAdminTemples, createAdminTemple, updateAdminTemple, deleteAdminTemple } from "@/integrations/vedhaApi/admin";
-import type { ApiTemple } from "@/integrations/vedhaApi/types";
+import { getAdminTemples, createAdminTemple, updateAdminTemple, deleteAdminTemple } from "@/api/admin";
+import type { ApiTemple } from "@/api/types";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Search, Building2, Loader2, MapPin } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";

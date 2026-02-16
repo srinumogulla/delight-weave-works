@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/components/AuthProvider';
-import { apiGet } from '@/integrations/vedhaApi/client';
+import { apiGet } from '@/api/client';
 import { TempleLayout } from '@/components/temple/TempleLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

@@ -1,15 +1,15 @@
-import { Header } from "@/components/Header";
-import { HeroSection } from "@/components/HeroSection";
-import { FeaturesSection } from "@/components/FeaturesSection";
-import { PanchangSection } from "@/components/PanchangSection";
-import { UpcomingRituals } from "@/components/UpcomingRituals";
-import { HowItWorks } from "@/components/HowItWorks";
-import { WhyOnlinePooja } from "@/components/WhyOnlinePooja";
-import { Testimonials } from "@/components/Testimonials";
-import { FAQ } from "@/components/FAQ";
-import { Footer } from "@/components/Footer";
+import { Header } from "@/components/layout/Header";
+import { HeroSection } from "@/components/home/HeroSection";
+import { FeaturesSection } from "@/components/home/FeaturesSection";
+import { PanchangSection } from "@/components/panchang/PanchangSection";
+import { UpcomingRituals } from "@/components/home/UpcomingRituals";
+import { HowItWorks } from "@/components/home/HowItWorks";
+import { WhyOnlinePooja } from "@/components/home/WhyOnlinePooja";
+import { Testimonials } from "@/components/home/Testimonials";
+import { FAQ } from "@/components/home/FAQ";
+import { Footer } from "@/components/layout/Footer";
 import { MobileLayout } from "@/components/mobile/MobileLayout";
-import { TempleGateIntro } from "@/components/TempleGateIntro";
+import { TempleGateIntro } from "@/components/home/TempleGateIntro";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {

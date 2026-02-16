@@ -69,31 +69,35 @@ const Signup = () => {
 
     setLoading(true);
 
-    const { error: signUpError } = await signUp({
-      full_name: fullName,
-      email,
-      password,
-      phone,
-      role: selectedRole,
-      date_of_birth: dateOfBirth || undefined,
-      time_of_birth: timeOfBirth || undefined,
-      birth_location: birthLocation || undefined,
-      gender: selectedRole === 'user' ? gender || undefined : undefined,
-    });
-    
-    if (signUpError) {
-      setError(signUpError.message);
+    try {
+      const { error: signUpError } = await signUp({
+        full_name: fullName,
+        email,
+        password,
+        phone,
+        role: selectedRole,
+        date_of_birth: dateOfBirth || undefined,
+        time_of_birth: timeOfBirth || undefined,
+        birth_place_name: birthLocation || undefined,
+        gender: selectedRole === 'user' ? gender || undefined : undefined,
+      });
+      
+      if (signUpError) {
+        setError(signUpError.message);
+      } else {
+        setSuccess(true);
+        setTimeout(() => {
+          if (selectedRole === 'pundit') {
+            navigate('/pundit/profile');
+          } else {
+            navigate('/');
+          }
+        }, 2000);
+      }
+    } catch (err: any) {
+      setError(err?.message || 'An unexpected error occurred. Please try again.');
+    } finally {
       setLoading(false);
-    } else {
-      setSuccess(true);
-      setLoading(false);
-      setTimeout(() => {
-        if (selectedRole === 'pundit') {
-          navigate('/pundit/profile');
-        } else {
-          navigate('/');
-        }
-      }, 2000);
     }
   };
 

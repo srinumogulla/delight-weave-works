@@ -15,8 +15,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Search } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { listPoojas } from "@/integrations/vedhaApi/poojas";
-import type { ApiPooja } from "@/integrations/vedhaApi/types";
+import { listPoojas } from "@/api/poojas";
+import type { ApiPooja } from "@/api/types";
 
 // Import ritual images as fallbacks
 import ritualHomam from "@/assets/ritual-homam.jpg";

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getNotifications, getUnreadCount, markRead, markAllRead } from '@/integrations/vedhaApi/notifications';
+import { getNotifications, getUnreadCount, markRead, markAllRead } from '@/api/notifications';
 
 export function useNotifications() {
   return useQuery({

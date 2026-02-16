@@ -7,9 +7,9 @@ import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/AuthProvider";
-import { listPoojas } from "@/integrations/vedhaApi/poojas";
-import type { ApiPooja } from "@/integrations/vedhaApi/types";
-import { createTransaction } from "@/integrations/vedhaApi/transactions";
+import { listPoojas } from "@/api/poojas";
+import type { ApiPooja } from "@/api/types";
+import { createTransaction } from "@/api/transactions";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Gift, Heart, Cake, Star, Leaf, ArrowRight, ArrowLeft, Phone, Video, Package, Building2, 

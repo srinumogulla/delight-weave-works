@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Bell, Menu, X, ChevronDown, Sun, Building2, UserCheck, Gift, Phone, Users, BookOpen, Heart, Search, Loader2, Calendar, Star, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { useAuth } from '@/components/AuthProvider';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { useAuth } from '@/auth/AuthProvider';
 import { useSearch } from '@/hooks/useSearch';
 import { cn } from '@/lib/utils';
 import {

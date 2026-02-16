@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/components/AuthProvider';
-import { getGuruEarnings } from '@/integrations/vedhaApi/gurus';
+import { getGuruEarnings } from '@/api/gurus';
 import { PunditLayout } from '@/components/pundit/PunditLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { IndianRupee, TrendingUp, Calendar, Download, Loader2 } from 'lucide-react';

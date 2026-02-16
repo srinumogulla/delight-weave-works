@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { startStream, stopStream, getMyStreams } from '@/integrations/vedhaApi/livestream';
+import { startStream, stopStream, getMyStreams } from '@/api/livestream';
 
 export function useStartStream() {
   const queryClient = useQueryClient();

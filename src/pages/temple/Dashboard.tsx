@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/components/AuthProvider';
-import { getTempleAnalytics } from '@/integrations/vedhaApi/temples';
+import { getTempleAnalytics } from '@/api/temples';
 import { TempleLayout } from '@/components/temple/TempleLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, IndianRupee, BookOpen, Loader2 } from 'lucide-react';

@@ -7,7 +7,7 @@ export interface SignupPayload {
   role?: string;
   date_of_birth?: string;
   time_of_birth?: string;
-  birth_location?: string;
+  birth_place_name?: string;
   gender?: string;
 }
 
