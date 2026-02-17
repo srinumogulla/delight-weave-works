@@ -24,25 +24,23 @@ async function handleResponse<T>(response: Response): Promise<T> {
     let errorMessage = `Request failed (${response.status})`;
     try {
       const errorData = await response.json();
-      errorMessage = errorData.detail || errorData.message || errorMessage;
+      const detail = errorData.detail;
+      if (Array.isArray(detail)) {
+        // FastAPI validation errors: array of {msg, type, loc, ...}
+        errorMessage = detail.map((e: any) => (typeof e === 'string' ? e : e.msg || JSON.stringify(e))).join('; ');
+      } else if (typeof detail === 'string') {
+        errorMessage = detail;
+      } else if (typeof detail === 'object' && detail !== null) {
+        errorMessage = JSON.stringify(detail);
+      } else if (errorData.message) {
+        errorMessage = String(errorData.message);
+      }
     } catch {
       // ignore parse errors
     }
 
     if (response.status === 403) {
       errorMessage = 'Access denied. You do not have permission.';
-    } else if (response.status === 422) {
-      // Try to extract FastAPI validation details
-      try {
-        const detail = JSON.parse(errorMessage);
-        if (Array.isArray(detail)) {
-          errorMessage = detail.map((e: any) => e.msg || JSON.stringify(e)).join('; ');
-        }
-      } catch {
-        if (errorMessage === `Request failed (${response.status})`) {
-          errorMessage = 'Validation error. Please check your input.';
-        }
-      }
     } else if (response.status >= 500) {
       errorMessage = 'Server error. Please try again later.';
     }
