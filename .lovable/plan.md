@@ -1,170 +1,43 @@
 
 
-# Fix Admin Mobile Navigation Issues
+# Fix Signup Crash: 3 Issues Found
 
-## Problem Analysis
+## Issue 1: React Error #31 (White Screen Crash)
 
-After thorough investigation, I've identified the root causes of the admin mobile navigation problems:
+**Root Cause**: In `src/api/client.ts` line 27, when the API returns a 422 error, `errorData.detail` is an **array of objects** (FastAPI validation format). This array gets assigned to `errorMessage`. Then on line 51, `toast({ description: errorMessage })` tries to render this array as a React child, causing React Error #31 ("Objects are not valid as a React child - object with keys {type, loc, msg, input, url}").
 
-### Issue 1: Bottom Menu Clicks Opening Drawer / Not Working
-The `Sheet` component from Radix UI (`AdminDrawer`) creates an invisible overlay that persists or has a high z-index. When the user opens the drawer once and closes it, residual overlay elements or incorrect z-index stacking causes clicks on the bottom nav to be intercepted.
+**Fix**: In `src/api/client.ts`, ensure `errorMessage` is always converted to a string before being used. Specifically, handle the case where `errorData.detail` is an array immediately when it's read (line 27), rather than trying to re-parse it later.
 
-**Root Cause:** The `AdminMobileNav` has `z-50`, but the `Sheet` overlay also uses `z-50`. When the drawer closes, there may be a timing issue or the overlay's click handler fires before the link navigation.
+## Issue 2: CORS Block on Nominatim API
 
-### Issue 2: Hamburger Menu Items Not Navigating
-The drawer links call `onClick={() => onOpenChange(false)}` which closes the drawer, but on some devices/browsers, closing the sheet before navigation completes can cancel the navigation.
+**Root Cause**: The published domain (`delight-weave-works.lovable.app`) is blocked by Nominatim's CORS policy. The city autocomplete directly calls `nominatim.openstreetmap.org`, which doesn't include Lovable domains in its `Access-Control-Allow-Origin` header.
 
-**Root Cause:** The `Link` component's navigation happens asynchronously, and calling `onOpenChange(false)` synchronously may close the sheet portal before React Router completes its navigation cycle.
+**Fix**: Create a backend function (`geocode-proxy`) that proxies requests to Nominatim server-side (no CORS issues). Update `CityAutocomplete` to call this proxy instead of Nominatim directly.
 
-### Issue 3: Bottom Menu Missing on Some Pages
-All admin pages use `AdminLayout` which renders `AdminMobileNav` at line 88. If any admin page fails to wrap content in `AdminLayout`, or if there's a CSS issue hiding the nav, it will appear missing.
+## Issue 3: 422 Validation Error from Backend
 
-**Root Cause:** Likely a CSS z-index or positioning issue where the nav is rendered but obscured by content.
+**Root Cause**: The backend is rejecting the signup payload. This could be due to field format issues (e.g., phone format, date format). The error details are hidden because of Issue 1 (the error object crashes React instead of displaying). Once Issue 1 is fixed, the actual validation message will be visible.
 
----
-
-## Solution Plan
-
-### Phase 1: Fix AdminMobileNav Z-Index and Pointer Events
-**File:** `src/components/admin/AdminMobileNav.tsx`
-
-1. Increase z-index to `z-[60]` (higher than Sheet's z-50)
-2. Add `pointer-events-auto` to ensure clicks are captured
-3. Add `position: relative` with explicit stacking context
-
-```tsx
-// Line 28: Update nav className
-<nav className="fixed bottom-0 left-0 right-0 z-[60] bg-card border-t border-border safe-area-bottom md:hidden pointer-events-auto">
-```
-
-### Phase 2: Fix AdminDrawer Navigation Timing
-**File:** `src/components/admin/AdminDrawer.tsx`
-
-The problem is that closing the sheet before navigation can prevent navigation. The fix is to use `useNavigate` and handle navigation programmatically after a small delay, OR let the navigation happen first.
-
-1. Import `useNavigate` from react-router-dom
-2. Create a `handleNavigation` function that navigates first, then closes the drawer
-3. Use `setTimeout` with 0ms to ensure navigation starts before sheet closes
-
-```tsx
-// Add at component level
-const navigate = useNavigate();
-
-const handleNavigation = (href: string) => {
-  // Navigate first
-  navigate(href);
-  // Then close drawer after navigation initiates
-  setTimeout(() => {
-    onOpenChange(false);
-  }, 0);
-};
-
-// Update Link onClick
-<Link
-  key={item.href}
-  to={item.href}
-  onClick={(e) => {
-    e.preventDefault();
-    handleNavigation(item.href);
-  }}
-  ...
->
-```
-
-### Phase 3: Fix Sheet Overlay Z-Index Competition
-**File:** `src/components/ui/sheet.tsx`
-
-The Sheet overlay uses `z-50`, which competes with the bottom nav. We should NOT modify the Sheet component directly as it's a shared UI component. Instead, we'll ensure the bottom nav is always above by using a higher z-index.
-
-No changes needed here - Phase 1 handles this.
-
-### Phase 4: Ensure Bottom Nav Visibility
-**File:** `src/components/admin/AdminLayout.tsx`
-
-Add explicit styling to ensure the bottom nav container doesn't get obscured:
-
-1. Add `relative` to the main container
-2. Ensure proper padding at bottom for safe area
-
-```tsx
-// Line 74: Update wrapper div
-<div className="min-h-screen bg-muted/30 pb-20 relative">
-```
+**Fix**: No separate fix needed -- fixing Issue 1 will surface the actual error message to the user.
 
 ---
 
-## Technical Implementation Details
+## Implementation Details
 
-### AdminMobileNav.tsx Changes
-```tsx
-// Before
-<nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border safe-area-bottom md:hidden">
+### File 1: `src/api/client.ts`
+- Lines 23-52: Rewrite the error handling block to immediately check if `errorData.detail` is an array (FastAPI validation errors) and convert it to a readable string
+- Ensure `errorMessage` is **always a string** before passing to `toast()` and `throw new Error()`
 
-// After
-<nav className="fixed bottom-0 left-0 right-0 z-[60] bg-card border-t border-border safe-area-bottom md:hidden pointer-events-auto isolate">
-```
+### File 2: `supabase/functions/geocode-proxy/index.ts` (new)
+- Create edge function that proxies geocoding requests to Nominatim
+- Accept `q` query parameter, forward to Nominatim, return results
+- Include proper CORS headers
 
-The `isolate` CSS property creates a new stacking context, ensuring our z-index is evaluated independently.
+### File 3: `src/components/ui/city-autocomplete.tsx`
+- Replace direct Nominatim API call with call to the new `geocode-proxy` edge function
+- Use the Supabase client URL to construct the proxy URL
 
-### AdminDrawer.tsx Changes
-```tsx
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-
-// Inside component:
-const navigate = useNavigate();
-
-const handleNavClick = (e: React.MouseEvent, href: string) => {
-  e.preventDefault();
-  navigate(href);
-  // Close drawer after navigation starts
-  requestAnimationFrame(() => {
-    onOpenChange(false);
-  });
-};
-
-// Update all navigation links:
-<Link
-  key={item.href}
-  to={item.href}
-  onClick={(e) => handleNavClick(e, item.href)}
-  className={...}
->
-```
-
-Using `requestAnimationFrame` ensures the navigation state update happens before the drawer closes, preventing any race conditions.
-
-### AdminLayout.tsx Changes
-```tsx
-// Line 74: Increase bottom padding to ensure content doesn't overlap nav
-<div className="min-h-screen bg-muted/30 pb-20 relative">
-```
-
----
-
-## Summary of File Changes
-
-| File | Change |
-|------|--------|
-| `src/components/admin/AdminMobileNav.tsx` | Increase z-index to z-[60], add isolate and pointer-events-auto |
-| `src/components/admin/AdminDrawer.tsx` | Add useNavigate, create handleNavClick function that navigates before closing drawer |
-| `src/components/admin/AdminLayout.tsx` | Increase bottom padding to pb-20 for proper spacing |
-
----
-
-## Additional Enhancements (Already Requested)
-
-The plan also includes the previously approved enhancements:
-1. **Pundit Dashboard real stats** - Already implemented with real booking queries
-2. **Reports page real data** - Already connected to actual database queries
-3. **Gift Pooja in main mobile nav** - Already added between Panchang and Bookings
-
----
-
-## Testing Checklist
-
-After implementation:
-1. On mobile, tap each bottom nav item - should navigate directly
-2. Open hamburger menu, tap each item - should navigate and close drawer
-3. Navigate between multiple admin pages - bottom nav should always be visible
-4. Rapidly open/close drawer - navigation should remain functional
+### Unchanged Files
+- `src/pages/Signup.tsx` -- already has correct field mapping and error handling
+- `src/auth/AuthProvider.tsx` -- already catches errors properly
 

@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/AuthProvider';
-import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff, Phone } from 'lucide-react';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileLayout } from '@/components/mobile/MobileLayout';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -19,47 +19,69 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Mobile OTP state
+  const [phone, setPhone] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
   
-  const { signIn } = useAuth();
+  const { signIn, sendMobileCode, signInWithMobile, role } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const redirectByRole = (userRole: string | null) => {
+    if (userRole === 'admin') navigate('/admin', { replace: true });
+    else if (userRole === 'guru' || userRole === 'pundit') navigate('/pundit', { replace: true });
+    else if (userRole === 'temple') navigate('/temple', { replace: true });
+    else navigate(from, { replace: true });
+  };
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    const { error, data } = await signIn(email, password);
-    
+    const { error } = await signIn(email, password);
     if (error) {
       setError(error.message);
       setLoading(false);
       return;
     }
+    setLoading(false);
+    // Role is now set in context after signIn
+    // Small delay to allow state update
+    setTimeout(() => {
+      const currentRole = localStorage.getItem('access_token') ? role : null;
+      redirectByRole(currentRole);
+    }, 100);
+  };
 
-    // Check if user is admin - if so, redirect them to admin login
-    if (data?.user) {
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-
-      if (roleData) {
-        // User is admin - sign them out and redirect
-        await supabase.auth.signOut();
-        setError('Admin accounts must use the Admin Portal. Redirecting...');
-        setLoading(false);
-        setTimeout(() => navigate('/admin/login'), 2000);
-        return;
-      }
+  const handleSendOtp = async () => {
+    setError('');
+    setLoading(true);
+    const { error } = await sendMobileCode(phone);
+    if (error) {
+      setError(error.message);
+    } else {
+      setOtpSent(true);
     }
+    setLoading(false);
+  };
 
-    navigate(from, { replace: true });
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    const { error } = await signInWithMobile(phone, otp);
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+    setLoading(false);
+    setTimeout(() => redirectByRole(role), 100);
   };
 
   const loginContent = (
@@ -73,74 +95,82 @@ const Login = () => {
           <CardDescription>Sign in to continue your spiritual journey</CardDescription>
         </CardHeader>
 
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+        <CardContent>
+          <Tabs defaultValue="email" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="email">Email</TabsTrigger>
+              <TabsTrigger value="mobile">Mobile OTP</TabsTrigger>
+            </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
+            <TabsContent value="email">
+              <form onSubmit={handleEmailLogin} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required disabled={loading} />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <Button type="submit" className="w-full bg-gradient-to-r from-saffron to-gold text-temple-dark hover:from-saffron/90 hover:to-gold/90" disabled={loading}>
+                  {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Signing in...</> : 'Sign In'}
+                </Button>
+              </form>
+            </TabsContent>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-          </CardContent>
+            <TabsContent value="mobile">
+              <form onSubmit={handleVerifyOtp} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="w-4 h-4" /> Mobile Number</Label>
+                  <div className="flex gap-2">
+                    <Input id="phone" type="tel" placeholder="+91 XXXXX XXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} required disabled={loading || otpSent} className="flex-1" />
+                    {!otpSent && (
+                      <Button type="button" onClick={handleSendOtp} disabled={loading || !phone} variant="outline">
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send OTP'}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                {otpSent && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="otp">Enter OTP</Label>
+                      <Input id="otp" type="text" placeholder="Enter 6-digit code" value={otp} onChange={(e) => setOtp(e.target.value)} required disabled={loading} maxLength={6} />
+                    </div>
+                    <Button type="submit" className="w-full bg-gradient-to-r from-saffron to-gold text-temple-dark" disabled={loading}>
+                      {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Verifying...</> : 'Verify & Sign In'}
+                    </Button>
+                    <Button type="button" variant="ghost" className="w-full text-sm" onClick={() => { setOtpSent(false); setOtp(''); }}>
+                      Change number
+                    </Button>
+                  </>
+                )}
+              </form>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
 
-          <CardFooter className="flex flex-col gap-4">
-            <Button 
-              type="submit" 
-              className="w-full bg-gradient-to-r from-saffron to-gold text-temple-dark hover:from-saffron/90 hover:to-gold/90"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </Button>
-
-            <p className="text-sm text-center text-muted-foreground">
-              Don't have an account?{' '}
-              <Link to="/signup" className="text-saffron hover:underline">
-                Create one
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
+        <CardFooter className="flex flex-col gap-4">
+          <p className="text-sm text-center text-muted-foreground">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-saffron hover:underline">Create one</Link>
+          </p>
+        </CardFooter>
       </Card>
     </main>
   );

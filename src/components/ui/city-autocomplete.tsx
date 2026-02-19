@@ -39,8 +39,9 @@ export function CityAutocomplete({
       if (value.length >= 3) {
         setIsLoading(true);
         try {
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
           const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(value)}&format=json&limit=5&addressdetails=1`
+            `${supabaseUrl}/functions/v1/geocode-proxy?q=${encodeURIComponent(value)}`
           );
           const data = await response.json();
           setSuggestions(data);

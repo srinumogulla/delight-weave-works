@@ -18,9 +18,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/components/AuthProvider';
+import { useAuth } from '@/auth/AuthProvider';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { apiGet } from '@/api/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AdminMobileNav } from './AdminMobileNav';
 import { AdminMobileHeader } from './AdminMobileHeader';
@@ -46,7 +46,7 @@ const sidebarItems = [
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
-  const { signOut, profile } = useAuth();
+  const { signOut, user: profile } = useAuth();
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -54,17 +54,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const currentPage = sidebarItems.find(item => item.href === location.pathname);
   const pageTitle = currentPage?.label || 'Admin';
 
-  // Fetch pending approvals count
+  // Fetch pending approvals count from API
   const { data: pendingCount = 0 } = useQuery({
     queryKey: ['pending-approvals-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('pundits')
-        .select('*', { count: 'exact', head: true })
-        .eq('approval_status', 'pending');
-
-      if (error) throw error;
-      return count || 0;
+      try {
+        const data = await apiGet<any>('/jambalakadipamba/analytics/overview');
+        return data?.pending_approvals || data?.pendingPundits || 0;
+      } catch {
+        return 0;
+      }
     },
   });
 

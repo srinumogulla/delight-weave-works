@@ -63,7 +63,7 @@ const rashis = [
 ];
 
 export default function KundaliMatching() {
-  const { profile } = useAuth();
+  const { user: profile } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const isMobile = useIsMobile();

@@ -3,10 +3,10 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { WhatsAppButton } from "@/components/WhatsAppButton";
-import { AuthProvider } from "@/components/AuthProvider";
+import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
+import { AuthProvider } from "@/auth/AuthProvider";
 import { LanguageProvider } from "@/i18n";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/shared/ProtectedRoute";
 import Index from "./pages/Index";
 import Services from "./pages/Services";
 import Login from "./pages/Login";
@@ -118,44 +118,44 @@ const App = () => (
               
               {/* Pundit Routes */}
               <Route path="/pundit" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="guru">
                   <PunditDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/pundit/bookings" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="guru">
                   <PunditBookings />
                 </ProtectedRoute>
               } />
               <Route path="/pundit/profile" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="guru">
                   <PunditProfile />
                 </ProtectedRoute>
               } />
               <Route path="/pundit/earnings" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="guru">
                   <PunditEarnings />
                 </ProtectedRoute>
               } />
               
               {/* Temple Routes */}
               <Route path="/temple" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="temple">
                   <TempleDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/temple/services" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="temple">
                   <TempleServices />
                 </ProtectedRoute>
               } />
               <Route path="/temple/bookings" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="temple">
                   <TempleBookings />
                 </ProtectedRoute>
               } />
               <Route path="/temple/profile" element={
-                <ProtectedRoute>
+                <ProtectedRoute requireRole="temple">
                   <TempleProfile />
                 </ProtectedRoute>
               } />

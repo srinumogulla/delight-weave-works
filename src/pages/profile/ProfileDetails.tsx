@@ -18,7 +18,8 @@ import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const ProfileDetails = () => {
-  const { user, profile, signOut, refreshProfile } = useAuth();
+  const { user, signOut, refreshProfile } = useAuth();
+  const profile = user;
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   
