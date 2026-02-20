@@ -118,7 +118,7 @@ export const deleteAdminPooja = async (id: string): Promise<void> => {
 export const getAdminTransactions = async (): Promise<ApiTransaction[]> => {
   const { data, error } = await supabase
     .from('bookings')
-    .select('*, pooja_services(name), profiles(full_name, email)')
+    .select('*, pooja_services(name), profiles(full_name, email, phone)')
     .order('created_at', { ascending: false });
   if (error) throw error;
   return (data ?? []) as unknown as ApiTransaction[];
@@ -126,11 +126,15 @@ export const getAdminTransactions = async (): Promise<ApiTransaction[]> => {
 
 // Analytics
 export const getAdminAnalytics = async (): Promise<AdminAnalytics> => {
-  const [usersRes, bookingsRes, templesRes, punditsRes] = await Promise.all([
+  const [usersRes, bookingsRes, templesRes, punditsRes, poojaRes, pendingBookingsRes, pendingPunditsRes, giftRes] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('bookings').select('amount'),
     supabase.from('temples').select('*', { count: 'exact', head: true }),
     supabase.from('pundits').select('*', { count: 'exact', head: true }),
+    supabase.from('pooja_services').select('*', { count: 'exact', head: true }).eq('is_active', true),
+    supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('pundits').select('*', { count: 'exact', head: true }).eq('approval_status', 'pending'),
+    supabase.from('gift_bookings').select('*', { count: 'exact', head: true }),
   ]);
 
   const totalRevenue = (bookingsRes.data ?? []).reduce((s, b) => s + (b.amount ?? 0), 0);
@@ -141,6 +145,10 @@ export const getAdminAnalytics = async (): Promise<AdminAnalytics> => {
     total_revenue: totalRevenue,
     total_temples: templesRes.count ?? 0,
     total_gurus: punditsRes.count ?? 0,
+    total_poojas: poojaRes.count ?? 0,
+    pending_bookings: pendingBookingsRes.count ?? 0,
+    pending_approvals: pendingPunditsRes.count ?? 0,
+    gift_bookings: giftRes.count ?? 0,
   };
 };
 
