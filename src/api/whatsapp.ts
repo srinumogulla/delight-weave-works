@@ -1,11 +1,7 @@
-// WhatsApp notifications are sent via edge function
+import { invokeEdgeFunction } from '@/lib/lovableEdgeFunctions';
 
 export const sendWhatsAppMessage = async (to: string, message: string): Promise<void> => {
-  const { supabase } = await import('@/lib/supabase');
-  const { error } = await supabase.functions.invoke('send-whatsapp', {
-    body: { to, message },
-  });
-  if (error) throw error;
+  await invokeEdgeFunction('send-whatsapp', { to, message });
 };
 
 export interface WhatsAppWebhookPayload {

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/auth/AuthProvider";
-import { supabase } from "@/lib/supabase";
+import { invokeEdgeFunction } from '@/lib/lovableEdgeFunctions';
 import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -80,15 +80,11 @@ export function PanchangSection() {
           }
         }
 
-        const { data, error } = await supabase.functions.invoke('get-panchang', {
-          body: {
-            date: new Date().toISOString(),
-            latitude,
-            longitude
-          }
+        const data = await invokeEdgeFunction('get-panchang', {
+          date: new Date().toISOString(),
+          latitude,
+          longitude
         });
-
-        if (error) throw error;
 
         // Transform API response to component format
         setPanchangData({

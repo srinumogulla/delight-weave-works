@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data.birth_place_name) profileUpdate.birth_location = data.birth_place_name;
       if (data.gender) profileUpdate.gender = data.gender;
 
-      await supabase.from('profiles').update(profileUpdate).eq('id', userId);
+      await supabase.from('profiles').upsert({ id: userId, ...profileUpdate });
 
       // Insert role
       const role = (data.role === 'pundit' ? 'pundit' : 'user') as 'pundit' | 'user';

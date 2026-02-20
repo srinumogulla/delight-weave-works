@@ -15,7 +15,7 @@ import { PanchangCalendar } from "@/components/PanchangCalendar";
 import { MuhuratFinder } from "@/components/MuhuratFinder";
 import { FestivalList } from "@/components/FestivalList";
 import { useLanguage } from "@/i18n";
-import { supabase } from "@/lib/supabase";
+import { invokeEdgeFunction } from "@/lib/lovableEdgeFunctions";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
 
@@ -121,16 +121,11 @@ const Panchang = () => {
     queryKey: ['panchang', location.lat, location.lng],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
-      const { data, error } = await supabase.functions.invoke('get-panchang', {
-        body: { 
-          date: today, 
-          latitude: location.lat, 
-          longitude: location.lng 
-        }
+      return invokeEdgeFunction('get-panchang', { 
+        date: today, 
+        latitude: location.lat, 
+        longitude: location.lng 
       });
-      
-      if (error) throw error;
-      return data;
     },
     staleTime: 1000 * 60 * 30,
   });
