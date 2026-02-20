@@ -77,11 +77,14 @@ const Panchang = () => {
           const { latitude, longitude } = position.coords;
           setLocation({ lat: latitude, lng: longitude });
           
-          // Reverse geocode to get city name
+          // Reverse geocode via proxy to avoid CORS
           try {
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-            );
+            const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+            const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+            const proxyUrl = `https://${projectId}.supabase.co/functions/v1/geocode-proxy?lat=${latitude}&lon=${longitude}`;
+            const response = await fetch(proxyUrl, {
+              headers: { 'apikey': anonKey },
+            });
             const data = await response.json();
             const city = data.address?.city || data.address?.town || data.address?.village || 'Your Location';
             const state = data.address?.state || '';

@@ -247,6 +247,103 @@ export interface AnalyticsEvent {
   created_at: string;
 }
 
+// Astrology
+export interface KundaliRequest {
+  date_of_birth: string;   // YYYY-MM-DD
+  time_of_birth: string;   // HH:MM (24h)
+  birth_place_name: string;
+  gender: string;
+}
+
+export interface KundaliPlanetPosition {
+  planet: string;
+  sign: string;
+  degree: string;
+  house: number;
+  retrograde: boolean;
+}
+
+export interface KundaliHouse {
+  number: number;
+  sign: string;
+  planets: string[];
+}
+
+export interface KundaliApiResponse {
+  lagna?: string;
+  ascendant?: string;
+  rashi?: string;
+  moon_sign?: string;
+  nakshatra?: string;
+  pada?: number;
+  planetary_positions?: KundaliPlanetPosition[];
+  planets?: KundaliPlanetPosition[];
+  houses?: KundaliHouse[];
+  current_dasha?: {
+    mahadasha?: string;
+    antardasha?: string;
+    start_date?: string;
+    end_date?: string;
+    maha_dasha?: string;
+    antar_dasha?: string;
+  };
+  doshas?: {
+    mangal?: boolean;
+    shani?: boolean;
+    kalsarpa?: boolean;
+    mangal_dosha?: boolean;
+    shani_sade_sati?: boolean;
+    kalsarpa_dosha?: boolean;
+  };
+  yogas?: string[];
+  [key: string]: any;
+}
+
+export interface KundaliMatchingPersonRequest {
+  date_of_birth: string;
+  time_of_birth: string;
+  birth_place_name: string;
+  gender: string;
+  name?: string;
+}
+
+export interface KundaliMatchingRequest {
+  person_a: KundaliMatchingPersonRequest;
+  person_b: KundaliMatchingPersonRequest;
+}
+
+export interface KootaScore {
+  name: string;
+  description: string;
+  max_points?: number;
+  maxPoints?: number;
+  score: number;
+  details: string;
+}
+
+export interface KundaliMatchingApiResponse {
+  kootas?: KootaScore[];
+  koota_scores?: KootaScore[];
+  total_score?: number;
+  totalScore?: number;
+  max_score?: number;
+  maxScore?: number;
+  percentage?: number;
+  verdict?: string;
+  mangal_dosha?: {
+    person_a?: boolean;
+    person_b?: boolean;
+    cancelled?: boolean;
+  };
+  mangalDosha?: {
+    personA?: boolean;
+    personB?: boolean;
+    cancelled?: boolean;
+  };
+  recommendation?: string;
+  [key: string]: any;
+}
+
 // Admin
 export interface AdminAnalytics {
   total_users: number;

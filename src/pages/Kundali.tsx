@@ -19,6 +19,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { NorthIndianChart } from "@/components/NorthIndianChart";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import { generateKundali as generateKundaliApi } from "@/api/astrology";
 
 // Planetary data constants
 const planets = [
@@ -112,7 +113,7 @@ export default function Kundali() {
     }
   }, [profile]);
 
-  const generateKundali = () => {
+  const generateKundali = async () => {
     if (!formData.dateOfBirth || !formData.timeOfBirth || !formData.birthLocation || !formData.gender) {
       toast({
         title: "Missing Details",
@@ -124,73 +125,63 @@ export default function Kundali() {
 
     setIsGenerating(true);
 
-    // Simulate calculation (in production, this would call an edge function)
-    setTimeout(() => {
-      const dateHash = new Date(formData.dateOfBirth).getDate();
-      const timeHash = parseInt(formData.timeOfBirth.split(':')[0]) || 0;
-      
-      const lagnaIndex = (dateHash + timeHash) % 12;
-      const rashiIndex = (dateHash * 2 + timeHash) % 12;
-      const nakshatraIndex = (dateHash + timeHash * 2) % 27;
+    try {
+      const response = await generateKundaliApi({
+        date_of_birth: formData.dateOfBirth,
+        time_of_birth: formData.timeOfBirth,
+        birth_place_name: formData.birthLocation,
+        gender: formData.gender,
+      });
 
-      // Generate planetary positions
-      const planetaryPositions = planets.map((planet, i) => ({
-        planet: planet.name,
-        sign: rashis[(lagnaIndex + i * 3) % 12],
-        degree: `${(dateHash + i * 7) % 30}°${(timeHash * i) % 60}'`,
-        house: ((lagnaIndex + i) % 12) + 1,
-        retrograde: i > 1 && i < 7 && dateHash % 3 === 0
+      // Normalize response fields to internal KundaliData shape
+      const planetaryPositions = (response.planetary_positions || response.planets || []).map((p: any) => ({
+        planet: p.planet || p.name || '',
+        sign: p.sign || '',
+        degree: p.degree || '',
+        house: p.house || 1,
+        retrograde: p.retrograde || false,
       }));
 
-      // Generate houses with planets
-      const houses = Array.from({ length: 12 }, (_, i) => ({
-        number: i + 1,
-        sign: rashis[(lagnaIndex + i) % 12],
-        planets: planetaryPositions
-          .filter(p => p.house === i + 1)
-          .map(p => planets.find(pl => pl.name === p.planet)?.symbol || "")
+      const houses = (response.houses || []).map((h: any) => ({
+        number: h.number || h.house_number || 1,
+        sign: h.sign || '',
+        planets: Array.isArray(h.planets) ? h.planets : [],
       }));
 
-      // Current Dasha
-      const dashaIndex = dateHash % 9;
-      const currentYear = new Date().getFullYear();
-
-      // Doshas
-      const mangalDosha = dateHash % 4 === 0;
-      const shaniDosha = timeHash % 3 === 0;
-      const kalsarpaDosha = dateHash % 7 === 0;
-
-      // Yogas
-      const possibleYogas = ["Gaja Kesari Yoga", "Budhaditya Yoga", "Raja Yoga", "Dhana Yoga", "Neecha Bhanga Raja Yoga"];
-      const yogas = possibleYogas.filter((_, i) => (dateHash + i) % 3 === 0);
+      const dasha = response.current_dasha || {};
+      const doshas = response.doshas || {};
 
       setKundaliData({
-        lagna: rashis[lagnaIndex],
-        rashi: rashis[rashiIndex],
-        nakshatra: nakshatras[nakshatraIndex],
-        pada: (dateHash % 4) + 1,
+        lagna: response.lagna || response.ascendant || '',
+        rashi: response.rashi || response.moon_sign || '',
+        nakshatra: response.nakshatra || '',
+        pada: response.pada || 1,
         planetaryPositions,
         houses,
         currentDasha: {
-          mahadasha: dashas[dashaIndex],
-          antardasha: dashas[(dashaIndex + 2) % 9],
-          startDate: `${currentYear - 2}`,
-          endDate: `${currentYear + 5}`
+          mahadasha: dasha.mahadasha || dasha.maha_dasha || '',
+          antardasha: dasha.antardasha || dasha.antar_dasha || '',
+          startDate: dasha.start_date || '',
+          endDate: dasha.end_date || '',
         },
         doshas: {
-          mangal: mangalDosha,
-          shani: shaniDosha,
-          kalsarpa: kalsarpaDosha
+          mangal: doshas.mangal ?? doshas.mangal_dosha ?? false,
+          shani: doshas.shani ?? doshas.shani_sade_sati ?? false,
+          kalsarpa: doshas.kalsarpa ?? doshas.kalsarpa_dosha ?? false,
         },
-        yogas
+        yogas: Array.isArray(response.yogas) ? response.yogas : [],
       });
 
-      setIsGenerating(false);
       toast({
         title: "Kundali Generated",
         description: "Your birth chart has been calculated successfully"
       });
-    }, 2000);
+    } catch (error) {
+      // apiPost already shows a toast; no duplicate needed
+      console.error('Kundali generation failed:', error);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleDownloadPDF = async () => {
