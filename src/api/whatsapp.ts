@@ -1,5 +1,12 @@
-// WhatsApp webhook endpoints are server-side only.
-// These types are provided for reference.
+// WhatsApp notifications are sent via edge function
+
+export const sendWhatsAppMessage = async (to: string, message: string): Promise<void> => {
+  const { supabase } = await import('@/integrations/supabase/client');
+  const { error } = await supabase.functions.invoke('send-whatsapp', {
+    body: { to, message },
+  });
+  if (error) throw error;
+};
 
 export interface WhatsAppWebhookPayload {
   from: string;
@@ -7,6 +14,3 @@ export interface WhatsAppWebhookPayload {
   timestamp: string;
   [key: string]: any;
 }
-
-// The webhook verify (GET /webhooks/whatsapp) and receive (POST /webhooks/whatsapp)
-// are handled by the external API server, not the frontend.

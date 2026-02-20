@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/auth/AuthProvider';
 import { cn } from '@/lib/utils';
-import { apiGet } from '@/api/client';
+import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AdminMobileNav } from './AdminMobileNav';
 import { AdminMobileHeader } from './AdminMobileHeader';
@@ -59,8 +59,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     queryKey: ['pending-approvals-count'],
     queryFn: async () => {
       try {
-        const data = await apiGet<any>('/jambalakadipamba/analytics/overview');
-        return data?.pending_approvals || data?.pendingPundits || 0;
+        const { count } = await supabase
+          .from('pundits')
+          .select('*', { count: 'exact', head: true })
+          .eq('approval_status', 'pending');
+        return count ?? 0;
       } catch {
         return 0;
       }

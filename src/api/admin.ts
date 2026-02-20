@@ -1,88 +1,183 @@
-import { apiGet, apiPost, apiPut, apiDelete } from './client';
+import { supabase } from '@/integrations/supabase/client';
 import type {
-  ApiUser, ApiTemple, ApiPooja, CreatePoojaPayload, UpdatePoojaPayload,
-  DoshaTag, Mahavidya, GiftTemplate, ApiTransaction, AdminAnalytics
+  ApiUser, ApiTemple, ApiPooja, CreatePoojaPayload, UpdatePoojaPayload, ApiTransaction, AdminAnalytics
 } from './types';
 
 // Users
-export const getAdminUsers = () =>
-  apiGet<ApiUser[]>('/jambalakadipamba/users');
+export const getAdminUsers = async (): Promise<ApiUser[]> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*, user_roles(role)')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((p: any) => ({
+    id: p.id,
+    full_name: p.full_name,
+    email: p.email,
+    phone: p.phone,
+    role: p.user_roles?.[0]?.role ?? 'user',
+    avatar_url: p.avatar_url,
+    date_of_birth: p.date_of_birth,
+    time_of_birth: p.time_of_birth ? String(p.time_of_birth) : null,
+    birth_location: p.birth_location,
+    gender: p.gender,
+    gotra: p.gotra,
+    nakshatra: p.nakshatra,
+    rashi: p.rashi,
+    created_at: p.created_at,
+    updated_at: p.updated_at,
+  }));
+};
+
+export const disableUser = async (userId: string): Promise<void> => {
+  const { error } = await supabase.functions.invoke('admin-operations', {
+    body: { action: 'disable_user', user_id: userId },
+  });
+  if (error) throw error;
+};
+
+export const enableUser = async (userId: string): Promise<void> => {
+  const { error } = await supabase.functions.invoke('admin-operations', {
+    body: { action: 'enable_user', user_id: userId },
+  });
+  if (error) throw error;
+};
+
+export const updateUserRole = async (userId: string, role: string): Promise<void> => {
+  const { error } = await supabase.functions.invoke('admin-operations', {
+    body: { action: 'update_role', user_id: userId, role },
+  });
+  if (error) throw error;
+};
 
 // Temples
-export const getAdminTemples = () =>
-  apiGet<ApiTemple[]>('/jambalakadipamba/temples');
+export const getAdminTemples = async (): Promise<ApiTemple[]> => {
+  const { data, error } = await supabase
+    .from('temples')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as ApiTemple[];
+};
 
-export const createAdminTemple = (data: Partial<ApiTemple>) =>
-  apiPost<ApiTemple>('/jambalakadipamba/temples', data);
+export const createAdminTemple = async (data: Partial<ApiTemple>): Promise<ApiTemple> => {
+  const { data: created, error } = await supabase
+    .from('temples')
+    .insert(data as any)
+    .select()
+    .single();
+  if (error) throw error;
+  return created as ApiTemple;
+};
 
-export const updateAdminTemple = (id: string, data: Partial<ApiTemple>) =>
-  apiPut<ApiTemple>(`/jambalakadipamba/temples/${id}`, data);
+export const updateAdminTemple = async (id: string, data: Partial<ApiTemple>): Promise<ApiTemple> => {
+  const { data: updated, error } = await supabase
+    .from('temples')
+    .update(data as any)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return updated as ApiTemple;
+};
 
-export const deleteAdminTemple = (id: string) =>
-  apiDelete(`/jambalakadipamba/temples/${id}`);
+export const deleteAdminTemple = async (id: string): Promise<void> => {
+  const { error } = await supabase.from('temples').delete().eq('id', id);
+  if (error) throw error;
+};
 
 // Poojas
-export const getAdminPoojas = () =>
-  apiGet<ApiPooja[]>('/jambalakadipamba/poojas');
+export const getAdminPoojas = async (): Promise<ApiPooja[]> => {
+  const { data, error } = await supabase
+    .from('pooja_services')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as ApiPooja[];
+};
 
-export const createAdminPooja = (data: CreatePoojaPayload) =>
-  apiPost<ApiPooja>('/jambalakadipamba/poojas', data);
+export const createAdminPooja = async (data: CreatePoojaPayload): Promise<ApiPooja> => {
+  const { data: created, error } = await supabase
+    .from('pooja_services')
+    .insert({ ...data, is_active: true })
+    .select()
+    .single();
+  if (error) throw error;
+  return created as ApiPooja;
+};
 
-export const updateAdminPooja = (id: string, data: UpdatePoojaPayload) =>
-  apiPut<ApiPooja>(`/jambalakadipamba/poojas/${id}`, data);
+export const updateAdminPooja = async (id: string, data: UpdatePoojaPayload): Promise<ApiPooja> => {
+  const { data: updated, error } = await supabase
+    .from('pooja_services')
+    .update(data as any)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return updated as ApiPooja;
+};
 
-export const deleteAdminPooja = (id: string) =>
-  apiDelete(`/jambalakadipamba/poojas/${id}`);
+export const deleteAdminPooja = async (id: string): Promise<void> => {
+  const { error } = await supabase.from('pooja_services').delete().eq('id', id);
+  if (error) throw error;
+};
 
-// Dosha Tags
-export const getDoshaTags = () =>
-  apiGet<DoshaTag[]>('/jambalakadipamba/dosha-tags');
-
-export const createDoshaTag = (data: Partial<DoshaTag>) =>
-  apiPost<DoshaTag>('/jambalakadipamba/dosha-tags', data);
-
-export const updateDoshaTag = (id: string, data: Partial<DoshaTag>) =>
-  apiPut<DoshaTag>(`/jambalakadipamba/dosha-tags/${id}`, data);
-
-export const deleteDoshaTag = (id: string) =>
-  apiDelete(`/jambalakadipamba/dosha-tags/${id}`);
-
-// Mahavidyas
-export const getMahavidyas = () =>
-  apiGet<Mahavidya[]>('/jambalakadipamba/mahavidyas');
-
-export const createMahavidya = (data: Partial<Mahavidya>) =>
-  apiPost<Mahavidya>('/jambalakadipamba/mahavidyas', data);
-
-export const updateMahavidya = (id: string, data: Partial<Mahavidya>) =>
-  apiPut<Mahavidya>(`/jambalakadipamba/mahavidyas/${id}`, data);
-
-export const deleteMahavidya = (id: string) =>
-  apiDelete(`/jambalakadipamba/mahavidyas/${id}`);
-
-// Gift Templates
-export const getGiftTemplates = () =>
-  apiGet<GiftTemplate[]>('/jambalakadipamba/gift-templates');
-
-export const createGiftTemplate = (data: Partial<GiftTemplate>) =>
-  apiPost<GiftTemplate>('/jambalakadipamba/gift-templates', data);
-
-export const updateGiftTemplate = (id: string, data: Partial<GiftTemplate>) =>
-  apiPut<GiftTemplate>(`/jambalakadipamba/gift-templates/${id}`, data);
-
-export const deleteGiftTemplate = (id: string) =>
-  apiDelete(`/jambalakadipamba/gift-templates/${id}`);
-
-// Transactions
-export const getAdminTransactions = () =>
-  apiGet<ApiTransaction[]>('/jambalakadipamba/transactions');
+// Transactions / Bookings
+export const getAdminTransactions = async (): Promise<ApiTransaction[]> => {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*, pooja_services(name), profiles(full_name, email)')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as ApiTransaction[];
+};
 
 // Analytics
-export const getAdminAnalytics = () =>
-  apiGet<AdminAnalytics>('/jambalakadipamba/analytics/overview');
+export const getAdminAnalytics = async (): Promise<AdminAnalytics> => {
+  const [usersRes, bookingsRes, templesRes, punditsRes] = await Promise.all([
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('bookings').select('amount'),
+    supabase.from('temples').select('*', { count: 'exact', head: true }),
+    supabase.from('pundits').select('*', { count: 'exact', head: true }),
+  ]);
 
-export const getAdminAnalyticsRevenue = () =>
-  apiGet('/jambalakadipamba/analytics/revenue');
+  const totalRevenue = (bookingsRes.data ?? []).reduce((s, b) => s + (b.amount ?? 0), 0);
 
-export const getAdminAnalyticsUsers = () =>
-  apiGet('/jambalakadipamba/analytics/users');
+  return {
+    total_users: usersRes.count ?? 0,
+    total_bookings: (bookingsRes.data ?? []).length,
+    total_revenue: totalRevenue,
+    total_temples: templesRes.count ?? 0,
+    total_gurus: punditsRes.count ?? 0,
+  };
+};
+
+export const getAdminAnalyticsRevenue = async () => {
+  const { data } = await supabase
+    .from('bookings')
+    .select('amount, created_at')
+    .order('created_at');
+  return data ?? [];
+};
+
+export const getAdminAnalyticsUsers = async () => {
+  const { data } = await supabase
+    .from('profiles')
+    .select('created_at')
+    .order('created_at');
+  return data ?? [];
+};
+
+// Legacy stubs for dosha tags, mahavidyas, gift templates (not in DB yet)
+export const getDoshaTags = async () => [];
+export const createDoshaTag = async (data: any) => data;
+export const updateDoshaTag = async (_id: string, data: any) => data;
+export const deleteDoshaTag = async (_id: string) => {};
+export const getMahavidyas = async () => [];
+export const createMahavidya = async (data: any) => data;
+export const updateMahavidya = async (_id: string, data: any) => data;
+export const deleteMahavidya = async (_id: string) => {};
+export const getGiftTemplates = async () => [];
+export const createGiftTemplate = async (data: any) => data;
+export const updateGiftTemplate = async (_id: string, data: any) => data;
+export const deleteGiftTemplate = async (_id: string) => {};

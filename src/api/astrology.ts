@@ -1,10 +1,18 @@
-import { apiPost } from './client';
+import { supabase } from '@/integrations/supabase/client';
 import type { KundaliRequest, KundaliApiResponse, KundaliMatchingRequest, KundaliMatchingApiResponse } from './types';
 
-export function generateKundali(data: KundaliRequest): Promise<KundaliApiResponse> {
-  return apiPost<KundaliApiResponse>('/astrology/kundali', data);
+export async function generateKundali(data: KundaliRequest): Promise<KundaliApiResponse> {
+  const { data: result, error } = await supabase.functions.invoke('astrology', {
+    body: { action: 'kundali', ...data },
+  });
+  if (error) throw error;
+  return result;
 }
 
-export function getKundaliMatching(data: KundaliMatchingRequest): Promise<KundaliMatchingApiResponse> {
-  return apiPost<KundaliMatchingApiResponse>('/astrology/kundali-matching', data);
+export async function getKundaliMatching(data: KundaliMatchingRequest): Promise<KundaliMatchingApiResponse> {
+  const { data: result, error } = await supabase.functions.invoke('astrology', {
+    body: { action: 'kundali-matching', ...data },
+  });
+  if (error) throw error;
+  return result;
 }

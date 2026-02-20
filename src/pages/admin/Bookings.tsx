@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { getAdminTransactions } from '@/api/admin';
-import { apiPut, apiGet } from '@/api/client';
+import { supabase } from '@/integrations/supabase/client';
+import { listGurus } from '@/api/gurus';
 import { Search, Check, X, Eye, Calendar as CalendarIcon, List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -20,6 +21,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { BookingDetailModal } from '@/components/admin/BookingDetailModal';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Booking {
   id: string;
@@ -40,10 +42,6 @@ interface Booking {
   admin_notes: string | null;
   profiles?: { full_name: string | null; email: string | null; phone: string | null } | null;
   pooja_services?: { name: string; temple: string | null } | null;
-  // API may return flat fields
-  user_name?: string;
-  user_email?: string;
-  pooja_name?: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -68,8 +66,8 @@ export default function AdminBookings() {
     queryKey: ['verified-pundits'],
     queryFn: async () => {
       try {
-        const data = await apiGet<any[]>('/gurus');
-        return (data || []).filter((g: any) => g.is_verified && g.is_active).map((g: any) => ({ id: g.id, name: g.name, location: g.location }));
+        const data = await listGurus();
+        return data.map(g => ({ id: g.id, name: g.name, location: g.location }));
       } catch { return []; }
     }
   });
@@ -84,7 +82,8 @@ export default function AdminBookings() {
 
   async function updateBookingStatus(bookingId: string, newStatus: string) {
     try {
-      await apiPut(`/jambalakadipamba/bookings/${bookingId}`, { status: newStatus });
+      const { error } = await supabase.from('bookings').update({ status: newStatus }).eq('id', bookingId);
+      if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
       toast({ title: 'Success', description: `Booking ${newStatus}` });
     } catch {
@@ -94,7 +93,8 @@ export default function AdminBookings() {
 
   async function assignPundit(bookingId: string, punditId: string) {
     try {
-      await apiPut(`/jambalakadipamba/bookings/${bookingId}`, { assigned_pundit_id: punditId || null });
+      const { error } = await supabase.from('bookings').update({ assigned_pundit_id: punditId || null }).eq('id', bookingId);
+      if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
       toast({ title: 'Success', description: punditId ? 'Pundit assigned' : 'Pundit unassigned' });
     } catch {
@@ -104,7 +104,8 @@ export default function AdminBookings() {
 
   async function updateNotes(bookingId: string, notes: string) {
     try {
-      await apiPut(`/jambalakadipamba/bookings/${bookingId}`, { admin_notes: notes });
+      const { error } = await supabase.from('bookings').update({ admin_notes: notes }).eq('id', bookingId);
+      if (error) throw error;
       queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
       toast({ title: 'Success', description: 'Notes saved' });
     } catch {
@@ -112,9 +113,9 @@ export default function AdminBookings() {
     }
   }
 
-  const getName = (b: Booking) => b.profiles?.full_name || b.user_name || b.sankalpa_name;
-  const getEmail = (b: Booking) => b.profiles?.email || b.user_email || '';
-  const getPoojaName = (b: Booking) => b.pooja_services?.name || b.pooja_name || 'Unknown Service';
+  const getName = (b: Booking) => b.profiles?.full_name || b.sankalpa_name;
+  const getEmail = (b: Booking) => b.profiles?.email || '';
+  const getPoojaName = (b: Booking) => b.pooja_services?.name || 'Unknown Service';
 
   const filteredBookings = bookings.filter(booking => {
     const matchesSearch = 
