@@ -1,5 +1,4 @@
 export * from './astrology';
-export * from './auth';
 export * from './users';
 export * from './poojas';
 export * from './gurus';

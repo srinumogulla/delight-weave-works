@@ -50,12 +50,10 @@ const Login = () => {
       return;
     }
     setLoading(false);
-    // Role is now set in context after signIn
-    // Small delay to allow state update
+    // onAuthStateChange in AuthProvider will update role; navigate after a brief wait
     setTimeout(() => {
-      const currentRole = localStorage.getItem('access_token') ? role : null;
-      redirectByRole(currentRole);
-    }, 100);
+      redirectByRole(role);
+    }, 300);
   };
 
   const handleSendOtp = async () => {

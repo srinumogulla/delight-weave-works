@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { getAdminUsers } from '@/api/admin';
-import { apiPut } from '@/api/client';
+import { getAdminUsers, disableUser, enableUser, updateUserRole } from '@/api/admin';
 import { Search, Eye, UserCog } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -29,9 +28,8 @@ interface Profile {
   avatar_url: string | null;
   created_at: string;
   date_of_birth: string | null;
-  is_disabled: boolean;
+  is_disabled?: boolean;
   role?: string;
-  booking_count?: number;
 }
 
 export default function AdminUsers() {
@@ -48,25 +46,19 @@ export default function AdminUsers() {
     queryKey: ['admin-users'],
     queryFn: async () => {
       const data = await getAdminUsers();
-      return (data || []).map((u: any) => ({
-        ...u,
-        is_disabled: u.is_disabled || false,
-        created_at: u.created_at || new Date().toISOString(),
-      })) as Profile[];
+      return (data || []) as Profile[];
     },
   });
 
-  // Derive roles and booking counts from the API response
   const userRoles: Record<string, string[]> = {};
-  const bookingCounts: Record<string, number> = {};
   profiles.forEach((p) => {
     if (p.role) userRoles[p.id] = [p.role];
-    if (p.booking_count) bookingCounts[p.id] = p.booking_count;
   });
 
   async function toggleUserDisabled(userId: string, disabled: boolean) {
     try {
-      await apiPut(`/jambalakadipamba/users/${userId}`, { is_disabled: disabled });
+      if (disabled) await disableUser(userId);
+      else await enableUser(userId);
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({ title: 'Success', description: disabled ? 'User account disabled' : 'User account enabled' });
     } catch (error) {
@@ -74,9 +66,11 @@ export default function AdminUsers() {
     }
   }
 
-  async function saveRoles(userId: string, rolesToAdd: string[], rolesToRemove: string[]) {
+  async function saveRoles(userId: string, rolesToAdd: string[], _rolesToRemove: string[]) {
     try {
-      await apiPut(`/jambalakadipamba/users/${userId}/roles`, { add: rolesToAdd, remove: rolesToRemove });
+      if (rolesToAdd.length > 0) {
+        await updateUserRole(userId, rolesToAdd[0]);
+      }
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       toast({ title: 'Success', description: 'User roles updated' });
     } catch (error) {
@@ -110,20 +104,13 @@ export default function AdminUsers() {
             <AvatarFallback>{getInitials(profile.full_name)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="font-medium truncate">{profile.full_name || 'Unknown'}</p>
-              {profile.is_disabled && <Badge variant="destructive" className="text-xs">Disabled</Badge>}
-            </div>
+            <p className="font-medium truncate">{profile.full_name || 'Unknown'}</p>
             <p className="text-sm text-muted-foreground truncate">{profile.email}</p>
             <div className="flex gap-1 mt-1 flex-wrap">
               {userRoles[profile.id]?.map((role) => (
                 <Badge key={role} variant={role === 'admin' ? 'default' : 'secondary'} className="text-xs">{role}</Badge>
               )) || <span className="text-xs text-muted-foreground">user</span>}
             </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-medium">{bookingCounts[profile.id] || 0}</p>
-            <p className="text-xs text-muted-foreground">bookings</p>
           </div>
         </div>
       </CardContent>
@@ -158,27 +145,23 @@ export default function AdminUsers() {
                     <TableHead>Contact</TableHead>
                     <TableHead>Details</TableHead>
                     <TableHead>Roles</TableHead>
-                    <TableHead>Bookings</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8">Loading users...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-8">Loading users...</TableCell></TableRow>
                   ) : filteredProfiles.length === 0 ? (
-                    <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No users found</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No users found</TableCell></TableRow>
                   ) : (
                     filteredProfiles.map((profile) => (
-                      <TableRow key={profile.id} className={profile.is_disabled ? 'opacity-50' : ''}>
+                      <TableRow key={profile.id}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar><AvatarImage src={profile.avatar_url || undefined} /><AvatarFallback>{getInitials(profile.full_name)}</AvatarFallback></Avatar>
                             <div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{profile.full_name || 'Unknown'}</span>
-                                {profile.is_disabled && <Badge variant="destructive" className="text-xs">Disabled</Badge>}
-                              </div>
+                              <span className="font-medium">{profile.full_name || 'Unknown'}</span>
                               <div className="text-sm text-muted-foreground">{profile.email}</div>
                             </div>
                           </div>
@@ -188,8 +171,7 @@ export default function AdminUsers() {
                           <div className="text-sm">
                             {profile.gotra && <div>Gotra: {profile.gotra}</div>}
                             {profile.nakshatra && <div>Nakshatra: {profile.nakshatra}</div>}
-                            {profile.rashi && <div>Rashi: {profile.rashi}</div>}
-                            {!profile.gotra && !profile.nakshatra && !profile.rashi && '-'}
+                            {!profile.gotra && !profile.nakshatra && '-'}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -199,7 +181,6 @@ export default function AdminUsers() {
                             )) || <span className="text-muted-foreground">user</span>}
                           </div>
                         </TableCell>
-                        <TableCell>{bookingCounts[profile.id] || 0}</TableCell>
                         <TableCell>{format(new Date(profile.created_at), 'MMM d, yyyy')}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
@@ -220,7 +201,7 @@ export default function AdminUsers() {
       <UserDetailModal
         user={selectedUser}
         roles={selectedUser ? userRoles[selectedUser.id] || [] : []}
-        bookingCount={selectedUser ? bookingCounts[selectedUser.id] || 0 : 0}
+        bookingCount={0}
         open={detailModalOpen}
         onOpenChange={setDetailModalOpen}
         onToggleDisabled={toggleUserDisabled}

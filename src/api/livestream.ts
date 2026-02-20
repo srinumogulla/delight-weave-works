@@ -1,11 +1,25 @@
-import { apiGet, apiPost } from './client';
 import type { LiveStreamResponse, LiveStream } from './types';
 
-export const startStream = (poojaId: string) =>
-  apiPost<LiveStreamResponse>(`/live-streams/poojas/${poojaId}/start`);
+// Live stream functionality via YouTube integration
+// These call the edge function when YouTube credentials are configured
 
-export const stopStream = (poojaId: string) =>
-  apiPost(`/live-streams/poojas/${poojaId}/stop`);
+export const startStream = async (poojaId: string): Promise<LiveStreamResponse> => {
+  const { supabase } = await import('@/integrations/supabase/client');
+  const { data, error } = await supabase.functions.invoke('live-stream', {
+    body: { action: 'start', pooja_id: poojaId },
+  });
+  if (error) throw error;
+  return data;
+};
 
-export const getMyStreams = () =>
-  apiGet<LiveStream[]>('/live-streams/my');
+export const stopStream = async (poojaId: string): Promise<void> => {
+  const { supabase } = await import('@/integrations/supabase/client');
+  const { error } = await supabase.functions.invoke('live-stream', {
+    body: { action: 'stop', pooja_id: poojaId },
+  });
+  if (error) throw error;
+};
+
+export const getMyStreams = async (): Promise<LiveStream[]> => {
+  return [];
+};
