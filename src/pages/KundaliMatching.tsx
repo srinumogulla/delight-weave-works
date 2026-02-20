@@ -16,6 +16,7 @@ import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { getKundaliMatching } from "@/api/astrology";
 
 interface PersonData {
   name: string;
@@ -87,17 +88,10 @@ export default function KundaliMatching() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [result, setResult] = useState<MatchingResult | null>(null);
 
-  const calculateNakshatra = (dateOfBirth: string): number => {
-    const date = new Date(dateOfBirth);
-    return (date.getDate() + date.getMonth()) % 27;
-  };
 
-  const calculateRashi = (dateOfBirth: string): number => {
-    const date = new Date(dateOfBirth);
-    return (date.getDate() * 2 + date.getMonth()) % 12;
-  };
 
-  const calculateMatch = () => {
+
+  const calculateMatch = async () => {
     if (!personA.dateOfBirth || !personA.timeOfBirth || !personA.birthLocation ||
         !personB.dateOfBirth || !personB.timeOfBirth || !personB.birthLocation) {
       toast({
@@ -110,108 +104,46 @@ export default function KundaliMatching() {
 
     setIsCalculating(true);
 
-    setTimeout(() => {
-      const nakA = calculateNakshatra(personA.dateOfBirth);
-      const nakB = calculateNakshatra(personB.dateOfBirth);
-      const rashiA = calculateRashi(personA.dateOfBirth);
-      const rashiB = calculateRashi(personB.dateOfBirth);
-      
-      // Calculate Ashtakoot points
-      const kootas: KootaResult[] = [
-        {
-          name: "Varna",
-          description: "Spiritual/ego compatibility",
-          maxPoints: 1,
-          score: Math.abs(rashiA - rashiB) <= 3 ? 1 : 0,
-          details: Math.abs(rashiA - rashiB) <= 3 
-            ? "Good spiritual compatibility between partners" 
-            : "Some adjustment needed in spiritual outlook"
+    try {
+      const response = await getKundaliMatching({
+        person_a: {
+          date_of_birth: personA.dateOfBirth,
+          time_of_birth: personA.timeOfBirth,
+          birth_place_name: personA.birthLocation,
+          gender: personA.gender,
+          name: personA.name,
         },
-        {
-          name: "Vasya",
-          description: "Mutual attraction & control",
-          maxPoints: 2,
-          score: (nakA + nakB) % 3 === 0 ? 2 : (nakA + nakB) % 3 === 1 ? 1 : 0,
-          details: (nakA + nakB) % 3 === 0 
-            ? "Strong mutual attraction and understanding" 
-            : "Moderate level of mutual influence"
+        person_b: {
+          date_of_birth: personB.dateOfBirth,
+          time_of_birth: personB.timeOfBirth,
+          birth_place_name: personB.birthLocation,
+          gender: personB.gender,
+          name: personB.name,
         },
-        {
-          name: "Tara",
-          description: "Birth star compatibility",
-          maxPoints: 3,
-          score: Math.abs(nakA - nakB) % 9 < 4 ? 3 : Math.abs(nakA - nakB) % 9 < 7 ? 1.5 : 0,
-          details: `Based on ${nakshatras[nakA]} and ${nakshatras[nakB]} nakshatras`
-        },
-        {
-          name: "Yoni",
-          description: "Physical/intimate compatibility",
-          maxPoints: 4,
-          score: (nakA * nakB) % 5 === 0 ? 4 : (nakA * nakB) % 5 < 3 ? 2 : 1,
-          details: (nakA * nakB) % 5 === 0 
-            ? "Excellent physical compatibility" 
-            : "Good physical harmony with some adjustments"
-        },
-        {
-          name: "Graha Maitri",
-          description: "Mental compatibility",
-          maxPoints: 5,
-          score: Math.abs(rashiA - rashiB) % 4 === 0 ? 5 : Math.abs(rashiA - rashiB) % 4 < 2 ? 3 : 1,
-          details: `Moon sign lords: ${rashis[rashiA]} and ${rashis[rashiB]}`
-        },
-        {
-          name: "Gana",
-          description: "Temperament match",
-          maxPoints: 6,
-          score: nakA % 3 === nakB % 3 ? 6 : Math.abs((nakA % 3) - (nakB % 3)) === 1 ? 3 : 0,
-          details: nakA % 3 === nakB % 3 
-            ? "Excellent temperament compatibility (same Gana)" 
-            : "Different temperaments - understanding needed"
-        },
-        {
-          name: "Bhakoot",
-          description: "Relative position of Moon signs",
-          maxPoints: 7,
-          score: [2, 6, 8, 12].includes(Math.abs(rashiA - rashiB) + 1) ? 0 : 7,
-          details: [2, 6, 8, 12].includes(Math.abs(rashiA - rashiB) + 1) 
-            ? "Bhakoot Dosha present - remedies recommended" 
-            : "Favorable Moon sign positions"
-        },
-        {
-          name: "Nadi",
-          description: "Health & genetic compatibility",
-          maxPoints: 8,
-          score: nakA % 3 !== nakB % 3 ? 8 : 0,
-          details: nakA % 3 !== nakB % 3 
-            ? "Different Nadis - excellent for progeny" 
-            : "Same Nadi - Nadi Dosha present"
-        }
-      ];
+      });
 
-      const totalScore = kootas.reduce((sum, k) => sum + k.score, 0);
-      const maxScore = 36;
-      const percentage = Math.round((totalScore / maxScore) * 100);
+      // Normalize kootas
+      const rawKootas = response.kootas || response.koota_scores || [];
+      const kootas: KootaResult[] = rawKootas.map((k: any) => ({
+        name: k.name || '',
+        description: k.description || '',
+        maxPoints: k.max_points ?? k.maxPoints ?? 0,
+        score: k.score ?? 0,
+        details: k.details || '',
+      }));
 
-      let verdict: 'excellent' | 'good' | 'average' | 'poor';
-      let recommendation: string;
+      const totalScore = response.total_score ?? response.totalScore ?? kootas.reduce((s, k) => s + k.score, 0);
+      const maxScore = response.max_score ?? response.maxScore ?? 36;
+      const percentage = response.percentage ?? Math.round((totalScore / maxScore) * 100);
 
-      if (totalScore >= 28) {
-        verdict = 'excellent';
-        recommendation = "This is an excellent match! The compatibility is very high across all dimensions. The marriage is likely to be harmonious and blessed.";
-      } else if (totalScore >= 21) {
-        verdict = 'good';
-        recommendation = "This is a good match with strong compatibility in most areas. Minor differences can be resolved with understanding and adjustment.";
-      } else if (totalScore >= 14) {
-        verdict = 'average';
-        recommendation = "This match shows average compatibility. Consider consulting a Jyotish expert for remedies and deeper analysis before proceeding.";
-      } else {
-        verdict = 'poor';
-        recommendation = "This match shows significant compatibility challenges. We strongly recommend consulting with an experienced Jyotish for detailed analysis and remedies.";
-      }
+      const rawVerdict = (response.verdict || '').toLowerCase();
+      const verdict: MatchingResult['verdict'] =
+        rawVerdict === 'excellent' ? 'excellent'
+        : rawVerdict === 'good' ? 'good'
+        : rawVerdict === 'average' ? 'average'
+        : 'poor';
 
-      // Mangal Dosha check
-      const mangalA = new Date(personA.dateOfBirth).getDate() % 4 === 0;
-      const mangalB = new Date(personB.dateOfBirth).getDate() % 4 === 0;
+      const md: any = response.mangal_dosha || response.mangalDosha || {};
 
       setResult({
         kootas,
@@ -220,19 +152,22 @@ export default function KundaliMatching() {
         percentage,
         verdict,
         mangalDosha: {
-          personA: mangalA,
-          personB: mangalB,
-          cancelled: mangalA && mangalB
+          personA: md.person_a ?? md.personA ?? false,
+          personB: md.person_b ?? md.personB ?? false,
+          cancelled: md.cancelled ?? false,
         },
-        recommendation
+        recommendation: response.recommendation || '',
       });
 
-      setIsCalculating(false);
       toast({
         title: "Match Calculated",
         description: `Compatibility score: ${totalScore}/${maxScore} (${percentage}%)`
       });
-    }, 2500);
+    } catch (error) {
+      console.error('Kundali matching failed:', error);
+    } finally {
+      setIsCalculating(false);
+    }
   };
 
   const getVerdictColor = (verdict: string) => {
