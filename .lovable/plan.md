@@ -1,108 +1,112 @@
 
-# Integrating Astrology API, WhatsApp, YouTube & SMS
+# Migrate Backend from FastAPI to Lovable Cloud
 
-## Context
+## What "Remove the Backend" Means
 
-Since all 4 integrations (Astrology API, WhatsApp, YouTube, AuthKey SMS) are handled server-side by your FastAPI backend at `api.vedhamantra.com`, the frontend doesn't need any new secrets. The backend already holds all credentials.
+The external FastAPI server at `api.vedhamantra.com` is being decommissioned. All auth, user management, data (poojas, bookings, temples, pundits, etc.) must now be served by the Lovable Cloud backend that is already connected to this project. The good news is that the database schema already exists in Lovable Cloud — tables like `profiles`, `poojas`, `bookings`, `pundits`, `temples` are all already there.
 
-The real work is: **connecting the frontend pages to the real backend endpoints** instead of using the simulated/mock data currently in place.
-
----
-
-## What Needs Changing (Gaps Found)
-
-### Gap 1: Kundali Page — Currently 100% Fake (CRITICAL)
-`src/pages/Kundali.tsx` uses a `setTimeout` with random math calculations to simulate planetary positions. It needs to call the real Astrology API through your backend.
-
-**Assumed endpoint** (confirm if different):
-- `POST /astrology/kundali` — birth chart generation
-- Request body: `{ date_of_birth, time_of_birth, birth_place_name, gender }`
-
-### Gap 2: Kundali Matching Page — Currently 100% Fake (CRITICAL)
-`src/pages/KundaliMatching.tsx` also uses a local `setTimeout` with math approximations for the 36-point Ashtakoot calculation. It needs to call the backend.
-
-**Assumed endpoint**:
-- `POST /astrology/kundali-matching`
-- Request body: `{ person_a: {...}, person_b: {...} }`
-
-### Gap 3: Remedies Page — Hardcoded Local Database
-`src/pages/Remedies.tsx` uses a static `remedyDatabase` array defined in the file. If your backend exposes a dosha analysis endpoint, this should call it. Otherwise, the local database can be kept with a CTA to consult a pundit.
-
-### Gap 4: Panchang — Already Working (Edge Function)
-`src/pages/Panchang.tsx` calls the `get-panchang` Lovable Cloud edge function, which uses proper astronomical calculations. This is working correctly and does NOT need to call the Astrology API.
-
-### Gap 5: Panchang Page — Reverse Geocode Still Calling Nominatim Directly
-On line 82-93 of `Panchang.tsx`, a `fetch` call goes directly to `nominatim.openstreetmap.org` for reverse geocoding (converting GPS coordinates to city name). This will hit the same CORS block as the signup city autocomplete. The `geocode-proxy` edge function needs to support reverse geocoding too.
-
-### Gap 6: YouTube Redirect URI — Points to Localhost
-The `YOUTUBE_REDIRECT_URI` in your backend `.env.prod` is `http://localhost:8000/integrations/youtube/callback`. For production, this needs to be updated to `https://api.vedhamantra.com/integrations/youtube/callback` on your server — this is a backend-only change, no frontend work needed.
+The work is to replace every call in `src/api/` that goes to `api.vedhamantra.com` with direct Lovable Cloud (Supabase) calls.
 
 ---
 
-## Implementation Plan
+## Scope of Changes
 
-### File 1: Add Astrology API types to `src/api/types.ts`
-Add new TypeScript interfaces for the Astrology API response shapes:
-- `KundaliRequest` — input fields
-- `KundaliApiResponse` — full chart response (lagna, rashi, nakshatra, planetary positions, houses, doshas, yogas, dasha)
-- `KundaliMatchingRequest` — two-person input
-- `KundaliMatchingApiResponse` — Ashtakoot scores, total, verdict
+### Layer 1: Authentication (Highest Priority)
 
-### File 2: Create `src/api/astrology.ts`
-New API module with functions:
-```
-generateKundali(data: KundaliRequest) → POST /astrology/kundali
-getKundaliMatching(data: KundaliMatchingRequest) → POST /astrology/kundali-matching
-```
+Currently auth uses `localStorage` tokens + the external `/auth/login`, `/auth/signup` endpoints.
 
-### File 3: Update `src/pages/Kundali.tsx`
-Replace the `setTimeout` simulation block (lines 115–194) with a real `apiPost()` call to `/astrology/kundali`. Map the API response fields to the existing `KundaliData` interface used by the chart rendering components. Keep all the UI rendering unchanged — only the data source changes.
+**New approach:** Use Lovable Cloud's built-in auth system directly with the Supabase client. This is email/password signup and login using `supabase.auth.signUp()` and `supabase.auth.signInWithPassword()`.
 
-**Error handling**: Show a toast with the backend error message if the API call fails (e.g., invalid coordinates, unsupported date range). Keep the form accessible after failure.
+The `profiles` table already exists and stores: `full_name`, `email`, `phone`, `date_of_birth`, `time_of_birth`, `birth_location`, `gender`, `gotra`, `nakshatra`, `rashi`, `avatar_url`.
 
-**Loading state**: Replace the fake 2-second delay with real `isGenerating` state tied to the API call.
+**Files to rewrite:**
+- `src/auth/AuthProvider.tsx` — switch from `localStorage` tokens + REST calls to Supabase auth session listener (`onAuthStateChange`). Role comes from `user_roles` table (already exists in schema).
+- `src/api/auth.ts` — no longer needed, can be deleted
+- `src/api/users.ts` — replace `/users/me` with `supabase.from('profiles').select()`
+- `src/api/client.ts` — remove `API_BASE`, token injection; the Supabase JS client handles auth automatically
 
-### File 4: Update `src/pages/KundaliMatching.tsx`
-Replace the `setTimeout` simulation block (lines 100–236) with a real `apiPost()` call to `/astrology/kundali-matching`. Map the API response to the `MatchingResult` interface. Keep all UI rendering unchanged.
+**Signup flow change:** After `supabase.auth.signUp()`, extra profile data (DOB, birth location, phone, gender) gets inserted into the `profiles` table. The `handle_new_user` trigger already creates the profile row automatically on signup.
 
-### File 5: Update `supabase/functions/geocode-proxy/index.ts`
-Extend the existing geocode proxy to support **reverse geocoding** in addition to forward search:
-- If the request has `lat` and `lon` params → call Nominatim's `/reverse` endpoint
-- If the request has `q` param → call Nominatim's `/search` endpoint (existing behavior)
+**Mobile OTP:** Replace AuthKey SMS with Supabase's built-in phone OTP (requires phone auth to be enabled in Lovable Cloud auth settings). If not enabled, we gracefully remove this tab and note it can be added later.
 
-### File 6: Update `src/pages/Panchang.tsx`
-Replace the direct Nominatim reverse geocode fetch (lines 82–93) with a call to the updated `geocode-proxy` edge function, fixing the CORS block for location detection.
+**Role detection:** The `user_roles` table already exists with `app_role` enum (`admin`, `user`, `pundit`, `temple`). After signup, the role is inserted into `user_roles`. Admin assignment remains manual.
 
----
+### Layer 2: Data APIs
 
-## What You Need to Do on Your Server
+All `src/api/` modules currently call `api.vedhamantra.com`. They will be rewritten to use `supabase.from(table)` directly.
 
-These are backend-only changes (no Lovable involvement needed):
+| API module | Old endpoint | New Lovable Cloud call |
+|---|---|---|
+| `poojas.ts` | `/content/poojas` | `supabase.from('pooja_services')` |
+| `gurus.ts` | `/gurus` | `supabase.from('pundits')` |
+| `temples.ts` | `/temples` | `supabase.from('temples')` |
+| `admin.ts` | `/jambalakadipamba/...` | `supabase.from(table)` with service role via edge function |
+| `transactions.ts` | `/transactions` | `supabase.from('bookings')` |
+| `notifications.ts` | `/notifications` | `supabase.from('notification_preferences')` |
+| `analytics.ts` | `/analytics` | Aggregate queries on existing tables |
+| `gifts.ts` | `/gifts` | `supabase.from('gift_bookings')` |
+| `livestream.ts` | `/live-streams` | Edge function (YouTube integration) |
+| `whatsapp.ts` | `/whatsapp` | Edge function |
 
-| Action | Where |
-|--------|--------|
-| Fill in `ASTROLOGY_API_USER_ID=648251` and `ASTROLOGY_API_KEY` in `.env.prod` | Your FastAPI server |
-| Fill in all WhatsApp, YouTube, and AuthKey values in `.env.prod` | Your FastAPI server |
-| Update `YOUTUBE_REDIRECT_URI` to `https://api.vedhamantra.com/integrations/youtube/callback` | Your FastAPI server |
-| Add CORS allowed origins for Lovable URLs | Your FastAPI server |
+### Layer 3: Admin Panel
 
----
+The admin pages currently call `/jambalakadipamba/...`. These will be switched to direct Supabase queries. Admin identity is confirmed via the `user_roles` table (`role = 'admin'`). Sensitive admin operations (deleting users, bulk operations) will go through a `admin-operations` edge function with service-role key.
 
-## Technical Implementation Notes
+### Layer 4: External Integrations (Astrology, WhatsApp, YouTube, SMS)
 
-- The `generateKundali()` function in `Kundali.tsx` currently returns a `KundaliData` object with a specific structure. The API response will be mapped to match this same structure so the existing chart components (`NorthIndianChart`, the house grid, etc.) don't need changes.
-- If the backend returns a different field structure for planetary positions or houses, a thin mapping layer will be added in the `generateKundali` function.
-- The `apiPost` client already handles auth tokens, error stringification (the React #31 fix), and retries — no new client logic needed.
+These still need to call external APIs. Since the backend is removed, these will be handled by **Lovable Cloud edge functions** with secrets stored securely.
+
+**Secrets needed in Lovable Cloud:**
+- `ASTROLOGY_API_USER_ID` + `ASTROLOGY_API_KEY` (for Kundali)
+- `WHATSAPP_ACCESS_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` (for notifications)
+- `AUTHKEY_API_KEY` + `AUTHKEY_SENDER_ID` (for SMS OTP)
+- `YOUTUBE_CLIENT_ID` + `YOUTUBE_CLIENT_SECRET` (for live streams)
 
 ---
 
 ## Files Changed Summary
 
-| File | Change Type |
-|------|------------|
-| `src/api/types.ts` | Add Astrology API request/response types |
-| `src/api/astrology.ts` | New file — Astrology API functions |
-| `src/pages/Kundali.tsx` | Replace mock with real API call |
-| `src/pages/KundaliMatching.tsx` | Replace mock with real API call |
-| `supabase/functions/geocode-proxy/index.ts` | Add reverse geocoding support |
-| `src/pages/Panchang.tsx` | Fix CORS by using geocode proxy for reverse geocode |
+| File | Change |
+|---|---|
+| `src/auth/AuthProvider.tsx` | Full rewrite: Supabase auth sessions instead of localStorage tokens |
+| `src/api/client.ts` | Remove; Supabase client replaces it |
+| `src/api/auth.ts` | Remove; Supabase auth replaces it |
+| `src/api/users.ts` | Rewrite: query `profiles` table |
+| `src/api/poojas.ts` | Rewrite: query `pooja_services` table |
+| `src/api/gurus.ts` | Rewrite: query `pundits` table |
+| `src/api/temples.ts` | Rewrite: query `temples` table |
+| `src/api/admin.ts` | Rewrite: direct queries + admin edge function |
+| `src/api/transactions.ts` | Rewrite: query `bookings` table |
+| `src/api/notifications.ts` | Rewrite: query `notification_preferences` table |
+| `src/api/analytics.ts` | Rewrite: aggregate queries |
+| `src/api/gifts.ts` | Rewrite: query `gift_bookings` table |
+| `src/api/livestream.ts` | Rewrite: edge function |
+| `src/api/whatsapp.ts` | Rewrite: edge function |
+| `src/api/astrology.ts` | Rewrite: edge function |
+| `src/pages/Login.tsx` | Update mobile OTP tab to use Supabase phone auth |
+| `src/pages/Signup.tsx` | Update to write extra profile data after Supabase signUp |
+| `supabase/functions/astrology/index.ts` | New: proxy to AstrologyAPI |
+| `supabase/functions/send-whatsapp/index.ts` | New: WhatsApp message sender |
+| `supabase/functions/admin-operations/index.ts` | New: admin-only service-role operations |
+
+---
+
+## Technical Notes
+
+- The `profiles` table already has all the fields needed for `ApiUser` (`full_name`, `email`, `phone`, `date_of_birth`, `time_of_birth`, `birth_location`, `gender`, `gotra`, `nakshatra`, `rashi`, `avatar_url`).
+- The `handle_new_user` trigger already creates a `profiles` row on signup — we just need to update it afterward with the extra fields (DOB, birth location, etc.).
+- Role-based access control moves to `user_roles` table + RLS policies (already exist in the schema).
+- The `isAdmin` check in `AuthProvider` will query `user_roles` table instead of the `/users/me` role field.
+- All pages using `useAuth()` will continue working since the `AuthContextType` interface stays identical — only the implementation changes.
+- The `ProtectedRoute` component needs no changes since it reads from the same context shape.
+
+---
+
+## Implementation Order
+
+1. Rewrite `AuthProvider` and auth flow (unblocks everything else)
+2. Rewrite `src/api/` modules to Supabase queries
+3. Create edge functions for Astrology, WhatsApp, YouTube
+4. Add secrets to Lovable Cloud for those integrations
+5. Update admin pages to use new API layer
+6. Test signup → login → protected route → pundit/admin dashboard flows
