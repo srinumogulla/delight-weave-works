@@ -55,6 +55,8 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import Payment from "./pages/Payment";
 import FestivalCalendar from "./pages/FestivalCalendar";
 import Remedies from "./pages/Remedies";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -115,6 +117,8 @@ const App = () => (
               <Route path="/contact" element={<Contact />} />
               <Route path="/payment/success" element={<PaymentSuccess />} />
               <Route path="/payment" element={<Payment />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               
               {/* Pundit Routes */}
               <Route path="/pundit" element={

@@ -76,6 +76,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (profile) {
       setUser(profile);
       setRole(profile.role);
+    } else {
+      // Profile missing — create a minimal one so user isn't stuck in a redirect loop
+      await supabase.from('profiles').upsert({
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        full_name: supabaseUser.user_metadata?.full_name ?? null,
+      });
+      await supabase.from('user_roles').upsert({ user_id: supabaseUser.id, role: 'user' });
+      const retried = await fetchProfile(supabaseUser.id);
+      if (retried) {
+        setUser(retried);
+        setRole(retried.role);
+      }
     }
   };
 
