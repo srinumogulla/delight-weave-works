@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type { ApiTemple, ApiPooja, CreatePoojaPayload, UpdatePoojaPayload, TempleAnalytics } from './types';
 
 export const listTemples = async (): Promise<ApiTemple[]> => {

@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/auth/AuthProvider';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AdminMobileNav } from './AdminMobileNav';
 import { AdminMobileHeader } from './AdminMobileHeader';
