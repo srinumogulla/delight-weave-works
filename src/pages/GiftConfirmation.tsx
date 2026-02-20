@@ -8,7 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Gift, Calendar, MapPin, Copy, MessageCircle, CheckCircle, Loader2, Download, Heart, Cake, HeartPulse, Sparkles } from "lucide-react";
 import { format } from "date-fns";

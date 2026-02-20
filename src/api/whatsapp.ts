@@ -1,7 +1,7 @@
 // WhatsApp notifications are sent via edge function
 
 export const sendWhatsAppMessage = async (to: string, message: string): Promise<void> => {
-  const { supabase } = await import('@/integrations/supabase/client');
+  const { supabase } = await import('@/lib/supabase');
   const { error } = await supabase.functions.invoke('send-whatsapp', {
     body: { to, message },
   });

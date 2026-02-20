@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { getAdminTransactions } from '@/api/admin';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { listGurus } from '@/api/gurus';
 import { Search, Check, X, Eye, Calendar as CalendarIcon, List } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';

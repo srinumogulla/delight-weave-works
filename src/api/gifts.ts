@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import type { GiftOverview, GiftOccasion } from './types';
 
 export const getGiftsOverview = async (): Promise<GiftOverview> => {

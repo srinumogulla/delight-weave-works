@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Pencil, Trash2, Search, UserCheck, Loader2, CheckCircle, MapPin, Briefcase } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
