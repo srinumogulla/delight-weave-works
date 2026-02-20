@@ -1,132 +1,132 @@
 
-# Fix Login, Signup, and Edge Function Issues
+# Fix Login, Add Forgot Password, and Database Trigger
 
-## Root Cause Analysis
+## What is actually happening (based on real data inspection)
 
-There are **four distinct problems** identified from the console errors and code review:
+### Your confirmed users in the database:
+| Email | Role | Status |
+|---|---|---|
+| demo@gmail.com | **admin** | Has profile |
+| guru@gmail.com | pundit | Has profile |
+| pundit@gmail.com | pundit | Has profile |
+| demo001@gmail.com | user | Has profile |
+| sharma@pantulu.com | pundit | Has profile |
 
----
+- **`guru@vedhamantra.com` does not exist in the auth system at all** — it only existed in the old FastAPI backend. The 400 "Invalid login credentials" error for that email is expected and cannot be fixed in code. That user must sign up fresh.
+- **3 bookings, 5 temples, 5 pundits** are present in the database.
+- **The login redirect `useEffect` is already correctly implemented** in `Login.tsx` (lines 44-49). The redirect logic is in place.
 
-### Problem 1 — Login uses a stale `role` value (redirect always goes to `/`)
-
-In `src/pages/Login.tsx` (lines 54–56 and 81–82), after `signIn()` succeeds, the code does:
-```ts
-setTimeout(() => {
-  redirectByRole(role);  // <-- stale! role is still null at this moment
-}, 300);
-```
-The `role` captured in the closure is whatever it was **before** login (i.e., `null`). The `onAuthStateChange` in `AuthProvider` loads the profile and sets the real role asynchronously — but `Login.tsx` doesn't wait for it. So every user gets sent to `/` regardless of their actual role.
-
-**Fix**: Replace the `setTimeout` + stale `role` pattern with a `useEffect` that watches the `role` from `useAuth()` and navigates when it becomes available after a successful sign-in.
-
----
-
-### Problem 2 — Signup creates Auth users but NOT profiles or user_roles (503 errors)
-
-The `src/auth/AuthProvider.tsx` `signUp()` function does:
-1. `supabase.auth.signUp()` — **succeeds** (user appears in Auth dashboard) ✓
-2. `supabase.from('profiles').update(...)` — **503 Service Unavailable** ✗
-3. `supabase.from('user_roles').insert(...)` — **503 Service Unavailable** ✗
-
-The 503s come from the **existing Supabase project** (`thogujcdmhlalroftpmi`). This happens because:
-- The `handle_new_user` trigger function exists in the database **schema definition** but the `<db-triggers>` section confirms: **"There are no triggers in the database."** — so the trigger is never attached and the `profiles` row is never created automatically.
-- Without a `profiles` row existing first, the `UPDATE` step silently does nothing (UPDATE on non-existent row = 0 rows affected).
-- The `user_roles` INSERT returns 503 because the external project's REST API may be temporarily unavailable or rate-limiting, OR because the RLS policy blocks the insert when the profile hasn't been created yet.
-
-**Fix**:
-1. In `signUp()`, replace the `UPDATE` on profiles with an **`UPSERT`** — this will create the row if it doesn't exist, or update it if it does. This handles the case where the trigger may or may not have run.
-2. Add retry logic and better error handling for the `user_roles` insert.
-3. Create the missing `handle_new_user` **trigger** (not just the function) via a migration on the Lovable Cloud project — but since the actual DB is `thogujcdmhlalroftpmi`, this needs to be done there. Instead, the code-side fix (upsert) is the reliable approach.
+### The remaining real problems:
+1. **No database trigger** — `handle_new_user()` function exists but is not attached to any trigger. New signups create Auth users but not `profiles` rows automatically. The upsert in `signUp()` handles this for new signups, but login for a user whose profile was never created will result in `fetchProfile` returning `null`, and the `AuthProvider` will then set `user` and `role` to `null` — which redirects them back to `/login` in a loop.
+2. **No Forgot Password flow** — no `/forgot-password` or `/reset-password` pages exist.
+3. **Missing "Forgot password?" link** on the login form.
 
 ---
 
-### Problem 3 — Edge function calls go to wrong project
+## Changes Required
 
-The `supabase.functions.invoke('get-panchang', ...)` call in `PanchangSection.tsx` uses the `supabase` client from `@/lib/supabase`, which now points to `thogujcdmhlalroftpmi`. But the `get-panchang` edge function is deployed on the **Lovable Cloud project** (`uuunmenwafhrifatepjm`). So the call goes to the wrong project → CORS error because no function exists there to respond.
+### 1. Database Migration — Attach the `handle_new_user` trigger
 
-**Fix**: Call edge functions using the **direct Lovable Cloud URL** instead of `supabase.functions.invoke()`. A new helper file `src/lib/lovableEdgeFunctions.ts` will export an `invokeEdgeFunction()` wrapper that always hits the correct Lovable Cloud URL (`https://uuunmenwafhrifatepjm.supabase.co/functions/v1/...`) with the correct anon key. This is also needed for `astrology`, `geocode-proxy`, `send-whatsapp`, and `admin-operations`.
+The function `handle_new_user()` already exists (confirmed in db-functions). It just needs to be attached as a trigger on `auth.users`. However, since we cannot modify the `auth` schema directly, the trigger must fire on `auth.users` via a `BEFORE INSERT` or `AFTER INSERT` event. This is the standard Supabase pattern.
 
----
-
-### Problem 4 — Signup and Login import `useAuth` from wrong path
-
-`src/pages/Login.tsx` (line 3) and `src/pages/Signup.tsx` (line 3) import from `@/components/AuthProvider`, but the real `AuthProvider` is at `@/auth/AuthProvider`. The `src/components/AuthProvider.tsx` is a re-export shim so this works, but these files also import `Header`/`Footer` from old paths that may have stale `useAuth` references.
-
----
-
-## Files to Change
-
-### 1. `src/lib/lovableEdgeFunctions.ts` — NEW FILE
-
-Create a helper that always calls Lovable Cloud edge functions by direct URL:
-```ts
-const LOVABLE_FUNCTIONS_URL = 'https://uuunmenwafhrifatepjm.supabase.co/functions/v1';
-const LOVABLE_ANON_KEY = 'eyJhbGci...'; // Lovable Cloud anon key
-
-export async function invokeEdgeFunction(name: string, body?: object) {
-  const res = await fetch(`${LOVABLE_FUNCTIONS_URL}/${name}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${LOVABLE_ANON_KEY}`,
-      'apikey': LOVABLE_ANON_KEY,
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!res.ok) throw new Error(`Edge function error: ${res.status}`);
-  return res.json();
-}
+```sql
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 ```
 
-### 2. `src/auth/AuthProvider.tsx` — Fix signUp to use upsert
+This ensures every new signup automatically gets a `profiles` row, so `fetchProfile` will always find data after login.
 
-Change the profiles `update` to an `upsert` so it always creates the row:
+### 2. Fix `AuthProvider` — handle missing profile gracefully
+
+Currently if `fetchProfile` returns `null` (profile row missing for an existing auth user), `loadUser` does nothing — leaving `user = null` and `role = null`, which causes protected pages to redirect to `/login` in a loop.
+
+Fix: if the profile row is missing after login, create a minimal default profile and set role to `'user'` so the user can still log in and be redirected to the home page.
+
 ```ts
-// Before (breaks if trigger hasn't created the row yet):
-await supabase.from('profiles').update(profileUpdate).eq('id', userId);
-
-// After (creates OR updates the row safely):
-await supabase.from('profiles').upsert({ id: userId, ...profileUpdate });
-```
-
-### 3. `src/pages/Login.tsx` — Fix stale role redirect
-
-Replace the `setTimeout(redirectByRole(role))` pattern with a `useEffect` that waits for `role` to be populated after successful sign-in:
-```ts
-const [loginSuccess, setLoginSuccess] = useState(false);
-
-// In handleEmailLogin, after signIn succeeds:
-setLoginSuccess(true);  // Instead of setTimeout
-
-// New useEffect:
-useEffect(() => {
-  if (loginSuccess && !loading && role !== undefined) {
-    setLoginSuccess(false);
-    redirectByRole(role);
+const loadUser = async (supabaseUser: User | null) => {
+  if (!supabaseUser) { setUser(null); setRole(null); return; }
+  const profile = await fetchProfile(supabaseUser.id);
+  if (profile) {
+    setUser(profile);
+    setRole(profile.role);
+  } else {
+    // Profile missing — create a minimal one so user isn't stuck in redirect loop
+    await supabase.from('profiles').upsert({
+      id: supabaseUser.id,
+      email: supabaseUser.email,
+      full_name: supabaseUser.user_metadata?.full_name ?? null,
+    });
+    await supabase.from('user_roles').upsert({ user_id: supabaseUser.id, role: 'user' });
+    // Retry fetch
+    const retried = await fetchProfile(supabaseUser.id);
+    if (retried) { setUser(retried); setRole(retried.role); }
   }
-}, [loginSuccess, role, loading]);
+};
 ```
 
-### 4. `src/components/panchang/PanchangSection.tsx` — Fix edge function call
+### 3. Add "Forgot password?" link to `src/pages/Login.tsx`
 
-Replace `supabase.functions.invoke('get-panchang', ...)` with `invokeEdgeFunction('get-panchang', ...)` from the new helper.
+Add a small link below the password field:
+```tsx
+<div className="text-right">
+  <Link to="/forgot-password" className="text-sm text-saffron hover:underline">
+    Forgot password?
+  </Link>
+</div>
+```
 
-### 5. Search for other `supabase.functions.invoke` usages
+### 4. Create `src/pages/ForgotPassword.tsx` — NEW FILE
 
-Files that call edge functions via `supabase.functions.invoke()` need to be updated to use `invokeEdgeFunction()`:
-- `src/pages/Kundali.tsx`
-- `src/pages/KundaliMatching.tsx`
-- `src/api/astrology.ts`
-- Any other files using `supabase.functions.invoke`
+A simple page with an email input that calls:
+```ts
+await supabase.auth.resetPasswordForEmail(email, {
+  redirectTo: `${window.location.origin}/reset-password`
+});
+```
+Shows a success message once sent. Styled to match the existing login/signup card style (saffron theme, Header/Footer).
+
+### 5. Create `src/pages/ResetPassword.tsx` — NEW FILE
+
+This page handles the recovery link that lands after the user clicks the email link. It:
+- Checks for `type=recovery` in the URL hash (set by Supabase auth)
+- Listens for the `PASSWORD_RECOVERY` auth event via `onAuthStateChange`
+- Shows a "new password" + "confirm password" form
+- Calls `supabase.auth.updateUser({ password: newPassword })` on submit
+- Redirects to `/login` on success with a success toast
+
+```ts
+supabase.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    setIsRecovery(true);
+  }
+});
+```
+
+Both pages will use `supabase` from `@/lib/supabase` (the production project client) for auth operations.
+
+### 6. Register both new routes in `src/App.tsx`
+
+Add two public (non-protected) routes:
+```tsx
+<Route path="/forgot-password" element={<ForgotPassword />} />
+<Route path="/reset-password" element={<ResetPassword />} />
+```
+
+---
 
 ## Implementation Order
 
-1. Create `src/lib/lovableEdgeFunctions.ts`
-2. Fix `src/auth/AuthProvider.tsx` signup (profiles upsert)
-3. Fix `src/pages/Login.tsx` redirect logic
-4. Update `PanchangSection.tsx` and any other files calling edge functions
+1. Run database migration to attach the trigger
+2. Fix `AuthProvider.tsx` missing profile recovery
+3. Add "Forgot password?" link to `Login.tsx`
+4. Create `ForgotPassword.tsx`
+5. Create `ResetPassword.tsx`
+6. Register routes in `App.tsx`
 
-## What This Does NOT Fix
+---
 
-- The `400 (invalid credentials)` errors on login — these are from users whose accounts don't exist in the existing Supabase Auth yet (they were in the old FastAPI backend only). Those users will need to sign up again or use a password reset flow. This is expected and cannot be fixed in code.
-- If the existing Supabase project (`thogujcdmhlalroftpmi`) is paused/hibernated, the 503 errors will persist until the project is reactivated in the Supabase dashboard.
+## What this does NOT fix
+
+- Login for `guru@vedhamantra.com` and other FastAPI-only users — those accounts do not exist in the authentication system and must sign up fresh. The "Forgot password?" flow only works for users who already have an account in the system.
+- The Panchang/edge function CORS — that is a separate issue with edge functions not being deployed on the production project.
