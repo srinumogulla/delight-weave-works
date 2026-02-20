@@ -170,6 +170,11 @@ const Login = () => {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4">
+          <div className="text-right w-full -mt-2">
+            <Link to="/forgot-password" className="text-sm text-saffron hover:underline">
+              Forgot password?
+            </Link>
+          </div>
           <p className="text-sm text-center text-muted-foreground">
             Don't have an account?{' '}
             <Link to="/signup" className="text-saffron hover:underline">Create one</Link>
