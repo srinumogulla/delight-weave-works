@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { invokeEdgeFunction } from '@/lib/lovableEdgeFunctions';
 import type {
   ApiUser, ApiTemple, ApiPooja, CreatePoojaPayload, UpdatePoojaPayload, ApiTransaction, AdminAnalytics
 } from './types';
@@ -30,24 +31,15 @@ export const getAdminUsers = async (): Promise<ApiUser[]> => {
 };
 
 export const disableUser = async (userId: string): Promise<void> => {
-  const { error } = await supabase.functions.invoke('admin-operations', {
-    body: { action: 'disable_user', user_id: userId },
-  });
-  if (error) throw error;
+  await invokeEdgeFunction('admin-operations', { action: 'disable_user', user_id: userId });
 };
 
 export const enableUser = async (userId: string): Promise<void> => {
-  const { error } = await supabase.functions.invoke('admin-operations', {
-    body: { action: 'enable_user', user_id: userId },
-  });
-  if (error) throw error;
+  await invokeEdgeFunction('admin-operations', { action: 'enable_user', user_id: userId });
 };
 
 export const updateUserRole = async (userId: string, role: string): Promise<void> => {
-  const { error } = await supabase.functions.invoke('admin-operations', {
-    body: { action: 'update_role', user_id: userId, role },
-  });
-  if (error) throw error;
+  await invokeEdgeFunction('admin-operations', { action: 'update_role', user_id: userId, role });
 };
 
 // Temples

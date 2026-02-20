@@ -1,23 +1,13 @@
+import { invokeEdgeFunction } from '@/lib/lovableEdgeFunctions';
 import type { LiveStreamResponse, LiveStream } from './types';
 
 // Live stream functionality via YouTube integration
-// These call the edge function when YouTube credentials are configured
-
 export const startStream = async (poojaId: string): Promise<LiveStreamResponse> => {
-  const { supabase } = await import('@/lib/supabase');
-  const { data, error } = await supabase.functions.invoke('live-stream', {
-    body: { action: 'start', pooja_id: poojaId },
-  });
-  if (error) throw error;
-  return data;
+  return invokeEdgeFunction('live-stream', { action: 'start', pooja_id: poojaId });
 };
 
 export const stopStream = async (poojaId: string): Promise<void> => {
-  const { supabase } = await import('@/lib/supabase');
-  const { error } = await supabase.functions.invoke('live-stream', {
-    body: { action: 'stop', pooja_id: poojaId },
-  });
-  if (error) throw error;
+  await invokeEdgeFunction('live-stream', { action: 'stop', pooja_id: poojaId });
 };
 
 export const getMyStreams = async (): Promise<LiveStream[]> => {

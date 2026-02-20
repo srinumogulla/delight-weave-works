@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/components/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -25,10 +25,11 @@ const Login = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   
-  const { signIn, sendMobileCode, signInWithMobile, role } = useAuth();
+  const { signIn, sendMobileCode, signInWithMobile, role, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const [loginSuccess, setLoginSuccess] = useState(false);
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
 
@@ -38,6 +39,14 @@ const Login = () => {
     else if (userRole === 'temple') navigate('/temple', { replace: true });
     else navigate(from, { replace: true });
   };
+
+  // Wait for role to be loaded after a successful sign-in, then redirect
+  useEffect(() => {
+    if (loginSuccess && !authLoading) {
+      setLoginSuccess(false);
+      redirectByRole(role);
+    }
+  }, [loginSuccess, role, authLoading]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,10 +59,7 @@ const Login = () => {
       return;
     }
     setLoading(false);
-    // onAuthStateChange in AuthProvider will update role; navigate after a brief wait
-    setTimeout(() => {
-      redirectByRole(role);
-    }, 300);
+    setLoginSuccess(true);
   };
 
   const handleSendOtp = async () => {
@@ -79,7 +85,7 @@ const Login = () => {
       return;
     }
     setLoading(false);
-    setTimeout(() => redirectByRole(role), 100);
+    setLoginSuccess(true);
   };
 
   const loginContent = (

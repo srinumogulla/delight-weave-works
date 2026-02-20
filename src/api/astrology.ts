@@ -1,18 +1,10 @@
-import { supabase } from '@/lib/supabase';
+import { invokeEdgeFunction } from '@/lib/lovableEdgeFunctions';
 import type { KundaliRequest, KundaliApiResponse, KundaliMatchingRequest, KundaliMatchingApiResponse } from './types';
 
 export async function generateKundali(data: KundaliRequest): Promise<KundaliApiResponse> {
-  const { data: result, error } = await supabase.functions.invoke('astrology', {
-    body: { action: 'kundali', ...data },
-  });
-  if (error) throw error;
-  return result;
+  return invokeEdgeFunction('astrology', { action: 'kundali', ...data });
 }
 
 export async function getKundaliMatching(data: KundaliMatchingRequest): Promise<KundaliMatchingApiResponse> {
-  const { data: result, error } = await supabase.functions.invoke('astrology', {
-    body: { action: 'kundali-matching', ...data },
-  });
-  if (error) throw error;
-  return result;
+  return invokeEdgeFunction('astrology', { action: 'kundali-matching', ...data });
 }
