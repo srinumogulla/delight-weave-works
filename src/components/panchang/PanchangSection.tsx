@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/auth/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { TimePickerAMPM } from "@/components/ui/time-picker-ampm";
 import { CityAutocomplete } from "@/components/ui/city-autocomplete";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";

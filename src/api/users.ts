@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import type { ApiUser } from './types';
 
 export const getMe = async (): Promise<ApiUser> => {

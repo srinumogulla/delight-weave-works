@@ -8,7 +8,7 @@ import { BackgroundPattern } from "@/components/BackgroundPattern";
 import { PoojaListingCard } from "@/components/PoojaListingCard";
 import { PoojaFilters } from "@/components/PoojaFilters";
 import { HowItWorksTimeline } from "@/components/HowItWorksTimeline";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Video, Package, Shield, Headphones } from "lucide-react";
 
 const features = [

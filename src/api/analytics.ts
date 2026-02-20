@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import type { TrackEventPayload, AnalyticsEvent } from './types';
 
 // Client-side event tracking (stored locally, can be sent to analytics service)

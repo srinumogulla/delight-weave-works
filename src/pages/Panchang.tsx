@@ -15,7 +15,7 @@ import { PanchangCalendar } from "@/components/PanchangCalendar";
 import { MuhuratFinder } from "@/components/MuhuratFinder";
 import { FestivalList } from "@/components/FestivalList";
 import { useLanguage } from "@/i18n";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/components/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
 

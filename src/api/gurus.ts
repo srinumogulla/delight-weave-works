@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import type { ApiGuru, CreateGuruPayload, GuruAnalytics, GuruEarnings } from './types';
 
 export const listGurus = async (): Promise<ApiGuru[]> => {

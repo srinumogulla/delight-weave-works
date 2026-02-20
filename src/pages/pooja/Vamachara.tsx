@@ -6,7 +6,7 @@ import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PoojaListingCard } from "@/components/PoojaListingCard";
 import { HowItWorksTimeline } from "@/components/HowItWorksTimeline";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Search, Flame, Moon, Shield, Skull, Star } from "lucide-react";
 

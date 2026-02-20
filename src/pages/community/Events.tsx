@@ -5,7 +5,7 @@ import { MobileLayout } from "@/components/mobile/MobileLayout";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BackgroundPattern } from "@/components/BackgroundPattern";
 import { EventCard } from "@/components/EventCard";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Calendar } from "lucide-react";
 
 const Events = () => {

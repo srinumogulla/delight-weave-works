@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import type { CreateTransactionPayload, ApiTransaction } from './types';
 
 export const createTransaction = async (data: CreateTransactionPayload): Promise<ApiTransaction> => {
