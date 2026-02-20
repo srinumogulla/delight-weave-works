@@ -1,112 +1,88 @@
 
-# Migrate Backend from FastAPI to Lovable Cloud
+# Connect Frontend to Your Existing Supabase Database
 
-## What "Remove the Backend" Means
+## The Situation
 
-The external FastAPI server at `api.vedhamantra.com` is being decommissioned. All auth, user management, data (poojas, bookings, temples, pundits, etc.) must now be served by the Lovable Cloud backend that is already connected to this project. The good news is that the database schema already exists in Lovable Cloud — tables like `profiles`, `poojas`, `bookings`, `pundits`, `temples` are all already there.
+Your project currently has TWO separate databases:
 
-The work is to replace every call in `src/api/` that goes to `api.vedhamantra.com` with direct Lovable Cloud (Supabase) calls.
-
----
-
-## Scope of Changes
-
-### Layer 1: Authentication (Highest Priority)
-
-Currently auth uses `localStorage` tokens + the external `/auth/login`, `/auth/signup` endpoints.
-
-**New approach:** Use Lovable Cloud's built-in auth system directly with the Supabase client. This is email/password signup and login using `supabase.auth.signUp()` and `supabase.auth.signInWithPassword()`.
-
-The `profiles` table already exists and stores: `full_name`, `email`, `phone`, `date_of_birth`, `time_of_birth`, `birth_location`, `gender`, `gotra`, `nakshatra`, `rashi`, `avatar_url`.
-
-**Files to rewrite:**
-- `src/auth/AuthProvider.tsx` — switch from `localStorage` tokens + REST calls to Supabase auth session listener (`onAuthStateChange`). Role comes from `user_roles` table (already exists in schema).
-- `src/api/auth.ts` — no longer needed, can be deleted
-- `src/api/users.ts` — replace `/users/me` with `supabase.from('profiles').select()`
-- `src/api/client.ts` — remove `API_BASE`, token injection; the Supabase JS client handles auth automatically
-
-**Signup flow change:** After `supabase.auth.signUp()`, extra profile data (DOB, birth location, phone, gender) gets inserted into the `profiles` table. The `handle_new_user` trigger already creates the profile row automatically on signup.
-
-**Mobile OTP:** Replace AuthKey SMS with Supabase's built-in phone OTP (requires phone auth to be enabled in Lovable Cloud auth settings). If not enabled, we gracefully remove this tab and note it can be added later.
-
-**Role detection:** The `user_roles` table already exists with `app_role` enum (`admin`, `user`, `pundit`, `temple`). After signup, the role is inserted into `user_roles`. Admin assignment remains manual.
-
-### Layer 2: Data APIs
-
-All `src/api/` modules currently call `api.vedhamantra.com`. They will be rewritten to use `supabase.from(table)` directly.
-
-| API module | Old endpoint | New Lovable Cloud call |
+| | Current Lovable Cloud | Your Existing Database |
 |---|---|---|
-| `poojas.ts` | `/content/poojas` | `supabase.from('pooja_services')` |
-| `gurus.ts` | `/gurus` | `supabase.from('pundits')` |
-| `temples.ts` | `/temples` | `supabase.from('temples')` |
-| `admin.ts` | `/jambalakadipamba/...` | `supabase.from(table)` with service role via edge function |
-| `transactions.ts` | `/transactions` | `supabase.from('bookings')` |
-| `notifications.ts` | `/notifications` | `supabase.from('notification_preferences')` |
-| `analytics.ts` | `/analytics` | Aggregate queries on existing tables |
-| `gifts.ts` | `/gifts` | `supabase.from('gift_bookings')` |
-| `livestream.ts` | `/live-streams` | Edge function (YouTube integration) |
-| `whatsapp.ts` | `/whatsapp` | Edge function |
+| Project ID | `uuunmenwafhrifatepjm` | `thogujcdmhlalroftpmi` |
+| Data | Empty (new) | Has all your real data |
+| Auth users | None | All existing users |
+| Connected to frontend | Yes | No |
 
-### Layer 3: Admin Panel
-
-The admin pages currently call `/jambalakadipamba/...`. These will be switched to direct Supabase queries. Admin identity is confirmed via the `user_roles` table (`role = 'admin'`). Sensitive admin operations (deleting users, bulk operations) will go through a `admin-operations` edge function with service-role key.
-
-### Layer 4: External Integrations (Astrology, WhatsApp, YouTube, SMS)
-
-These still need to call external APIs. Since the backend is removed, these will be handled by **Lovable Cloud edge functions** with secrets stored securely.
-
-**Secrets needed in Lovable Cloud:**
-- `ASTROLOGY_API_USER_ID` + `ASTROLOGY_API_KEY` (for Kundali)
-- `WHATSAPP_ACCESS_TOKEN` + `WHATSAPP_PHONE_NUMBER_ID` (for notifications)
-- `AUTHKEY_API_KEY` + `AUTHKEY_SENDER_ID` (for SMS OTP)
-- `YOUTUBE_CLIENT_ID` + `YOUTUBE_CLIENT_SECRET` (for live streams)
+The FastAPI backend was reading from `thogujcdmhlalroftpmi`. You want the frontend to use that same database so no data is lost.
 
 ---
 
-## Files Changed Summary
+## Two Paths Available
 
-| File | Change |
-|---|---|
-| `src/auth/AuthProvider.tsx` | Full rewrite: Supabase auth sessions instead of localStorage tokens |
-| `src/api/client.ts` | Remove; Supabase client replaces it |
-| `src/api/auth.ts` | Remove; Supabase auth replaces it |
-| `src/api/users.ts` | Rewrite: query `profiles` table |
-| `src/api/poojas.ts` | Rewrite: query `pooja_services` table |
-| `src/api/gurus.ts` | Rewrite: query `pundits` table |
-| `src/api/temples.ts` | Rewrite: query `temples` table |
-| `src/api/admin.ts` | Rewrite: direct queries + admin edge function |
-| `src/api/transactions.ts` | Rewrite: query `bookings` table |
-| `src/api/notifications.ts` | Rewrite: query `notification_preferences` table |
-| `src/api/analytics.ts` | Rewrite: aggregate queries |
-| `src/api/gifts.ts` | Rewrite: query `gift_bookings` table |
-| `src/api/livestream.ts` | Rewrite: edge function |
-| `src/api/whatsapp.ts` | Rewrite: edge function |
-| `src/api/astrology.ts` | Rewrite: edge function |
-| `src/pages/Login.tsx` | Update mobile OTP tab to use Supabase phone auth |
-| `src/pages/Signup.tsx` | Update to write extra profile data after Supabase signUp |
-| `supabase/functions/astrology/index.ts` | New: proxy to AstrologyAPI |
-| `supabase/functions/send-whatsapp/index.ts` | New: WhatsApp message sender |
-| `supabase/functions/admin-operations/index.ts` | New: admin-only service-role operations |
+### Option A — Swap to Your Existing Database (Recommended if you have real data)
+
+Point this project at your existing Supabase project (`thogujcdmhlalroftpmi`). All your existing users, poojas, bookings, temples — everything already there — will immediately be accessible. No data migration needed.
+
+**What this involves:**
+1. Get the **URL** and **anon key** from your existing Supabase project (Project Settings → API)
+2. Update `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the `.env` file
+3. Replace the auto-generated `src/integrations/supabase/client.ts` with one pointing to the correct project
+4. Sync the database schema (copy table definitions, RLS policies, triggers from the old project)
+5. Test login/signup against the real database
+
+**Downside:** The Lovable Cloud integration tools (migrations, edge function secrets, etc.) will no longer work seamlessly since Lovable Cloud manages the current project only.
 
 ---
 
-## Technical Notes
+### Option B — Migrate Data to Lovable Cloud (Recommended for long-term)
 
-- The `profiles` table already has all the fields needed for `ApiUser` (`full_name`, `email`, `phone`, `date_of_birth`, `time_of_birth`, `birth_location`, `gender`, `gotra`, `nakshatra`, `rashi`, `avatar_url`).
-- The `handle_new_user` trigger already creates a `profiles` row on signup — we just need to update it afterward with the extra fields (DOB, birth location, etc.).
-- Role-based access control moves to `user_roles` table + RLS policies (already exist in the schema).
-- The `isAdmin` check in `AuthProvider` will query `user_roles` table instead of the `/users/me` role field.
-- All pages using `useAuth()` will continue working since the `AuthContextType` interface stays identical — only the implementation changes.
-- The `ProtectedRoute` component needs no changes since it reads from the same context shape.
+Keep the Lovable Cloud project (`uuunmenwafhrifatepjm`) as the primary database and import your existing data from the old project into it. This keeps all Lovable Cloud benefits (auto-managed auth, edge functions, secrets).
+
+**What this involves:**
+1. Export data from your existing Supabase project using `pg_dump` or the Supabase dashboard Table Editor CSV export
+2. Import data into the Lovable Cloud database using the SQL editor
+3. Sync any missing schema (tables, enums, triggers, RLS policies) from the old project to the new one
+4. Update auth users — Supabase auth users **cannot** be exported/imported directly; existing users would need to reset their passwords, OR you contact Supabase support for a user migration
+
+**Downside:** Existing auth users (passwords/sessions) cannot be migrated. Users would need to re-register or reset passwords.
 
 ---
 
-## Implementation Order
+## Recommendation
 
-1. Rewrite `AuthProvider` and auth flow (unblocks everything else)
-2. Rewrite `src/api/` modules to Supabase queries
-3. Create edge functions for Astrology, WhatsApp, YouTube
-4. Add secrets to Lovable Cloud for those integrations
-5. Update admin pages to use new API layer
-6. Test signup → login → protected route → pundit/admin dashboard flows
+Since you said "we have a Supabase API" — if your old project has **real users and real data** that must be preserved, **Option A** (swap project) is the right move. If the old project only has test data, **Option B** (stay on Lovable Cloud) is better.
+
+---
+
+## Technical Steps for Option A
+
+### Step 1: Get credentials from your existing Supabase project
+Go to your old Supabase project dashboard → Settings → API:
+- Copy the **Project URL** (e.g. `https://thogujcdmhlalroftpmi.supabase.co`)
+- Copy the **anon/public key** (starts with `eyJ...`)
+
+### Step 2: Update environment variables
+Update `.env`:
+```
+VITE_SUPABASE_URL=https://thogujcdmhlalroftpmi.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=<anon key from old project>
+```
+
+### Step 3: Verify schema compatibility
+The `src/integrations/supabase/types.ts` is auto-generated from the current Lovable Cloud project. After switching, the TypeScript types must match your old project's actual schema. We'd need to verify:
+- `profiles` table has: `full_name`, `email`, `phone`, `date_of_birth`, `time_of_birth`, `birth_location`, `gender`, `gotra`, `nakshatra`, `rashi`, `avatar_url`
+- `user_roles` table has: `user_id`, `role` with the `app_role` enum
+- `pooja_services`, `bookings`, `pundits`, `temples`, `gift_bookings` tables all exist
+
+### Step 4: Edge function secrets
+The 3 edge functions (`astrology`, `send-whatsapp`, `admin-operations`) are deployed on the Lovable Cloud project. They would need to be re-deployed if you switch projects.
+
+---
+
+## What I Need From You
+
+To proceed, please tell me:
+1. **Which option do you prefer?** (A = use your existing database, B = stay on Lovable Cloud and migrate data)
+2. **Does your existing database have real users you need to preserve?**
+3. If Option A: **Share your existing project's anon key** (NOT the password — just the `eyJ...` public API key from Project Settings → API → `anon` key)
+
+Also, please **change your database password** in your Supabase project settings immediately since it was shared here.
